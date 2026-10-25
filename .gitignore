@@ -23,6 +23,9 @@ yarn-error.log*
 .env.local
 .env.*.local
 
-# Build output
-dist/
+# Gradle and build artifacts
+.gradle/
+**/.gradle/
+**/build/
 build/
+dist/
