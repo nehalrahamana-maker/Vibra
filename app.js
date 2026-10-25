@@ -1444,6 +1444,51 @@ function setupMediaSessionHandlers() {
   });
 }
 
+// Android Back Button Bridge
+window.handleAndroidBack = function() {
+  const expanded = document.getElementById('expandedPlayerModal');
+  const queue = document.getElementById('queueDrawer');
+  const sleep = document.getElementById('sleepModalBackdrop');
+  if (expanded && expanded.classList.contains('open')) {
+    expanded.classList.remove('open');
+    return true;
+  }
+  if (queue && queue.classList.contains('open')) {
+    queue.classList.remove('open');
+    return true;
+  }
+  if (sleep && sleep.style.display === 'flex') {
+    sleep.style.display = 'none';
+    return true;
+  }
+  return false;
+};
+
+// Mobile Touch Gestures (Swipe Player Bar to change tracks)
+function setupMobileGestures() {
+  const playerBar = document.getElementById('playerBar');
+  let startX = 0;
+  let startY = 0;
+
+  playerBar.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  playerBar.addEventListener('touchend', (e) => {
+    const deltaX = e.changedTouches[0].clientX - startX;
+    const deltaY = e.changedTouches[0].clientY - startY;
+
+    if (Math.abs(deltaX) > 60 && Math.abs(deltaY) < 40) {
+      if (deltaX < 0) {
+        nextTrack(); // Swipe Left -> Next
+      } else {
+        prevTrack(); // Swipe Right -> Prev
+      }
+    }
+  }, { passive: true });
+}
+
 // =============================================================================
 // 11. INITIALIZATION ON DOM READY
 // =============================================================================
@@ -1462,6 +1507,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSleepTimer();
   setupKeyboardShortcuts();
   setupMediaSessionHandlers();
+  setupMobileGestures();
 
   // Initial load
   loadTrack(0, false);

@@ -45,8 +45,16 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
+        if (webView != null) {
+            webView.evaluateJavascript("window.handleAndroidBack ? window.handleAndroidBack() : false", value -> {
+                if ("true".equals(value)) {
+                    // Modal or drawer was closed
+                } else if (webView.canGoBack()) {
+                    webView.goBack();
+                } else {
+                    MainActivity.super.onBackPressed();
+                }
+            });
         } else {
             super.onBackPressed();
         }
