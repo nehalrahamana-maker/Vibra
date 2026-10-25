@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.Vibra" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#0A0B10</item>
+        <item name="android:navigationBarColor">#0A0B10</item>
+        <item name="android:windowBackground">#0A0B10</item>
+    </style>
+</resources>

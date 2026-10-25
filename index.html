@@ -69,6 +69,14 @@
         </button>
 
         <div class="nav-section-title">MY LIBRARY</div>
+        <button class="nav-item" data-view="playlists" id="navPlaylistsBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15V6a2 2 0 0 0-2-2H7l-4 4v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Z"></path><path d="M3 8h4v4H3Z"></path><path d="M11 8h6"></path><path d="M11 12h6"></path></svg>
+          <span>Playlists (<span id="playlistCountBadge">0</span>)</span>
+        </button>
+        <button class="nav-item" data-view="downloads" id="navDownloadsBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>Offline (<span id="downloadsCountBadge">0</span>)</span>
+        </button>
         <button class="nav-item" data-view="library" id="navLibraryBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
           <span>Favorites (<span id="favCount">0</span>)</span>
@@ -420,17 +428,90 @@
           </div>
         </section>
 
-        <!-- 7. FAVORITES / LIBRARY VIEW -->
-        <section class="view-panel" id="view-library">
+        <!-- 8. PLAYLISTS VIEW -->
+        <section class="view-panel" id="view-playlists">
           <div class="section-block">
             <div class="section-header">
               <div>
-                <h2 class="section-title">Liked Songs & Custom Library</h2>
-                <p class="section-subtitle">Your bookmarked and imported tracks saved locally</p>
+                <h2 class="section-title">My Custom Playlists</h2>
+                <p class="section-subtitle">Create, organize, and curate your personalized music collections</p>
+              </div>
+              <button class="btn-primary" id="openCreatePlaylistBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>New Playlist</span>
+              </button>
+            </div>
+
+            <!-- Custom Playlists Grid -->
+            <div class="playlists-grid" id="playlistsGrid">
+              <!-- Populated dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- Active Playlist Detail Sub-View (Hidden by default) -->
+          <div class="playlist-detail-container" id="playlistDetailContainer" style="display: none;">
+            <div class="playlist-detail-header">
+              <button class="icon-pill-btn" id="backToPlaylistsBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                <span>All Playlists</span>
+              </button>
+              <div class="playlist-detail-info">
+                <div class="playlist-art-collage" id="playlistArtCollage">
+                  <img src="assets/covers/cyberpunk.jpg" alt="Playlist Art">
+                </div>
+                <div class="playlist-meta-box">
+                  <span class="playlist-tag">CUSTOM PLAYLIST</span>
+                  <h1 class="playlist-name-display" id="detailPlaylistName">My Study Beats</h1>
+                  <p class="playlist-desc-display" id="detailPlaylistDesc">Late night coding and focus frequencies</p>
+                  <div class="playlist-stats-row">
+                    <span id="detailTrackCount">0 songs</span> &bull; <span id="detailDuration">0 min</span>
+                  </div>
+                  <div class="playlist-action-bar">
+                    <button class="btn-primary" id="playEntirePlaylistBtn">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                      <span>Play All</span>
+                    </button>
+                    <button class="btn-secondary" id="renamePlaylistBtn">Rename</button>
+                    <button class="btn-secondary delete-btn" id="deletePlaylistBtn">Delete</button>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="track-grid" id="favoritesGrid">
+
+            <div class="playlist-tracks-list" id="playlistTracksList">
               <!-- Dynamically populated -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. OFFLINE DOWNLOADS VIEW -->
+        <section class="view-panel" id="view-downloads">
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Offline Music Vault</h2>
+                <p class="section-subtitle">Songs downloaded to your device storage for offline playback with zero internet</p>
+              </div>
+              <button class="btn-secondary" id="clearAllDownloadsBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <span>Clear All Offline</span>
+              </button>
+            </div>
+
+            <!-- Offline Storage Stats Badge -->
+            <div class="offline-storage-card">
+              <div class="storage-info">
+                <span class="storage-title">IndexedDB Offline Storage</span>
+                <span class="storage-subtitle" id="storageUsageLabel">0 tracks saved &bull; 0 MB cached</span>
+              </div>
+              <div class="offline-badge">
+                <span class="offline-dot"></span> NO INTERNET REQUIRED
+              </div>
+            </div>
+
+            <!-- Downloaded Tracks Grid -->
+            <div class="track-grid" id="downloadsGrid">
+              <!-- Dynamically loaded -->
             </div>
           </div>
         </section>
@@ -453,6 +534,12 @@
           <span class="player-track-name" id="playerTrackTitle">Neon Eclipse</span>
           <button class="like-btn" id="playerLikeBtn" title="Add to favorites">
             <svg class="heart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          </button>
+          <button class="action-btn download-action-btn" id="playerDownloadBtn" title="Download for offline playback">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button class="action-btn playlist-add-btn" id="playerAddPlaylistBtn" title="Add to custom playlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"></path></svg>
           </button>
         </div>
         <span class="player-artist-name" id="playerArtistName">Vector Drive</span>
@@ -578,6 +665,46 @@
         <button class="sleep-opt" data-minutes="45">45 Minutes</button>
         <button class="sleep-opt" data-minutes="60">1 Hour</button>
         <button class="sleep-opt" data-minutes="-1">At End of Current Track</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Playlist Modal -->
+  <div class="modal-backdrop" id="createPlaylistModal" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-dialog-header">
+        <h3>Create New Playlist</h3>
+        <button class="dialog-close-btn" id="closeCreatePlaylistModalBtn">&times;</button>
+      </div>
+      <p>Give your playlist a title and an optional vibe description.</p>
+      <div class="modal-form-group">
+        <label for="newPlaylistNameInput">Playlist Name</label>
+        <input type="text" id="newPlaylistNameInput" class="modal-text-input" placeholder="e.g., Midnight Coding, Gym Boost..." autocomplete="off">
+      </div>
+      <div class="modal-form-group">
+        <label for="newPlaylistDescInput">Description (Optional)</label>
+        <input type="text" id="newPlaylistDescInput" class="modal-text-input" placeholder="e.g., Deep focus beats for programming" autocomplete="off">
+      </div>
+      <div class="modal-dialog-footer">
+        <button class="btn-secondary" id="cancelCreatePlaylistBtn">Cancel</button>
+        <button class="btn-primary" id="saveNewPlaylistBtn">Create Playlist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add to Playlist Picker Modal -->
+  <div class="modal-backdrop" id="addToPlaylistModal" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-dialog-header">
+        <h3>Add to Playlist</h3>
+        <button class="dialog-close-btn" id="closeAddToPlaylistModalBtn">&times;</button>
+      </div>
+      <p id="addToPlaylistPrompt">Select which playlist to add this track to:</p>
+      <div class="playlist-picker-list" id="playlistPickerList">
+        <!-- Playlists populated dynamically -->
+      </div>
+      <div class="modal-dialog-footer">
+        <button class="btn-secondary" id="cancelAddToPlaylistBtn">Done</button>
       </div>
     </div>
   </div>

@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-apk:
-    name: Build Vibra APK
+    name: Build Native Kotlin Compose APK
     runs-on: ubuntu-latest
 
     steps:
@@ -26,20 +26,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Prepare Web Assets in Android Assets Directory
+      - name: Generate Wrapper & Build Debug APK
         run: |
-          mkdir -p android/app/src/main/assets/assets/covers
-          cp index.html android/app/src/main/assets/
-          cp style.css android/app/src/main/assets/
-          cp app.js android/app/src/main/assets/
-          cp manifest.json android/app/src/main/assets/
-          cp -r assets/covers/* android/app/src/main/assets/assets/covers/
-
-      - name: Build Android Debug APK
-        run: |
-          cd android
-          gradle assembleDebug --stacktrace
-          cp app/build/outputs/apk/debug/app-debug.apk ../Vibra-v1.0.0.apk
+          gradle wrapper
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+          cp app/build/outputs/apk/debug/app-debug.apk Vibra-v1.0.0.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -52,16 +44,16 @@ jobs:
         if: startsWith(github.ref, 'refs/heads/main')
         with:
           tag_name: v1.0.0
-          name: Vibra Release v1.0.0 (Android APK)
+          name: Vibra Release v1.0.0 (Native Jetpack Compose APK)
           body: |
-            ### 🎵 Vibra v1.0.0 — Next-Gen Music Player
+            ### 🎵 Vibra v1.0.0 — Native Jetpack Compose Music App
             
-            - Built with Web Audio API 6-Band Equalizer & Visualizer
-            - LRCLIB Synced Lyrics Integration
-            - Online YouTube Music Streaming
-            - Glassmorphism & Cyberpunk Neon UI
+            - 100% Pure Kotlin & Google Jetpack Compose
+            - AndroidX Media3 / ExoPlayer Engine
+            - Dark Obsidian & Cyberpunk Neon UI
+            - Low-latency Audiophile Sound Reproduction
             
-            **Download the attached `Vibra-v1.0.0.apk` and install it directly on your Android phone!**
+            **Download the attached `Vibra-v1.0.0.apk` and install it on your Android phone!**
           files: Vibra-v1.0.0.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
