@@ -1,0 +1,23 @@
+{
+  "name": "vibra",
+  "version": "1.0.0",
+  "description": "Vibra — Next-Gen Music Streaming & Audio Visualizer inspired by SimpMusic",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "build:android": "cd android && ./gradlew assembleDebug"
+  },
+  "keywords": [
+    "music",
+    "music-player",
+    "youtube-music",
+    "simpmusic",
+    "equalizer",
+    "audio-visualizer",
+    "lyrics",
+    "pwa",
+    "android-app"
+  ],
+  "author": "Kazi Nehal",
+  "license": "MIT"
+}
