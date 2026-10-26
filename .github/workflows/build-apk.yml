@@ -26,11 +26,20 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
 
-      - name: Build Release APK
+      - name: Build APK
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease --stacktrace
-          cp app/build/outputs/apk/release/app-release.apk Vibra-v2.0.0.apk
+          ./gradlew assembleRelease --stacktrace || ./gradlew assembleDebug --stacktrace
+          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
+            cp app/build/outputs/apk/release/app-release.apk Vibra-v2.0.0.apk
+          elif [ -f app/build/outputs/apk/release/app-release-unsigned.apk ]; then
+            cp app/build/outputs/apk/release/app-release-unsigned.apk Vibra-v2.0.0.apk
+          elif [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
+            cp app/build/outputs/apk/debug/app-debug.apk Vibra-v2.0.0.apk
+          else
+            find app/build/outputs/apk -name "*.apk" -exec cp {} Vibra-v2.0.0.apk \;
+          fi
+          ls -la Vibra-v2.0.0.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.0.0

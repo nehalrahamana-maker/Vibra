@@ -1142,6 +1142,19 @@ body {
   text-shadow: 0 0 24px var(--accent-glow);
 }
 
+.lyric-word {
+  display: inline-block;
+  transition: color 0.15s ease, text-shadow 0.15s ease, transform 0.15s ease;
+  color: inherit;
+}
+
+.lyric-line.active .lyric-word.active-word {
+  color: #00f0ff;
+  text-shadow: 0 0 16px rgba(0, 240, 255, 0.75);
+  font-weight: 800;
+  transform: scale(1.06);
+}
+
 /* ==========================================================================
    EQUALIZER & FX STUDIO
    ========================================================================== */

@@ -143,6 +143,9 @@ const DEFAULT_SETTINGS = {
   timeoutMs: 8000,
   lyricsProvider: 'lrclib',
   lyricsPlainFallback: true,
+  lyricsWordSync: true,
+  lyricsApiBase: '',
+  lyricsOrder: 'lrclib-first',
   crossfadeSec: 0,
   gapless: true,
   normalize: false,
@@ -994,6 +997,10 @@ class Visualizer {
     this.cachedCapWidth = 0;
     this.capPad = 12;
 
+    this.frameCount = 0;
+    this.lastFpsUpdate = performance.now();
+    this.fpsElement = document.getElementById('visFps');
+
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
     document.addEventListener('visibilitychange', () => {
@@ -1037,6 +1044,16 @@ class Visualizer {
   start() {
     if (this.animationId) cancelAnimationFrame(this.animationId);
     const render = () => {
+      const now = performance.now();
+      this.frameCount++;
+      if (now - this.lastFpsUpdate >= 500) {
+        const fps = Math.round((this.frameCount * 1000) / (now - this.lastFpsUpdate));
+        if (!this.fpsElement) this.fpsElement = document.getElementById('visFps');
+        if (this.fpsElement) this.fpsElement.textContent = `${fps} FPS`;
+        this.frameCount = 0;
+        this.lastFpsUpdate = now;
+      }
+
       const visView = document.getElementById('view-visualizer');
       const expandedModal = document.getElementById('expandedPlayerModal');
       const isVisible = (visView && visView.classList.contains('active')) ||
@@ -1185,68 +1202,147 @@ let visualizer = null;
 // 5. REAL-TIME SYNCED LYRICS PARSER (LRCLIB FORMAT)
 // =============================================================================
 
+function parseLrcString(lrcString) {
+  const parsed = [];
+  if (!lrcString) return parsed;
+  const lines = lrcString.split('\n');
+  const timeRegex = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/g;
+
+  for (const rawLine of lines) {
+    let match;
+    const timeStamps = [];
+    let text = rawLine;
+
+    while ((match = timeRegex.exec(rawLine)) !== null) {
+      const mins = parseInt(match[1], 10);
+      const secs = parseInt(match[2], 10);
+      const ms = match[3] ? parseInt(match[3].padEnd(3, '0'), 10) : 0;
+      timeStamps.push(mins * 60 + secs + ms / 1000);
+      text = text.replace(match[0], '');
+    }
+
+    text = text.trim();
+    if (text) {
+      timeStamps.forEach(time => {
+        parsed.push({ time, text });
+      });
+    }
+  }
+  parsed.sort((a, b) => a.time - b.time);
+  return parsed;
+}
+
+function parsePlainText(plainText) {
+  if (!plainText) return [];
+  return plainText.split('\n').filter(l => l.trim()).map((text, i) => ({
+    time: i * 5,
+    text: text.trim()
+  }));
+}
+
+const LyricsSources = {
+  async best(track) {
+    if (!track) return null;
+    const ladder = (settings.lyricsWordSync && settings.lyricsApiBase)
+      ? (settings.lyricsOrder === 'spotify-first' ? ['spotifyApi', 'lrclib'] : ['lrclib', 'spotifyApi'])
+      : ['lrclib', 'spotifyApi'];
+
+    for (const name of ladder) {
+      try {
+        const r = await this.providers[name](track);
+        if (r && r.lines && r.lines.length > 0) return r;
+      } catch (e) {
+        console.warn(`Lyrics router [${name}] miss:`, e);
+      }
+    }
+    return null;
+  },
+
+  providers: {
+    lrclib: async (track) => {
+      const res = await fetch(`https://lrclib.net/api/get?artist_name=${encodeURIComponent(track.artist)}&track_name=${encodeURIComponent(track.title)}`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data.syncedLyrics) {
+        return {
+          source: 'lrclib',
+          type: 'line',
+          lines: parseLrcString(data.syncedLyrics)
+        };
+      }
+      if (data.plainLyrics && settings.lyricsPlainFallback) {
+        return {
+          source: 'lrclib',
+          type: 'plain',
+          lines: parsePlainText(data.plainLyrics)
+        };
+      }
+      return null;
+    },
+
+    spotifyApi: async (track) => {
+      const base = (settings.lyricsApiBase || '').trim().replace(/\/+$/, '');
+      if (!base) return null;
+      const res = await fetch(`${base}/lyrics?name=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}`, {
+        signal: AbortSignal.timeout(settings.timeoutMs || 8000)
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+
+      if (data.lines && Array.isArray(data.lines)) {
+        const normalized = data.lines.map(line => {
+          const time = parseFloat(line.startTimeMs || line.time || 0) / (line.startTimeMs ? 1000 : 1);
+          const words = (line.words && Array.isArray(line.words) && line.words.length > 0) ? line.words.map(w => ({
+            start: parseFloat(w.startTimeMs || w.start || 0) / (w.startTimeMs ? 1000 : 1),
+            end: parseFloat(w.endTimeMs || w.end || 0) / (w.endTimeMs ? 1000 : 1),
+            word: w.string || w.word || ''
+          })) : undefined;
+
+          return {
+            time,
+            text: line.words ? line.words.map(w => w.string || w.word).join(' ') : (line.text || ''),
+            words
+          };
+        });
+
+        return {
+          source: 'spotify',
+          type: normalized.some(l => l.words?.length) ? 'word' : 'line',
+          lines: normalized
+        };
+      }
+      return null;
+    }
+  }
+};
+
 class LyricsEngine {
   constructor() {
     this.parsedLines = [];
     this.currentIndex = -1;
-  }
-
-  parse(lrcString) {
-    this.parsedLines = [];
-    if (!lrcString) return;
-
-    const lines = lrcString.split('\n');
-    const timeRegex = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/g;
-
-    for (const rawLine of lines) {
-      let match;
-      const timeStamps = [];
-      let text = rawLine;
-
-      while ((match = timeRegex.exec(rawLine)) !== null) {
-        const mins = parseInt(match[1], 10);
-        const secs = parseInt(match[2], 10);
-        const ms = match[3] ? parseInt(match[3].padEnd(3, '0'), 10) : 0;
-        const totalSeconds = mins * 60 + secs + ms / 1000;
-        timeStamps.push(totalSeconds);
-        text = text.replace(match[0], '');
-      }
-
-      text = text.trim();
-      if (text) {
-        timeStamps.forEach(time => {
-          this.parsedLines.push({ time, text });
-        });
-      }
-    }
-
-    this.parsedLines.sort((a, b) => a.time - b.time);
+    this.source = 'none';
   }
 
   async fetchOnlineLyrics(artist, track) {
-    try {
-      const res = await fetch(`https://lrclib.net/api/get?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(track)}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.syncedLyrics) {
-          this.parse(data.syncedLyrics);
-          return true;
-        } else if (data.plainLyrics) {
-          this.parsePlain(data.plainLyrics);
-          return true;
-        }
-      }
-    } catch (e) {
-      console.warn('LRCLIB lyrics fetch fallback:', e);
+    if (settings.lyricsProvider === 'off') {
+      this.parsedLines = [];
+      this.source = 'none';
+      return false;
     }
+    const result = await LyricsSources.best({ artist, title: track });
+    if (result && result.lines?.length) {
+      this.parsedLines = result.lines;
+      this.source = result.source;
+      return true;
+    }
+    this.parsedLines = [];
+    this.source = 'none';
     return false;
   }
 
-  parsePlain(plainText) {
-    this.parsedLines = plainText.split('\n').filter(l => l.trim()).map((text, i) => ({
-      time: i * 5,
-      text
-    }));
+  parse(lrcString) {
+    this.parsedLines = parseLrcString(lrcString);
+    this.source = 'curated';
   }
 
   renderTo(containerId) {
@@ -1262,11 +1358,15 @@ class LyricsEngine {
       return;
     }
 
-    container.innerHTML = this.parsedLines.map((line, idx) => `
-      <div class="lyric-line" data-index="${idx}" data-time="${line.time}">
-        ${esc(line.text)}
-      </div>
-    `).join('');
+    container.innerHTML = this.parsedLines.map((line, idx) => {
+      if (line.words && line.words.length > 0 && settings.lyricsWordSync) {
+        const wordsHtml = line.words.map(w =>
+          `<span class="lyric-word" data-start="${w.start}" data-end="${w.end}">${esc(w.word)}</span>`
+        ).join(' ');
+        return `<div class="lyric-line with-words" data-index="${idx}" data-time="${line.time}">${wordsHtml}</div>`;
+      }
+      return `<div class="lyric-line" data-index="${idx}" data-time="${line.time}">${esc(line.text)}</div>`;
+    }).join('');
 
     // Click to seek
     container.querySelectorAll('.lyric-line').forEach(el => {
@@ -1289,11 +1389,11 @@ class LyricsEngine {
       }
     }
 
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
     if (activeIdx !== this.currentIndex) {
       this.currentIndex = activeIdx;
-      const container = document.getElementById(containerId);
-      if (!container) return;
-
       const lines = container.querySelectorAll('.lyric-line');
       lines.forEach((el, idx) => {
         if (idx === activeIdx) {
@@ -1303,6 +1403,18 @@ class LyricsEngine {
           el.classList.remove('active');
         }
       });
+    }
+
+    // Word-sync highlight check inside active line
+    if (activeIdx >= 0 && settings.lyricsWordSync) {
+      const activeLineEl = container.querySelector(`.lyric-line[data-index="${activeIdx}"].with-words`);
+      if (activeLineEl) {
+        const wordSpans = activeLineEl.querySelectorAll('.lyric-word');
+        wordSpans.forEach(span => {
+          const start = parseFloat(span.getAttribute('data-start') || '0');
+          span.classList.toggle('active-word', currentTime >= start);
+        });
+      }
     }
   }
 }
@@ -3245,6 +3357,33 @@ function setupSettingsControls() {
     lyricsPlainFallback.checked = settings.lyricsPlainFallback;
     lyricsPlainFallback.addEventListener('change', (e) => {
       settings.lyricsPlainFallback = e.target.checked;
+      saveSettings();
+    });
+  }
+
+  const lyricsWordSyncToggle = document.getElementById('lyricsWordSyncToggle');
+  if (lyricsWordSyncToggle) {
+    lyricsWordSyncToggle.checked = settings.lyricsWordSync !== false;
+    lyricsWordSyncToggle.addEventListener('change', (e) => {
+      settings.lyricsWordSync = e.target.checked;
+      saveSettings();
+    });
+  }
+
+  const lyricsApiBaseInput = document.getElementById('lyricsApiBaseInput');
+  if (lyricsApiBaseInput) {
+    lyricsApiBaseInput.value = settings.lyricsApiBase || '';
+    lyricsApiBaseInput.addEventListener('change', (e) => {
+      settings.lyricsApiBase = e.target.value.trim();
+      saveSettings();
+    });
+  }
+
+  const lyricsOrderSel = document.getElementById('lyricsOrderSel');
+  if (lyricsOrderSel) {
+    lyricsOrderSel.value = settings.lyricsOrder || 'lrclib-first';
+    lyricsOrderSel.addEventListener('change', (e) => {
+      settings.lyricsOrder = e.target.value;
       saveSettings();
     });
   }

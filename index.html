@@ -590,6 +590,24 @@
                     <span class="slider round"></span>
                   </label>
                 </div>
+                <div class="settings-row">
+                  <label for="lyricsWordSyncToggle">Word-by-word karaoke sync</label>
+                  <label class="switch">
+                    <input type="checkbox" id="lyricsWordSyncToggle" checked>
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="settings-row">
+                  <label for="lyricsApiBaseInput">Lyrics API Base URL (Spotify/Custom)</label>
+                  <input type="text" id="lyricsApiBaseInput" class="modal-text-input" placeholder="https://vibra-lyrics.up.railway.app">
+                </div>
+                <div class="settings-row">
+                  <label for="lyricsOrderSel">Preferred Router Order</label>
+                  <select id="lyricsOrderSel" class="settings-select">
+                    <option value="lrclib-first" selected>LRCLIB First (Fast, Open)</option>
+                    <option value="spotify-first">Spotify First (Word Sync)</option>
+                  </select>
+                </div>
               </div>
 
               <!-- 4. AUDIO / DSP -->
