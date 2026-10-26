@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vibra-cache-v1';
+const CACHE_NAME = 'vibra-cache-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -27,10 +27,21 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // Only cache local asset requests
-  if (e.request.url.startsWith(self.location.origin)) {
-    e.respondWith(
-      caches.match(e.request).then((res) => res || fetch(e.request))
-    );
-  }
+  if (e.request.method !== 'GET') return;
+  if (!e.request.url.startsWith(self.location.origin)) return;
+
+  // Stale-While-Revalidate: Instant offline/cache return + background cache update
+  e.respondWith(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cachedResponse = await cache.match(e.request);
+      const fetchPromise = fetch(e.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          cache.put(e.request, networkResponse.clone());
+        }
+        return networkResponse;
+      }).catch(() => cachedResponse);
+
+      return cachedResponse || fetchPromise;
+    })
+  );
 });

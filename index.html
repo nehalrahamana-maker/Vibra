@@ -81,6 +81,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
           <span>Favorites (<span id="favCount">0</span>)</span>
         </button>
+        <button class="nav-item" data-view="settings" id="navSettingsBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Settings</span>
+        </button>
         <label for="localFileInput" class="nav-item upload-item" id="uploadNavItem">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
           <span>Import Audio Files</span>
@@ -515,6 +519,220 @@
             </div>
           </div>
         </section>
+
+        <!-- 10. SETTINGS VIEW -->
+        <section class="view-panel" id="view-settings">
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Settings & Engine Control</h2>
+                <p class="section-subtitle">Configure music sources, streaming routing, audio processing, and storage quotas</p>
+              </div>
+            </div>
+
+            <div class="settings-grid">
+              <!-- 1. SONG SOURCE -->
+              <div class="settings-card">
+                <h3>Online Music Source</h3>
+                <p class="settings-card-desc">Select primary search and audio streaming provider</p>
+                <div class="source-list" id="sourceList">
+                  <label class="source-opt"><input type="radio" name="src" value="itunes" checked> <div class="opt-text"><span>iTunes</span><em>30s official AAC preview &bull; Direct CORS</em></div></label>
+                  <label class="source-opt"><input type="radio" name="src" value="audius"> <div class="opt-text"><span>Audius</span><em>Full streaming tracks &bull; Direct CORS</em></div></label>
+                  <label class="source-opt"><input type="radio" name="src" value="jamendo"> <div class="opt-text"><span>Jamendo</span><em>Full CC tracks &bull; Direct CORS</em></div></label>
+                  <label class="source-opt"><input type="radio" name="src" value="ytmusic"> <div class="opt-text"><span>YouTube Music</span><em>Full tracks &bull; Requires Worker proxy</em></div></label>
+                  <label class="source-opt"><input type="radio" name="src" value="local"> <div class="opt-text"><span>Local files only</span><em>No network requests</em></div></label>
+                </div>
+                <div class="settings-row">
+                  <label for="fallbackSourceSel">Fallback Source</label>
+                  <select id="fallbackSourceSel" class="settings-select">
+                    <option value="itunes">iTunes (Direct 30s)</option>
+                    <option value="audius" selected>Audius (Direct Full)</option>
+                    <option value="jamendo">Jamendo (Direct Full)</option>
+                    <option value="local">Local Library</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 2. PROXY / CONNECTION -->
+              <div class="settings-card">
+                <h3>Connection & Gateway</h3>
+                <p class="settings-card-desc">Cloudflare Worker endpoint for proxied streams (optional for iTunes/Audius)</p>
+                <div class="settings-row">
+                  <label for="apiBaseInput">Worker API Base URL</label>
+                  <input type="text" id="apiBaseInput" class="modal-text-input" placeholder="https://vibra-api.yourname.workers.dev">
+                </div>
+                <div class="settings-row">
+                  <label for="timeoutSel">Request Timeout</label>
+                  <select id="timeoutSel" class="settings-select">
+                    <option value="4000">4,000 ms (Fast)</option>
+                    <option value="8000" selected>8,000 ms (Balanced)</option>
+                    <option value="15000">15,000 ms (Patient)</option>
+                  </select>
+                </div>
+                <div class="settings-action-row">
+                  <button class="btn-secondary" id="testConnBtn">Test Connection</button>
+                  <span id="testConnResult" class="test-conn-badge"></span>
+                </div>
+              </div>
+
+              <!-- 3. LYRICS -->
+              <div class="settings-card">
+                <h3>Lyrics Provider</h3>
+                <p class="settings-card-desc">Synchronized and plain-text lyrics engine</p>
+                <div class="source-list">
+                  <label class="source-opt"><input type="radio" name="lyr" value="lrclib" checked> <div class="opt-text"><span>LRCLIB</span><em>Community open synced lyrics</em></div></label>
+                  <label class="source-opt"><input type="radio" name="lyr" value="off"> <div class="opt-text"><span>Disabled</span><em>Do not fetch lyrics online</em></div></label>
+                </div>
+                <div class="settings-row">
+                  <label for="lyricsPlainFallback">Fetch plain lyrics fallback</label>
+                  <label class="switch">
+                    <input type="checkbox" id="lyricsPlainFallback" checked>
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 4. AUDIO / DSP -->
+              <div class="settings-card">
+                <h3>Audio Engine & Playback</h3>
+                <p class="settings-card-desc">Web Audio playback, buffering, and quality</p>
+                <div class="settings-row">
+                  <label for="crossfadeRange">Crossfade duration (<span id="crossfadeValLabel">0</span>s)</label>
+                  <input type="range" id="crossfadeRange" min="0" max="12" value="0" class="settings-range">
+                </div>
+                <div class="settings-row">
+                  <label for="gaplessToggle">Gapless prebuffer</label>
+                  <label class="switch">
+                    <input type="checkbox" id="gaplessToggle" checked>
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="settings-row">
+                  <label for="normalizeToggle">Normalize volume (limiter)</label>
+                  <label class="switch">
+                    <input type="checkbox" id="normalizeToggle">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="settings-row">
+                  <label for="spatialWidthRange">Stereo width (<span id="spatialWidthValLabel">1.4</span>x)</label>
+                  <input type="range" id="spatialWidthRange" min="0.5" max="2.0" step="0.1" value="1.4" class="settings-range">
+                </div>
+                <div class="settings-row">
+                  <label for="exciterMixRange">Exciter mix (<span id="exciterMixValLabel">15</span>%)</label>
+                  <input type="range" id="exciterMixRange" min="0" max="0.4" step="0.05" value="0.15" class="settings-range">
+                </div>
+                <div class="settings-row">
+                  <label for="qualitySel">Stream Quality</label>
+                  <select id="qualitySel" class="settings-select">
+                    <option value="bestaudio" selected>Best available</option>
+                    <option value="140">AAC 128k</option>
+                    <option value="251">Opus 160k</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 5. STORAGE & OFFLINE -->
+              <div class="settings-card">
+                <h3>Storage & Offline</h3>
+                <p class="settings-card-desc">Device storage limits and IndexedDB offline cache</p>
+                <div class="settings-row">
+                  <label for="storageCapSel">Offline Storage Cap</label>
+                  <select id="storageCapSel" class="settings-select">
+                    <option value="200">200 MB</option>
+                    <option value="500" selected>500 MB</option>
+                    <option value="1024">1 GB</option>
+                    <option value="0">Unlimited</option>
+                  </select>
+                </div>
+                <div class="settings-row">
+                  <label for="autoCacheToggle">Auto-cache played tracks</label>
+                  <label class="switch">
+                    <input type="checkbox" id="autoCacheToggle">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="settings-row">
+                  <label for="persistToggle">Persist storage (anti-eviction)</label>
+                  <label class="switch">
+                    <input type="checkbox" id="persistToggle" checked>
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="settings-action-row">
+                  <button class="btn-secondary" id="clearCacheBtn">Clear All Cached Data</button>
+                  <span id="storageUsageLine" class="storage-usage-text">0 tracks &bull; 0 MB cached</span>
+                </div>
+              </div>
+
+              <!-- 6. LIBRARY / DATA -->
+              <div class="settings-card">
+                <h3>Library & Data</h3>
+                <p class="settings-card-desc">Backup and export your custom playlists, favorites, and settings</p>
+                <div class="settings-row">
+                  <label for="resultLimitSel">Max Search Results</label>
+                  <select id="resultLimitSel" class="settings-select">
+                    <option value="10">10 results</option>
+                    <option value="25" selected>25 results</option>
+                    <option value="50">50 results</option>
+                  </select>
+                </div>
+                <div class="settings-action-buttons">
+                  <button class="btn-secondary" id="exportDataBtn">Export Library JSON</button>
+                  <button class="btn-secondary" id="importDataBtn">Import Library JSON</button>
+                  <input type="file" id="importFileInput" accept=".json" style="display:none;">
+                  <button class="btn-secondary delete-btn" id="resetAllBtn">Reset Everything</button>
+                </div>
+              </div>
+
+              <!-- 7. APPEARANCE -->
+              <div class="settings-card">
+                <h3>Appearance & Visuals</h3>
+                <p class="settings-card-desc">Theme and canvas motion effects</p>
+                <div class="settings-row">
+                  <label for="themeSel">Theme</label>
+                  <select id="themeSel" class="settings-select">
+                    <option value="apple-glass">Apple Glass</option>
+                    <option value="cyberpunk-neon">Cyberpunk Neon</option>
+                    <option value="material-expressive">Material 3</option>
+                    <option value="midnight-amoled">Midnight AMOLED</option>
+                  </select>
+                </div>
+                <div class="settings-row">
+                  <label for="visModeSel">Visualizer Mode</label>
+                  <select id="visModeSel" class="settings-select">
+                    <option value="bars">Bars & Glow</option>
+                    <option value="wave">Oscilloscope Wave</option>
+                    <option value="circular">Radial Pulse</option>
+                  </select>
+                </div>
+                <div class="settings-row">
+                  <label for="reduceMotionToggle">Reduce motion</label>
+                  <label class="switch">
+                    <input type="checkbox" id="reduceMotionToggle">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 8. SHORTCUTS -->
+              <div class="settings-card">
+                <h3>Keyboard Shortcuts</h3>
+                <p class="settings-card-desc">Hardware shortcuts supported across the player</p>
+                <div class="shortcut-grid">
+                  <span>Play / Pause</span><kbd>Space</kbd>
+                  <span>Next / Previous</span><kbd>&rarr; / &larr;</kbd>
+                  <span>Volume Adjust</span><kbd>&uarr; / &darr;</kbd>
+                  <span>Mute Audio</span><kbd>M</kbd>
+                  <span>Toggle Shuffle</span><kbd>S</kbd>
+                  <span>Toggle Repeat</span><kbd>R</kbd>
+                  <span>Open Synced Lyrics</span><kbd>L</kbd>
+                  <span>Open Settings</span><kbd>,</kbd>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   </div>
@@ -709,8 +927,12 @@
     </div>
   </div>
 
-  <!-- Hidden Native Audio Engine -->
+  <!-- Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Hidden Native Audio Engine (Dual Slot for Crossfade) -->
   <audio id="nativeAudio" crossorigin="anonymous" preload="auto"></audio>
+  <audio id="nativeAudioB" crossorigin="anonymous" preload="auto"></audio>
 
   <script src="app.js"></script>
 </body>

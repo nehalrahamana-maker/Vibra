@@ -15,45 +15,45 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@387accc2b1f8b423a23f733e5e76ec522d2c502a # v4.0.0
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@dbbdc204f9d4f65ab889900f1b86a5ec80d3c25d # v3.1.2
 
-      - name: Generate Wrapper & Build Debug APK
+      - name: Build Release APK
         run: |
-          gradle wrapper
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
-          cp app/build/outputs/apk/debug/app-debug.apk Vibra-v1.0.0.apk
+          ./gradlew assembleRelease --stacktrace
+          cp app/build/outputs/apk/release/app-release.apk Vibra-v2.0.0.apk
 
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.0.0
         with:
-          name: Vibra-v1.0.0-APK
-          path: Vibra-v1.0.0.apk
+          name: Vibra-v2.0.0-APK
+          path: Vibra-v2.0.0.apk
 
       - name: Create GitHub Release with APK
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c88761429146ad3fc16 # v2.0.1
         if: startsWith(github.ref, 'refs/heads/main')
         with:
-          tag_name: v1.0.0
-          name: Vibra Release v1.0.0 (Native Jetpack Compose APK)
+          tag_name: v2.0.0
+          name: Vibra Release v2.0.0 (Native Jetpack Compose APK)
           body: |
-            ### 🎵 Vibra v1.0.0 — Native Jetpack Compose Music App
+            ### 🎵 Vibra v2.0.0 — Audiophile PWA & Jetpack Compose Music App
             
-            - 100% Pure Kotlin & Google Jetpack Compose
-            - AndroidX Media3 / ExoPlayer Engine
-            - Dark Obsidian & Cyberpunk Neon UI
-            - Low-latency Audiophile Sound Reproduction
+            - **Web Audio 3D Spatial Stereo Widener & Bass Harmonic Exciter**
+            - **6-Band Equalizer & Dynamics Compressor/Limiter**
+            - **Seamless Dual-Slot Crossfading Engine**
+            - **Multi-Source Audio Streaming & Offline Vault**
+            - **Low-latency Native Android Engine**
             
-            **Download the attached `Vibra-v1.0.0.apk` and install it on your Android phone!**
-          files: Vibra-v1.0.0.apk
+            **Download the attached `Vibra-v2.0.0.apk` and install it on your Android phone!**
+          files: Vibra-v2.0.0.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
