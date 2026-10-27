@@ -2,15 +2,62 @@
  * VIBRA AUDIO PROXY & SEARCH GATEWAY (Cloudflare Worker)
  * $0 Free Tier — 100,000 requests/day permanent free tier
  * Provides CORS relay for YouTube Music InnerTube, Deezer, and caching.
+ *
+ * SimpMusic-style pipeline:
+ *   1. Search: WEB_REMIX (YT Music shelves) → ANDROID client fallback + continuation paging
+ *   2. Stream: ANDROID player (direct unciphered URLs) → IOS → WEB_REMIX ladder,
+ *      with a 403 pre-check (YouTube URLs are session-bound and expire)
+ *   3. /api/audio: byte relay with Range + CORS so Web Audio (EQ/visualizer) stays untainted
  */
 
 const YTM_CLIENT_KEY = 'AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30';
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, Range',
+  'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges, Content-Type',
   'Access-Control-Max-Age': '86400',
 };
+
+/**
+ * InnerTube client ladder.
+ * Verified live 2026-10-27: ANDROID player returns direct (no signatureCipher) URLs,
+ * playabilityStatus OK, itags 139/140/249/251/599/600.
+ */
+const IT_CLIENTS = {
+  web_remix: {
+    name: 'WEB_REMIX',
+    version: '1.20250101.01.00',
+    host: 'https://music.youtube.com',
+    key: YTM_CLIENT_KEY,
+    ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  },
+  android: {
+    name: 'ANDROID',
+    version: '20.10.38',
+    host: 'https://www.youtube.com',
+    key: null,
+    androidSdkVersion: 34,
+    ua: 'com.google.android.youtube/20.10.38 (Linux; U; Android 14) gzip',
+  },
+  ios: {
+    name: 'IOS',
+    version: '20.10.4',
+    host: 'https://www.youtube.com',
+    key: null,
+    deviceMake: 'Apple',
+    deviceModel: 'iPhone16,2',
+    ua: 'com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_1 like Mac OS X;)',
+  },
+};
+
+// Search ladder: WEB_REMIX gives YT Music shelves, ANDROID gives YouTube-wide results
+const SEARCH_LADDER = ['web_remix', 'android'];
+// Stream ladder: ANDROID proven to return unciphered URLs; others as rungs
+const PLAYER_LADDER = ['android', 'ios', 'web_remix'];
+
+// Hosts allowed through the audio relay (open-proxy protection)
+const RELAY_HOST_SUFFIXES = ['.googlevideo.com', '.youtube.com', '.ytimg.com'];
 
 export default {
   async fetch(request, env, ctx) {
@@ -26,16 +73,21 @@ export default {
         return jsonResponse({
           ok: true,
           service: 'Vibra Gateway',
-          version: '2.0.0',
+          version: '2.1.0',
+          pipeline: 'simpmusic-style',
+          searchLadder: SEARCH_LADDER,
+          playerLadder: PLAYER_LADDER,
           timestamp: Date.now()
         });
       }
 
-      // 1. YouTube Music Search
+      // 1. YouTube Music Search (with continuation paging for "get all songs")
       if (path === '/api/search') {
         const query = url.searchParams.get('q');
+        const ctoken = url.searchParams.get('ctoken');
+        const cclient = url.searchParams.get('cc');
         const limit = parseInt(url.searchParams.get('limit') || '25', 10);
-        if (!query) {
+        if (!query && !ctoken) {
           return jsonResponse({ error: 'Missing query param q' }, 400);
         }
 
@@ -45,15 +97,15 @@ export default {
         const cachedRes = await cache.match(cacheKey);
         if (cachedRes) return cachedRes;
 
-        const results = await searchYouTubeMusic(query, limit);
-        const response = jsonResponse(results, 200, {
+        const result = await searchYouTubeMusic(query, limit, ctoken, cclient);
+        const response = jsonResponse(result, 200, {
           'Cache-Control': 'public, max-age=600' // 10 min cache
         });
         ctx.waitUntil(cache.put(cacheKey, response.clone()));
         return response;
       }
 
-      // 2. YouTube Music Stream Resolver
+      // 2. YouTube Music Stream Resolver (multi-client ladder + 403 pre-check)
       if (path === '/api/stream') {
         const videoId = url.searchParams.get('id');
         const quality = url.searchParams.get('q') || 'bestaudio';
@@ -64,6 +116,48 @@ export default {
         const streamData = await resolveYouTubeStream(videoId, quality);
         return jsonResponse(streamData, 200, {
           'Cache-Control': 'public, max-age=13800' // ~3.8 hours
+        });
+      }
+
+      // 2b. Audio byte relay (Range + CORS) — required for Web Audio API:
+      //     a cross-origin <audio> without CORS headers taints MediaElementSource,
+      //     silencing the EQ/visualizer/DSP chain.
+      if (path === '/api/audio') {
+        const target = url.searchParams.get('url');
+        if (!target) return jsonResponse({ error: 'Missing url param' }, 400);
+
+        let upstream;
+        try {
+          upstream = new URL(target);
+        } catch {
+          return jsonResponse({ error: 'Invalid url param' }, 400);
+        }
+        const hostOk = RELAY_HOST_SUFFIXES.some(
+          s => upstream.hostname === s.slice(1) || upstream.hostname.endsWith(s)
+        );
+        if (upstream.protocol !== 'https:' || !hostOk) {
+          return jsonResponse({ error: 'Host not allowed' }, 403);
+        }
+
+        const fwdHeaders = {};
+        const range = request.headers.get('Range');
+        if (range) fwdHeaders['Range'] = range;
+
+        const upstreamRes = await fetch(upstream.toString(), { headers: fwdHeaders });
+        const outHeaders = {
+          ...CORS_HEADERS,
+          'Content-Type': upstreamRes.headers.get('Content-Type') || 'application/octet-stream',
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'private, max-age=3600',
+        };
+        const cr = upstreamRes.headers.get('Content-Range');
+        if (cr) outHeaders['Content-Range'] = cr;
+        const cl = upstreamRes.headers.get('Content-Length');
+        if (cl) outHeaders['Content-Length'] = cl;
+
+        return new Response(upstreamRes.body, {
+          status: upstreamRes.status,
+          headers: outHeaders
         });
       }
 
@@ -116,175 +210,299 @@ function jsonResponse(data, status = 200, extraHeaders = {}) {
   });
 }
 
-async function searchYouTubeMusic(query, limit = 25) {
-  const payload = {
-    context: {
-      client: {
-        clientName: 'WEB_REMIX',
-        clientVersion: '1.20240101.01.00',
-        hl: 'en'
-      }
-    },
-    query
-  };
+// ---------------------------------------------------------------------------
+// InnerTube plumbing
+// ---------------------------------------------------------------------------
 
-  const res = await fetch(`https://music.youtube.com/youtubei/v1/search?key=${YTM_CLIENT_KEY}`, {
+async function innerTubePost(endpoint, clientKey, body) {
+  const client = IT_CLIENTS[clientKey];
+  if (!client) throw new Error(`Unknown InnerTube client: ${clientKey}`);
+
+  const query = client.key ? `?key=${client.key}&prettyPrint=false` : '?prettyPrint=false';
+  const clientCtx = {
+    clientName: client.name,
+    clientVersion: client.version,
+    hl: 'en',
+    gl: 'US',
+  };
+  if (client.androidSdkVersion) clientCtx.androidSdkVersion = client.androidSdkVersion;
+  if (client.deviceMake) clientCtx.deviceMake = client.deviceMake;
+  if (client.deviceModel) clientCtx.deviceModel = client.deviceModel;
+
+  const payload = { context: { client: clientCtx }, ...body };
+
+  const res = await fetch(`${client.host}/youtubei/v1/${endpoint}${query}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': client.ua,
+      'X-Goog-Api-Format-Version': '2',
+    },
+    body: JSON.stringify(payload),
   });
 
-  if (!res.ok) {
-    throw new Error(`YouTubei search HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`YouTubei ${endpoint} ${client.name} HTTP ${res.status}`);
+  return res.json();
+}
+
+/** Recursively collect renderers of the given keys from an InnerTube response. */
+function collectRenderers(node, keys, out = [], depth = 0) {
+  if (!node || typeof node !== 'object' || depth > 60) return out;
+  if (Array.isArray(node)) {
+    for (const item of node) collectRenderers(item, keys, out, depth + 1);
+    return out;
+  }
+  for (const k of keys) {
+    if (node[k] && typeof node[k] === 'object') out.push(node[k]);
+  }
+  for (const v of Object.values(node)) {
+    if (v && typeof v === 'object') collectRenderers(v, keys, out, depth + 1);
+  }
+  return out;
+}
+
+/** Find the next-page continuation token anywhere in the response. */
+function findContinuationToken(node, depth = 0) {
+  if (!node || typeof node !== 'object' || depth > 60) return null;
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      const t = findContinuationToken(item, depth + 1);
+      if (t) return t;
+    }
+    return null;
+  }
+  if (node.nextContinuationData?.token) return node.nextContinuationData.token;
+  if (node.continuationEndpoint?.continuationCommand?.token) return node.continuationEndpoint.continuationCommand.token;
+  if (node.continuationCommand?.token) return node.continuationCommand.token;
+  for (const v of Object.values(node)) {
+    if (v && typeof v === 'object') {
+      const t = findContinuationToken(v, depth + 1);
+      if (t) return t;
+    }
+  }
+  return null;
+}
+
+/** "3:32" / "1:02:03" → seconds. Returns null when not a time string. */
+function parseDurationText(txt) {
+  if (!txt || typeof txt !== 'string' || !txt.includes(':')) return null;
+  const parts = txt.split(':').map(Number);
+  if (parts.some(isNaN)) return null;
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  return null;
+}
+
+function runsText(node) {
+  if (!node) return '';
+  if (typeof node === 'string') return node;
+  if (node.simpleText) return node.simpleText;
+  if (Array.isArray(node.runs)) return node.runs.map(r => r?.text || '').join('');
+  return '';
+}
+
+/** Normalize any song/video renderer into Vibra's Track shape. */
+function rendererToTrack(renderer, kind) {
+  let title = '', videoId = '', artist = '', album = '', duration = null, art = '';
+
+  if (kind === 'music') {
+    const flexCols = renderer.flexColumns || [];
+    const col0 = flexCols[0]?.musicResponsiveListItemFlexColumnRenderer;
+    const titleRun = col0?.text?.runs?.[0] || col0?.title?.runs?.[0];
+    title = titleRun?.text || '';
+    videoId = renderer.playlistItemData?.videoId ||
+              renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId ||
+              titleRun?.navigationEndpoint?.watchEndpoint?.videoId ||
+              '';
+    const col1 = flexCols[1]?.musicResponsiveListItemFlexColumnRenderer;
+    const subRuns = col1?.text?.runs || col1?.title?.runs || [];
+    artist = subRuns[0]?.text || 'YouTube Artist';
+    album = subRuns[2]?.text || subRuns[subRuns.length - 1]?.text || 'YouTube Stream';
+    for (let i = subRuns.length - 1; i >= 0; i--) {
+      const d = parseDurationText(subRuns[i]?.text);
+      if (d !== null) { duration = d; break; }
+    }
+    const thumbs = renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
+    art = thumbs[thumbs.length - 1]?.url || '';
+  } else {
+    // videoRenderer / compactVideoRenderer (ANDROID client shape)
+    videoId = renderer.videoId || '';
+    title = runsText(renderer.title);
+    artist = runsText(renderer.longBylineText) || runsText(renderer.shortBylineText) || 'YouTube Artist';
+    album = 'YouTube Stream';
+    duration = parseDurationText(runsText(renderer.lengthText));
+    const thumbs = renderer.thumbnail?.thumbnails || renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
+    art = thumbs[thumbs.length - 1]?.url || '';
   }
 
-  const json = await res.json();
+  if (!title || !videoId) return null;
+  if (!art) art = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
+  return {
+    id: `yt-${videoId}`,
+    source: 'ytmusic',
+    videoId,
+    title,
+    artist,
+    album,
+    genre: 'Online',
+    duration: duration || 210,
+    art,
+    audioUrl: null,
+    isPreview: false,
+    lyricsOk: true
+  };
+}
+
+function parseSearchTracks(json, limit) {
+  const candidates = collectRenderers(json, ['musicResponsiveListItemRenderer']);
+  const videoCandidates = collectRenderers(json, ['videoRenderer', 'compactVideoRenderer']);
+
   const tracks = [];
+  const seenVideoIds = new Set();
 
-  // Parse InnerTube music shelves
-  try {
-    const tabs = json.contents?.tabbedSearchResultsRenderer?.tabs || [];
-    const contents = tabs[0]?.tabRenderer?.content?.sectionListRenderer?.contents || [];
-
-    const candidateRenderers = [];
-    for (const section of contents) {
-      if (section.musicCardShelfRenderer?.contents) {
-        for (const it of section.musicCardShelfRenderer.contents) {
-          if (it.musicResponsiveListItemRenderer) candidateRenderers.push(it.musicResponsiveListItemRenderer);
-        }
-      }
-      if (section.musicShelfRenderer?.contents) {
-        for (const it of section.musicShelfRenderer.contents) {
-          if (it.musicResponsiveListItemRenderer) candidateRenderers.push(it.musicResponsiveListItemRenderer);
-        }
-      }
-      if (section.itemSectionRenderer?.contents) {
-        for (const it of section.itemSectionRenderer.contents) {
-          if (it.musicResponsiveListItemRenderer) {
-            candidateRenderers.push(it.musicResponsiveListItemRenderer);
-          } else if (it.musicShelfRenderer?.contents) {
-            for (const nested of it.musicShelfRenderer.contents) {
-              if (nested.musicResponsiveListItemRenderer) candidateRenderers.push(nested.musicResponsiveListItemRenderer);
-            }
-          }
-        }
-      }
-    }
-
-    const seenVideoIds = new Set();
-    for (const renderer of candidateRenderers) {
-      const flexCols = renderer.flexColumns || [];
-      const col0 = flexCols[0]?.musicResponsiveListItemFlexColumnRenderer;
-      const titleRun = col0?.text?.runs?.[0] || col0?.title?.runs?.[0];
-      const title = titleRun?.text;
-
-      const videoId = renderer.playlistItemData?.videoId ||
-                      renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId ||
-                      titleRun?.navigationEndpoint?.watchEndpoint?.videoId;
-
-      if (!title || !videoId || seenVideoIds.has(videoId)) continue;
-      seenVideoIds.add(videoId);
-
-      const col1 = flexCols[1]?.musicResponsiveListItemFlexColumnRenderer;
-      const subRuns = col1?.text?.runs || col1?.title?.runs || [];
-      const artist = subRuns[0]?.text || 'YouTube Artist';
-      const album = subRuns[2]?.text || subRuns[subRuns.length - 1]?.text || 'YouTube Stream';
-
-      // Thumbnails
-      const thumbs = renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
-      const art = thumbs[thumbs.length - 1]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-
-      // Duration string parser
-      let duration = 210;
-      for (let i = subRuns.length - 1; i >= 0; i--) {
-        const txt = subRuns[i]?.text;
-        if (txt && txt.includes(':')) {
-          const parts = txt.split(':').map(Number);
-          if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-            duration = parts[0] * 60 + parts[1];
-            break;
-          }
-          if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
-            duration = parts[0] * 3600 + parts[1] * 60 + parts[2];
-            break;
-          }
-        }
-      }
-
-      tracks.push({
-        id: `yt-${videoId}`,
-        source: 'ytmusic',
-        videoId,
-        title,
-        artist,
-        album,
-        genre: 'Online',
-        duration,
-        art,
-        audioUrl: null,
-        isPreview: false,
-        lyricsOk: true
-      });
-
+  for (const renderer of candidates) {
+    const t = rendererToTrack(renderer, 'music');
+    if (!t || seenVideoIds.has(t.videoId)) continue;
+    seenVideoIds.add(t.videoId);
+    tracks.push(t);
+    if (tracks.length >= limit) return tracks;
+  }
+  // ANDROID-client fallback shape (only used when WEB_REMIX yielded nothing)
+  if (tracks.length === 0) {
+    for (const renderer of videoCandidates) {
+      const t = rendererToTrack(renderer, 'video');
+      if (!t || seenVideoIds.has(t.videoId)) continue;
+      seenVideoIds.add(t.videoId);
+      tracks.push(t);
       if (tracks.length >= limit) break;
     }
-  } catch (parseErr) {
-    console.warn('InnerTube parser warning:', parseErr);
   }
-
   return tracks;
 }
 
-async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
-  const payload = {
-    context: {
-      client: {
-        clientName: 'WEB_REMIX',
-        clientVersion: '1.20240101.01.00',
-        hl: 'en'
+// ---------------------------------------------------------------------------
+// Search (SimpMusic-style: client ladder + continuation paging)
+// ---------------------------------------------------------------------------
+
+async function searchYouTubeMusic(query, limit = 25, continuation = null, continuationClient = null) {
+  // When replaying a continuation token it must go back through the client that issued it
+  const ladder = continuation && IT_CLIENTS[continuationClient]
+    ? [continuationClient]
+    : SEARCH_LADDER;
+
+  let lastError = null;
+
+  for (const clientKey of ladder) {
+    try {
+      const body = continuation
+        ? { continuation }
+        : { query };
+      const json = await innerTubePost('search', clientKey, body);
+
+      const tracks = parseSearchTracks(json, limit);
+      const token = findContinuationToken(json);
+
+      if (tracks.length > 0 || continuation) {
+        return { tracks, continuation: token, client: clientKey };
       }
-    },
-    videoId
-  };
-
-  const res = await fetch(`https://music.youtube.com/youtubei/v1/player?key=${YTM_CLIENT_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    throw new Error(`YouTubei player HTTP ${res.status}`);
+      lastError = new Error(`search ${clientKey}: 0 results`);
+    } catch (err) {
+      lastError = err;
+    }
   }
 
-  const json = await res.json();
-  const adaptiveFormats = json.streamingData?.adaptiveFormats || [];
+  if (lastError) throw lastError;
+  return { tracks: [], continuation: null, client: null };
+}
 
-  // Filter for audio streams
-  const audioFormats = adaptiveFormats.filter(f => f.mimeType && f.mimeType.startsWith('audio/'));
-  if (audioFormats.length > 0) {
-    let selected = audioFormats[0];
-    if (quality === '140') {
-      selected = audioFormats.find(f => f.itag === 140) || selected;
-    } else if (quality === '251') {
-      selected = audioFormats.find(f => f.itag === 251) || selected;
-    } else {
-      selected = audioFormats.reduce((prev, curr) => 
-        ((curr.bitrate || 0) > (prev.bitrate || 0)) ? curr : prev, audioFormats[0]
-      );
+// ---------------------------------------------------------------------------
+// Stream resolution (SimpMusic-style: client ladder + 403 pre-check)
+// ---------------------------------------------------------------------------
+
+function pickAudioFormat(formats, quality) {
+  const audio = (formats || []).filter(f =>
+    f.mimeType && f.mimeType.startsWith('audio/') && f.url
+  );
+  if (audio.length === 0) return null;
+
+  if (quality === '140') {
+    return audio.find(f => f.itag === 140) || pickBestBitrate(audio);
+  }
+  if (quality === '251') {
+    return audio.find(f => f.itag === 251) || pickBestBitrate(audio);
+  }
+  // bestaudio: Opus 251 > AAC 140 > highest bitrate
+  return audio.find(f => f.itag === 251)
+      || audio.find(f => f.itag === 140)
+      || pickBestBitrate(audio);
+}
+
+function pickBestBitrate(formats) {
+  return formats.reduce((prev, curr) =>
+    ((curr.bitrate || 0) > (prev.bitrate || 0)) ? curr : prev, formats[0]);
+}
+
+/** YouTube URLs are session-bound: verify with a 2-byte Range GET before trusting it. */
+async function checkStreamUrl(url) {
+  try {
+    const res = await fetch(url, { headers: { Range: 'bytes=0-2' } });
+    const ok = res.status === 200 || res.status === 206;
+    if (res.body) {
+      try { await res.body.cancel(); } catch { /* ignore */ }
     }
+    return ok;
+  } catch {
+    return false;
+  }
+}
 
-    if (selected.url) {
+async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
+  const attempts = [];
+
+  for (const clientKey of PLAYER_LADDER) {
+    try {
+      const json = await innerTubePost('player', clientKey, {
+        videoId,
+        contentCheckOk: true,
+        racyCheckOk: true,
+      });
+
+      const status = json.playabilityStatus?.status;
+      if (status && status !== 'OK') {
+        attempts.push(`${clientKey}: ${status}`);
+        continue;
+      }
+
+      const formats = json.streamingData?.adaptiveFormats || [];
+      const selected = pickAudioFormat(formats, quality);
+
+      if (!selected) {
+        // Cipher-protected only (signatureCipher, no direct url) — try next client
+        const hasCipher = (formats || []).some(f => f.signatureCipher || f.cipher);
+        attempts.push(`${clientKey}: ${hasCipher ? 'cipher-only' : 'no-audio'}`);
+        continue;
+      }
+
+      const alive = await checkStreamUrl(selected.url);
+      if (!alive) {
+        attempts.push(`${clientKey}: 403/expired itag ${selected.itag}`);
+        continue;
+      }
+
       return {
         url: selected.url,
-        expiresAt: Date.now() + 4 * 3600 * 1000 // 4 hours
+        itag: selected.itag,
+        mimeType: (selected.mimeType || '').split(';')[0],
+        source: clientKey,
+        attempts,
+        expiresAt: Date.now() + 3.8 * 3600 * 1000 // ~4 hours
       };
+    } catch (err) {
+      attempts.push(`${clientKey}: ${err.message}`);
     }
   }
 
-  // If cipher protected, fallback to piped audio relay
-  return {
-    url: `https://pipedapi.kavin.rocks/streams/${videoId}`,
-    expiresAt: Date.now() + 2 * 3600 * 1000
-  };
+  // Every rung failed — client falls back to its next source
+  return { url: null, error: 'All stream clients failed', attempts };
 }

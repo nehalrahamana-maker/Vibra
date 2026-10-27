@@ -8,11 +8,13 @@ import androidx.compose.runtime.setValue
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.kazinehal.vibra.data.YtMusicSource
 import com.kazinehal.vibra.model.Track
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class VibraPlayer(context: Context) {
 
@@ -62,7 +64,30 @@ class VibraPlayer(context: Context) {
 
     fun playTrack(track: Track) {
         currentTrack = track
-        val mediaItem = MediaItem.fromUri(track.audioUrl)
+
+        if (track.videoId.isNotBlank() && track.audioUrl.isBlank()) {
+            // YT Music track: resolve a fresh stream URL right now (they expire ~4h)
+            scope.launch {
+                val resolved = withContext(Dispatchers.IO) {
+                    YtMusicSource.resolveStream(track.videoId)
+                }
+                // Ignore if the user already switched to another track
+                if (currentTrack?.id != track.id) return@launch
+                if (resolved != null) {
+                    startPlayback(resolved)
+                } else {
+                    android.util.Log.w("VibraPlayer", "Stream resolve failed for ${track.videoId}")
+                }
+            }
+            return
+        }
+
+        startPlayback(track.audioUrl)
+    }
+
+    private fun startPlayback(url: String) {
+        if (url.isBlank()) return
+        val mediaItem = MediaItem.fromUri(url)
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
         exoPlayer.play()

@@ -480,6 +480,10 @@ class VibraState {
     return this.favorites.includes(track.id);
   }
 
+  isFavorite(trackId) {
+    return this.favorites.includes(trackId);
+  }
+
   toggleFavorite(trackId) {
     const idx = this.favorites.indexOf(trackId);
     if (idx > -1) {
@@ -1963,6 +1967,17 @@ function formatTime(seconds) {
 
 const resolvedStreamCache = new Map();
 
+/**
+ * Route googlevideo URLs through the Worker relay.
+ * Direct URLs have no CORS headers → MediaElementSource (app.js:~875) would be
+ * tainted and the whole Web Audio DSP chain (EQ/visualizer/widener) goes silent.
+ */
+function viaRelay(url) {
+  if (!url || !settings.apiBase) return url;
+  if (url.startsWith(settings.apiBase + '/api/audio')) return url;
+  return `${settings.apiBase}/api/audio?url=${encodeURIComponent(url)}`;
+}
+
 async function resolveStream(track) {
   if (!track) return null;
 
@@ -1981,7 +1996,7 @@ async function resolveStream(track) {
   if (track.source === 'ytmusic' && track.videoId) {
     if (resolvedStreamCache.has(track.videoId)) {
       const cached = resolvedStreamCache.get(track.videoId);
-      if (Date.now() < cached.expiresAt) return cached.url;
+      if (Date.now() < cached.expiresAt) return viaRelay(cached.url);
     }
 
     if (settings.apiBase) {
@@ -1996,15 +2011,16 @@ async function resolveStream(track) {
               url: data.url,
               expiresAt: data.expiresAt || (Date.now() + 3.8 * 3600 * 1000)
             });
-            return data.url;
+            return viaRelay(data.url);
           }
+          if (data.attempts) console.warn('Stream ladder attempts:', data.attempts);
         }
       } catch (e) {
         console.warn('Worker stream resolve failed:', e);
       }
     }
-    // Fallback: Piped audio stream
-    return `https://pipedapi.kavin.rocks/streams/${track.videoId}`;
+    // All stream clients failed → caller handles null (auto-skip / next source)
+    return null;
   }
 
   if (track.source === 'audius') {
@@ -2109,8 +2125,28 @@ const ADAPTERS = {
       signal: AbortSignal.timeout(cfg.timeoutMs)
     });
     if (!res.ok) throw new Error(`Worker HTTP ${res.status}`);
-    const tracks = await res.json();
-    return tracks;
+    const json = await res.json();
+    // New shape: { tracks, continuation, client } — legacy shape: bare array
+    if (Array.isArray(json)) return json;
+    state.ytContinuation = json.continuation || null;
+    state.ytContinuationClient = json.client || 'WEB_REMIX';
+    return json.tracks || [];
+  },
+
+  // 4b. YouTube Music continuation page ("load more" — SimpMusic-style paging)
+  ytmusicMore: async (cfg) => {
+    if (!cfg.apiBase || !state.ytContinuation) return [];
+    const limit = cfg.resultLimit || 25;
+    const url = `${cfg.apiBase}/api/search?limit=${limit}`
+      + `&cc=${encodeURIComponent(state.ytContinuationClient || 'WEB_REMIX')}`
+      + `&ctoken=${encodeURIComponent(state.ytContinuation)}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(cfg.timeoutMs) });
+    if (!res.ok) throw new Error(`Worker HTTP ${res.status}`);
+    const json = await res.json();
+    if (Array.isArray(json)) { state.ytContinuation = null; return json; }
+    state.ytContinuation = json.continuation || null;
+    state.ytContinuationClient = json.client || state.ytContinuationClient;
+    return json.tracks || [];
   },
 
   // 5. Deezer (via Worker proxy)
@@ -2188,6 +2224,8 @@ async function searchOnlineMusic(query) {
   }
 
   const token = ++currentSearchToken;
+  state.ytContinuation = null;
+  state.ytContinuationClient = null;
   const trackGrid = document.getElementById('trackGrid');
   const sourceLabel = (settings.activeSource || 'iTunes').toUpperCase();
 
@@ -2210,6 +2248,7 @@ async function searchOnlineMusic(query) {
     if (trackGrid) {
       if (state.searchResults.length > 0) {
         renderTrackGrid(state.searchResults, trackGrid);
+        maybeAppendLoadMore(trackGrid);
       } else {
         trackGrid.innerHTML = `
           <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--text-dim);">
@@ -2229,6 +2268,55 @@ async function searchOnlineMusic(query) {
         </div>`;
     }
     return [];
+  }
+}
+
+// =============================================================================
+// 7b. CONTINUATION PAGING ("Load more" — full result lists, SimpMusic-style)
+// =============================================================================
+
+function maybeAppendLoadMore(grid) {
+  if (!grid || settings.activeSource !== 'ytmusic' || !state.ytContinuation) return;
+  if (document.getElementById('loadMoreBtn')) return;
+
+  const wrap = document.createElement('div');
+  wrap.style.gridColumn = '1 / -1';
+  wrap.style.textAlign = 'center';
+  wrap.style.padding = '10px 0 28px';
+  const btn = document.createElement('button');
+  btn.id = 'loadMoreBtn';
+  btn.type = 'button';
+  btn.textContent = 'Load more results';
+  btn.className = 'btn-primary';
+  btn.style.cssText = 'padding: 12px 32px; cursor: pointer;';
+  btn.addEventListener('click', loadMoreResults);
+  wrap.appendChild(btn);
+  grid.appendChild(wrap);
+}
+
+async function loadMoreResults() {
+  const btn = document.getElementById('loadMoreBtn');
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Loading…';
+
+  try {
+    const more = await ADAPTERS.ytmusicMore(settings);
+    const trackGrid = document.getElementById('trackGrid');
+    if (more && more.length && trackGrid) {
+      more.forEach(t => state.registerTrack(t));
+      state.searchResults = state.searchResults.concat(more);
+      // Remove stale button, re-render full grid, re-append if a token remains
+      if (btn.parentElement) btn.parentElement.remove();
+      renderTrackGrid(state.searchResults, trackGrid);
+      maybeAppendLoadMore(trackGrid);
+    } else if (btn.parentElement) {
+      btn.parentElement.remove();
+    }
+  } catch (e) {
+    console.warn('Load more failed:', e);
+    btn.disabled = false;
+    btn.textContent = 'Load more failed — retry';
   }
 }
 

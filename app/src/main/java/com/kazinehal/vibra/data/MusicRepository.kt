@@ -236,6 +236,16 @@ object MusicRepository {
         val q = query.trim()
         if (q.isEmpty()) return@withContext trendingTracks
 
+        // 1. YouTube Music first — full tracks, streamed via the Vibra Worker
+        //    (SimpMusic-style InnerTube backend). Falls through on any failure.
+        try {
+            val ytResults = YtMusicSource.search(q)
+            if (ytResults.isNotEmpty()) return@withContext ytResults
+        } catch (e: Exception) {
+            // Worker unreachable / InnerTube changed shape → try iTunes below
+        }
+
+        // 2. iTunes — free 30s previews, no key required
         try {
             val encoded = URLEncoder.encode(q, "UTF-8")
             val urlString = "https://itunes.apple.com/search?term=$encoded&media=music&entity=song&limit=30"
