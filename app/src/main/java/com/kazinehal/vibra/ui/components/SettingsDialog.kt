@@ -505,7 +505,7 @@ fun SettingsDialog(
                                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://instagram.com/kazinehal"))
                                             context.startActivity(intent)
                                         },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Brush.linearGradient(listOf(Color(0xFF833AB4), Color(0xFFFD1D1D), Color(0xFFFCB045)))),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE1306C)),
                                         shape = RoundedCornerShape(10.dp)
                                     ) {
                                         Icon(Icons.Filled.CameraAlt, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
