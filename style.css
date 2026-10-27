@@ -3,23 +3,23 @@
    ========================================================================== */
 
 :root {
-  /* Default: Apple Glass Theme */
-  --bg-primary: #0a0b10;
-  --bg-secondary: rgba(18, 20, 29, 0.75);
-  --bg-card: rgba(26, 29, 43, 0.55);
-  --bg-card-hover: rgba(38, 43, 64, 0.65);
+  /* Default: Pure AMOLED SimpMusic Theme */
+  --bg-primary: #000000; /* Pure Pitch Black */
+  --bg-secondary: #0a0a0c;
+  --bg-card: #141416;
+  --bg-card-hover: #1e1e24;
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-focus: rgba(255, 255, 255, 0.2);
-  --glass-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%);
+  --glass-border-focus: rgba(255, 255, 255, 0.22);
+  --glass-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%);
   
-  --accent-primary: #fa2d48; /* Apple Music Red/Pink */
+  --accent-primary: #fa2d48; /* SimpMusic Crimson Red */
   --accent-secondary: #ff5e62;
   --accent-glow: rgba(250, 45, 72, 0.45);
   --accent-gradient: linear-gradient(135deg, #fa2d48 0%, #ff6b8b 100%);
 
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  --text-main: #ffffff;
+  --text-muted: #a1a1aa;
+  --text-dim: #71717a;
 
   --sidebar-width: 250px;
   --player-height: 88px;
@@ -113,6 +113,18 @@ body {
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  transition: background-image 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.ambient-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 25%, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.88) 60%, #000000 100%);
+  backdrop-filter: blur(80px);
+  -webkit-backdrop-filter: blur(80px);
 }
 
 .ambient-orb {
