@@ -34,17 +34,32 @@ fun NowPlayingScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        VibraAccentPrimary.copy(alpha = 0.25f),
-                        VibraBackground,
-                        VibraBackground
+            .background(Color.Black)
+    ) {
+        // Dynamic Song Artwork Glow Backdrop (SimpMusic Style)
+        AsyncImage(
+            model = track.artUrl,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        )
+        // Dark Gradient Scrim Overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.75f),
+                            Color.Black.copy(alpha = 0.90f),
+                            Color.Black
+                        )
                     )
                 )
-            )
-            .padding(24.dp)
-    ) {
+                .padding(24.dp)
+        ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
