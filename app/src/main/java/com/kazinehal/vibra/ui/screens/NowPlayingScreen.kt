@@ -213,6 +213,7 @@ fun NowPlayingScreen(
             }
         }
     }
+    }
 }
 
 private fun formatMs(ms: Long): String {
@@ -221,3 +222,4 @@ private fun formatMs(ms: Long): String {
     val seconds = totalSeconds % 60
     return String.format("%d:%02d", minutes, seconds)
 }
+
