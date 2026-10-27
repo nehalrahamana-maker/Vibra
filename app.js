@@ -257,6 +257,89 @@ const CURATED_TRACKS = [
 [00:21.00] Crash at my place, baby, you're a wreck
 [00:25.00] Then you're left in the dust, unless I stuck by ya
 [00:29.00] You're the sunflower, I think your love would be too much`
+  },
+  {
+    id: 'real-1712662876',
+    title: 'Naa Ready (From "Leo")',
+    artist: 'Anirudh Ravichander, Thalapathy Vijay & Asal Kolaar',
+    album: 'Leo (Soundtrack)',
+    genre: 'Tamil',
+    duration: 248,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/13/a8/70/13a87001-28ba-1bc7-0ca6-52cf10dd6f52/196871556415.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/2b/08/0d/2b080da8-45f6-ef77-ad5c-79ca355e6cda/mzaf_6699968492299283465.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Dappankuthu folk beat)
+[00:08.00] Naa ready dhaan varavaa
+[00:14.00] Annan na erangi varavaa
+[00:20.00] Thani kaatu raja da
+[00:26.00] Naa ready dhaan varavaa!`
+  },
+  {
+    id: 'real-1699735311',
+    title: 'Kaavaalaa (From "Jailer")',
+    artist: 'Anirudh Ravichander, Shilpa Rao & Arunraja Kamaraj',
+    album: 'Jailer (Soundtrack)',
+    genre: 'Tamil',
+    duration: 191,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/2c/df/14/2cdf140e-6d11-a98d-bfbf-bc5e30c3c4a1/197189528187.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/40/11/6e/40116ec0-3f0e-86f3-ec06-f4153e66264b/mzaf_13483424612004799224.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Afro-beats percussion intro)
+[00:06.00] Kaavaalaa...
+[00:12.00] Nu vunte naku chaalu
+[00:18.00] Kaavaalayya kaavaalaa!`
+  },
+  {
+    id: 'real-1609971105',
+    title: 'Arabic Kuthu (From "Beast")',
+    artist: 'Anirudh Ravichander & Jonita Gandhi',
+    album: 'Beast (Soundtrack)',
+    genre: 'Tamil',
+    duration: 280,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/e9/19/b9/e919b921-d5a8-9e9a-8508-3551da375aee/196626458629.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/58/ac/9a/58ac9a48-9e3e-15c9-5085-3a13a6187992/mzaf_12322264242631159198.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Arabic oud & kuthu rhythm)
+[00:06.00] Halamithi habibo
+[00:12.00] Halamithi habibo
+[00:18.00] Malama pitha pithadhey!`
+  },
+  {
+    id: 'real-1708912590',
+    title: 'Tum Tum (From "Enemy")',
+    artist: 'S.S. Thaman, Sri Vardhini & Aditi Bhavaraju',
+    album: 'Enemy (Soundtrack)',
+    genre: 'Tamil',
+    duration: 229,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/0c/d7/2b/0cd72bbd-b40d-6e85-5ad1-124d6892525f/8904337225117.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/29/c6/1a/29c61a3a-3f49-652e-d6ec-b064d2cf209f/mzaf_15465581418525227081.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Traditional wedding nadaswaram beat)
+[00:08.00] Hey tum tum tum
+[00:14.00] Thaalam thaalam ketkudhu!`
+  },
+  {
+    id: 'real-1594544794',
+    title: 'Naatu Naatu (From "RRR")',
+    artist: 'Rahul Sipligunj, Kaala Bhairava & M.M. Keeravaani',
+    album: 'RRR (Soundtrack)',
+    genre: 'Telugu',
+    duration: 214,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/dd/39/14/dd3914e5-a2f3-b355-51f3-9a1f0e3ca246/8903431853592_cover.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/8e/dd/a4/8edda474-3fe1-3fe6-43d3-765db520a29b/mzaf_11740310005222997767.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Fast drumbeats and energetic rhythm)
+[00:06.00] Naatu Naatu Naatu Naatu
+[00:12.00] Naatu Naatu veera naatu!`
+  },
+  {
+    id: 'real-1826848930',
+    title: '295',
+    artist: 'Sidhu Moose Wala',
+    album: 'Moosetape',
+    genre: 'Hip-Hop/Rap',
+    duration: 270,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/97/69/58/976958ae-725e-bd41-6755-f0921c697840/810063889609_cover.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/7f/f3/6d/7ff36d63-b933-3993-cd2f-f3fd770c3763/mzaf_12675758250838366519.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Heavy bass & Sidhu Moose Wala vocal intro)
+[00:08.00] Nitt controversy create milugi
+[00:16.00] Dharm de naam te debate milugi
+[00:24.00] 295, 295!`
   }
 ];
 

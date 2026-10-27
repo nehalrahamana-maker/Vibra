@@ -36,7 +36,17 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     var selectedCategory by remember { mutableStateOf("All") }
-    val categories = listOf("All", "Relax", "Workout", "Energize", "Focus", "Commute")
+    val categories = listOf("All", "Tamil & South", "Bollywood", "Punjabi", "Pop Hits", "Relax", "Energize")
+
+    val filteredTracks = remember(selectedCategory, tracks) {
+        when (selectedCategory) {
+            "Tamil & South" -> tracks.filter { it.genre.equals("Tamil", true) || it.genre.equals("Telugu", true) || it.genre.equals("Soundtrack", true) }
+            "Bollywood" -> tracks.filter { it.genre.equals("Bollywood", true) }
+            "Punjabi" -> tracks.filter { it.artist.contains("Diljit", true) || it.artist.contains("Moose", true) || it.artist.contains("Dhillon", true) }
+            "Pop Hits" -> tracks.filter { it.genre.equals("Pop", true) || it.genre.equals("R&B/Soul", true) || it.genre.equals("Alternative", true) }
+            else -> tracks
+        }.ifEmpty { tracks }
+    }
 
     // Dynamic greeting based on time of day
     val greeting = remember {
@@ -169,7 +179,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        val quickPicks = tracks.take(4)
+        val quickPicks = filteredTracks.take(4)
         items(quickPicks) { track ->
             val isCurrentPlaying = player.currentTrack?.id == track.id
             Row(
@@ -237,7 +247,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(14.dp))
 
             LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                items(tracks.reversed()) { track ->
+                items(filteredTracks.reversed()) { track ->
                     Column(
                         modifier = Modifier
                             .width(140.dp)
