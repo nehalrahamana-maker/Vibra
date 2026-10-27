@@ -16,9 +16,9 @@ const CURATED_TRACKS = [
     artist: 'Vector Drive',
     album: 'Synthetic Horizons',
     genre: 'Synthwave',
-    duration: 218,
+    duration: 372,
     art: 'assets/covers/cyberpunk.jpg',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=synthwave-80s-110045.mp3',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
     lyrics: `[00:00.00] (Neon synthesizer intro initiates)
 [00:08.50] Gliding through the obsidian rain
 [00:15.20] Purple lasers pulsing through my veins
@@ -41,9 +41,9 @@ const CURATED_TRACKS = [
     artist: 'Lofi Future',
     album: 'Bedroom Dreams',
     genre: 'Lofi',
-    duration: 174,
+    duration: 423,
     art: 'assets/covers/lofi.jpg',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=lofi-study-112191.mp3',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
     lyrics: `[00:00.00] (Vinyl crackle and gentle raindrops on glass)
 [00:12.00] Steam rises slow from the porcelain cup
 [00:24.00] Late night assignments, never giving up
@@ -60,9 +60,9 @@ const CURATED_TRACKS = [
     artist: 'Cosmic Pulse',
     album: 'Stardust Odyssey',
     genre: 'EDM',
-    duration: 245,
+    duration: 345,
     art: 'assets/covers/cosmic.jpg',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=electronic-future-beats-117997.mp3',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
     lyrics: `[00:00.00] (Deep ambient space atmosphere)
 [00:14.00] Launching thrusters past the atmosphere
 [00:21.50] Leaving gravity and earthly fear
@@ -81,9 +81,9 @@ const CURATED_TRACKS = [
     artist: 'Binary Bloom',
     album: 'Code & Harmony',
     genre: 'Coding Flow',
-    duration: 198,
+    duration: 302,
     art: 'assets/covers/cyberpunk.jpg',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939f77c30.mp3?filename=lofi-chill-medium-version-122394.mp3',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
     lyrics: `[00:00.00] (Subtle rhythmic click and deep 808 sub)
 [00:10.00] Binary thoughts in a lucid stream
 [00:20.00] Building the logic of an open dream
@@ -98,14 +98,59 @@ const CURATED_TRACKS = [
     artist: 'Solaris Wave',
     album: 'Zero Horizon',
     genre: 'Ambient',
-    duration: 210,
+    duration: 310,
     art: 'assets/covers/cosmic.jpg',
-    audioUrl: 'https://cdn.pixabay.com/download/audio/2021/08/04/audio_bb630cc098.mp3?filename=ambient-piano-amp-strings-10711.mp3',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
     lyrics: `[00:00.00] (Ethereal reverberated piano chords)
 [00:15.00] Echoes travelling through time and space
 [00:30.00] Soft reflections in an empty place
 [00:45.00] Breathing in the serenity of silence
 [01:00.00] Peace restored in harmonious balance`
+  },
+  {
+    id: 'track-6',
+    title: 'Cyberpunk Horizon',
+    artist: 'Neon Nexus',
+    album: 'Future Tokyo',
+    genre: 'Synthwave',
+    duration: 360,
+    art: 'assets/covers/cyberpunk.jpg',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3',
+    lyrics: `[00:00.00] (High tempo 80s synth sequence)
+[00:12.00] Holographic billboards glowing in the haze
+[00:24.00] Lost in the chrome electric maze
+[00:36.00] Faster than light, we break the speed
+[00:48.00] Vibra rhythm is all we need`
+  },
+  {
+    id: 'track-7',
+    title: 'Retro Groove Odyssey',
+    artist: 'Kazi Nehal',
+    album: 'Vibra Master Studio',
+    genre: 'Electronic',
+    duration: 340,
+    art: 'assets/covers/cosmic.jpg',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3',
+    lyrics: `[00:00.00] (Funky retro synth baseline)
+[00:14.00] Handcrafted by Kazi Nehal
+[00:28.00] Studio-grade audio master
+[00:42.00] Let the frequency elevate your soul
+[00:56.00] Music without limits or delay`
+  },
+  {
+    id: 'track-8',
+    title: 'Deep Midnight Echoes',
+    artist: 'Synthwave Rider',
+    album: 'Dark City Nights',
+    genre: 'Ambient',
+    duration: 380,
+    art: 'assets/covers/lofi.jpg',
+    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+    lyrics: `[00:00.00] (Atmospheric nocturnal resonance)
+[00:16.00] Quiet streets under sodium lamps
+[00:32.00] Distant thunder in the midnight air
+[00:48.00] Pure tranquility and soothing sound
+[01:04.00] Vibra carries you all night long`
   }
 ];
 
@@ -192,7 +237,15 @@ class VibraState {
     // Persisted Queue Architecture
     const savedQueueData = loadJson('vibra_queue_v1', null);
     if (savedQueueData && Array.isArray(savedQueueData.queue) && savedQueueData.queue.length > 0) {
-      this.queue = savedQueueData.queue;
+      // Migrate any stale 403 URLs from prior visits
+      this.queue = savedQueueData.queue.map(qTrack => {
+        const match = CURATED_TRACKS.find(ct => ct.id === qTrack.id);
+        if (match) return match;
+        if (qTrack.audioUrl && qTrack.audioUrl.includes('pixabay.com')) {
+          qTrack.audioUrl = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+        }
+        return qTrack;
+      });
       this.currentIndex = Math.min(Math.max(0, savedQueueData.currentIndex || 0), this.queue.length - 1);
     } else {
       this.queue = [...CURATED_TRACKS];
@@ -1940,44 +1993,53 @@ let currentSearchToken = 0;
 async function searchOnlineMusic(query) {
   if (!query || !query.trim()) {
     state.searchResults = [];
-    renderTrackGrid(state.playlist);
-    return;
+    const tg = document.getElementById('trackGrid');
+    if (tg) renderTrackGrid(state.playlist, tg);
+    return [];
   }
 
   const token = ++currentSearchToken;
   const trackGrid = document.getElementById('trackGrid');
   const sourceLabel = (settings.activeSource || 'iTunes').toUpperCase();
 
-  trackGrid.innerHTML = `
-    <div style="grid-column: 1 / -1; text-align: center; padding: 48px;">
-      <div class="search-shimmer-loader">
-        <div class="spinner-ring"></div>
-        <div style="font-size: 15px; color: var(--accent-primary); margin-top: 14px;">Searching ${esc(sourceLabel)} for "${esc(query)}"...</div>
-      </div>
-    </div>`;
+  if (trackGrid) {
+    trackGrid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 48px;">
+        <div class="search-shimmer-loader">
+          <div class="spinner-ring"></div>
+          <div style="font-size: 15px; color: var(--accent-primary); margin-top: 14px;">Searching ${esc(sourceLabel)} for "${esc(query)}"...</div>
+        </div>
+      </div>`;
+  }
 
   try {
     const results = await Sources.search(query);
-    if (token !== currentSearchToken) return; // Discard stale responses
+    if (token !== currentSearchToken) return []; // Discard stale responses
 
     state.searchResults = results || [];
     state.searchResults.forEach(t => state.registerTrack(t));
-    if (state.searchResults.length > 0) {
-      renderTrackGrid(state.searchResults);
-    } else {
+    if (trackGrid) {
+      if (state.searchResults.length > 0) {
+        renderTrackGrid(state.searchResults, trackGrid);
+      } else {
+        trackGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--text-dim);">
+            <p style="font-size: 16px;">No tracks found on ${esc(sourceLabel)} for "${esc(query)}".</p>
+            <span style="font-size: 13px; margin-top: 6px; display: block;">Try another search term or switch source in Settings.</span>
+          </div>`;
+      }
+    }
+    return state.searchResults;
+  } catch (e) {
+    if (token !== currentSearchToken) return [];
+    if (trackGrid) {
       trackGrid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--text-dim);">
-          <p style="font-size: 16px;">No tracks found on ${esc(sourceLabel)} for "${esc(query)}".</p>
-          <span style="font-size: 13px; margin-top: 6px; display: block;">Try another search term or switch source in Settings.</span>
+        <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--accent-primary);">
+          <p style="font-size: 16px;">Search error on ${esc(sourceLabel)}</p>
+          <span style="font-size: 13px; margin-top: 6px; display: block; color: var(--text-dim);">${esc(e.message || 'Please check your connection')}</span>
         </div>`;
     }
-  } catch (e) {
-    if (token !== currentSearchToken) return;
-    trackGrid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--accent-primary);">
-        <p style="font-size: 16px;">Search error on ${esc(sourceLabel)}</p>
-        <span style="font-size: 13px; margin-top: 6px; display: block; color: var(--text-dim);">${esc(e.message || 'Please check your connection')}</span>
-      </div>`;
+    return [];
   }
 }
 

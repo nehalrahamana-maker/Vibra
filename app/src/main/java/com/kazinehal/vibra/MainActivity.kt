@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var player: VibraPlayer
 
-    // Curated High-Fidelity Audiophile Seed Tracks
+    // Curated High-Fidelity Audiophile Seed Tracks (Verified 200 OK Streams)
     private val seedTracks = listOf(
         Track(
             id = "track-1",
@@ -31,9 +31,9 @@ class MainActivity : ComponentActivity() {
             artist = "Vector Drive",
             album = "Synthetic Horizons",
             genre = "Synthwave",
-            duration = 218,
+            duration = 372,
             artUrl = "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=600&q=80",
-            audioUrl = "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=synthwave-80s-110045.mp3"
+            audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
         ),
         Track(
             id = "track-2",
@@ -41,9 +41,9 @@ class MainActivity : ComponentActivity() {
             artist = "Lofi Future",
             album = "Bedroom Dreams",
             genre = "Lofi",
-            duration = 174,
+            duration = 423,
             artUrl = "https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=600&q=80",
-            audioUrl = "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=lofi-study-112191.mp3"
+            audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
         ),
         Track(
             id = "track-3",
@@ -51,9 +51,9 @@ class MainActivity : ComponentActivity() {
             artist = "Cosmic Pulse",
             album = "Stardust Odyssey",
             genre = "EDM",
-            duration = 245,
+            duration = 345,
             artUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80",
-            audioUrl = "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=electronic-future-beats-117997.mp3"
+            audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
         ),
         Track(
             id = "track-4",
@@ -61,9 +61,49 @@ class MainActivity : ComponentActivity() {
             artist = "Binary Bloom",
             album = "Code & Harmony",
             genre = "Coding Flow",
-            duration = 198,
+            duration = 302,
             artUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80",
-            audioUrl = "https://cdn.pixabay.com/download/audio/2022/10/14/audio_9939f77c30.mp3?filename=lofi-chill-medium-version-122394.mp3"
+            audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+        ),
+        Track(
+            id = "track-5",
+            title = "Ethereal Echoes",
+            artist = "Solaris Wave",
+            album = "Zero Horizon",
+            genre = "Ambient",
+            duration = 310,
+            artUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80",
+            audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+        ),
+        Track(
+            id = "track-6",
+            title = "Cyberpunk Horizon",
+            artist = "Neon Nexus",
+            album = "Future Tokyo",
+            genre = "Synthwave",
+            duration = 360,
+            artUrl = "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=600&q=80",
+            audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+        ),
+        Track(
+            id = "track-7",
+            title = "Retro Groove Odyssey",
+            artist = "Kazi Nehal",
+            album = "Vibra Master Studio",
+            genre = "EDM",
+            duration = 340,
+            artUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80",
+            audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3"
+        ),
+        Track(
+            id = "track-8",
+            title = "Cosmic Lofi Reverie",
+            artist = "Astral Beats",
+            album = "Dark City Nights",
+            genre = "Lofi",
+            duration = 380,
+            artUrl = "https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=600&q=80",
+            audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
         )
     )
 
