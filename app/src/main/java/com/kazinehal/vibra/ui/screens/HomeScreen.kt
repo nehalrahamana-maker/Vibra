@@ -116,6 +116,8 @@ fun HomeScreen(
                             containerColor = VibraSurface
                         ),
                         border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
                             borderColor = if (isSelected) Color.Transparent else Color.White.copy(alpha = 0.1f),
                             selectedBorderColor = Color.Transparent
                         ),
