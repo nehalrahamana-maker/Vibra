@@ -44,9 +44,17 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
           <span>Home</span>
         </button>
+        <button class="nav-item" data-view="mix" id="navMixBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path></svg>
+          <span>Mix for you</span>
+        </button>
+        <button class="nav-item" data-view="search" id="navSearchBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <span>Search & Explore</span>
+        </button>
         <button class="nav-item" data-view="explore" id="navExploreBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
-          <span>Explore & Charts</span>
+          <span>Charts & Trends</span>
         </button>
         <button class="nav-item" data-view="lyrics" id="navLyricsBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M8 7h6"></path><path d="M8 11h8"></path></svg>
@@ -69,6 +77,10 @@
         </button>
 
         <div class="nav-section-title">MY LIBRARY</div>
+        <button class="nav-item" data-view="library" id="navLibraryBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M6 6h10"></path><path d="M6 10h10"></path></svg>
+          <span>Library & Vault</span>
+        </button>
         <button class="nav-item" data-view="playlists" id="navPlaylistsBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15V6a2 2 0 0 0-2-2H7l-4 4v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Z"></path><path d="M3 8h4v4H3Z"></path><path d="M11 8h6"></path><path d="M11 12h6"></path></svg>
           <span>Playlists (<span id="playlistCountBadge">0</span>)</span>
@@ -77,13 +89,14 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           <span>Offline (<span id="downloadsCountBadge">0</span>)</span>
         </button>
-        <button class="nav-item" data-view="library" id="navLibraryBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-          <span>Favorites (<span id="favCount">0</span>)</span>
-        </button>
         <button class="nav-item" data-view="settings" id="navSettingsBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           <span>Settings</span>
+        </button>
+        <button class="nav-item" id="navAboutBtn" title="About Kazi Nehal & Vibra">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+          <span>About Kazi Nehal</span>
+          <span class="nav-pill">v2.0</span>
         </button>
         <label for="localFileInput" class="nav-item upload-item" id="uploadNavItem">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
@@ -109,86 +122,138 @@
 
     <!-- Main Content Area -->
     <main class="main-viewport" id="mainViewport">
-      <!-- Top Action Bar -->
-      <header class="top-bar" id="topBar">
-        <div class="search-box-wrapper">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" id="trackSearchInput" placeholder="Search songs, artists, genres or moods..." autocomplete="off">
-          <button class="clear-search-btn" id="clearSearchBtn" title="Clear search" style="display: none;">&times;</button>
+      <!-- SimpMusic Inspired Header -->
+      <header class="top-bar simp-top-bar" id="topBar">
+        <div class="header-left-greeting">
+          <span class="header-greeting" id="greetingText">Good Morning</span>
+          <div class="brand-title-wrap">
+            <h1 class="header-app-title">Vibra</h1>
+            <span class="header-app-badge">SimpMusic</span>
+          </div>
         </div>
 
         <div class="top-bar-actions">
-          <!-- Theme Switcher -->
-          <div class="theme-selector-dropdown">
-            <button class="icon-pill-btn" id="themeMenuBtn" title="Change Theme Style">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
-              <span id="currentThemeLabel">Apple Glass</span>
-            </button>
-            <div class="theme-dropdown-menu" id="themeDropdownMenu">
-              <button class="theme-opt active" data-theme="apple-glass">🍎 Apple Music Glass</button>
-              <button class="theme-opt" data-theme="cyberpunk-neon">⚡ Cyberpunk Neon</button>
-              <button class="theme-opt" data-theme="material-expressive">🎨 Material 3 Expressive</button>
-              <button class="theme-opt" data-theme="midnight-amoled">🌑 Midnight AMOLED</button>
-            </div>
-          </div>
-
-          <!-- Sleep Timer Button -->
-          <button class="icon-pill-btn" id="sleepTimerBtn" title="Set Sleep Timer">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path><path d="M15 9h4l-4 4h4"></path></svg>
-            <span id="sleepTimerBadge">Sleep</span>
+          <!-- Notification Bell -->
+          <button class="icon-circle-btn" id="headerNotifBtn" title="Updates & News">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
           </button>
 
-          <!-- SimpMusic Inspired Player Mode Switcher -->
-          <button class="icon-pill-btn now-playing-view-btn" id="expandPlayerBtn" title="Open Expanded Player">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-            <span>Now Playing</span>
+          <!-- History Button -->
+          <button class="icon-circle-btn" id="headerHistoryBtn" title="Listening History">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </button>
+
+          <!-- Settings Button -->
+          <button class="icon-circle-btn" id="headerSettingsBtn" title="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </button>
+
+          <!-- User Avatar & About Trigger -->
+          <button class="user-avatar-badge-btn" id="headerAboutBtn" title="About Kazi Nehal & Vibra v2.0.0">
+            <span class="avatar-kn">KN</span>
+            <span class="avatar-author-name">Kazi Nehal</span>
           </button>
         </div>
       </header>
 
+      <!-- Category Pill Chips Row (Frame 00:08 in video) -->
+      <div class="category-pills-row" id="categoryPillsRow">
+        <button class="cat-pill active" data-genre="all">All</button>
+        <button class="cat-pill" data-genre="Relax">Relax</button>
+        <button class="cat-pill" data-genre="Sleep">Sleep</button>
+        <button class="cat-pill" data-genre="Energize">Energize</button>
+        <button class="cat-pill" data-genre="Sad">Sad</button>
+        <button class="cat-pill" data-genre="Romance">Romance</button>
+        <button class="cat-pill" data-genre="Synthwave">Synthwave</button>
+        <button class="cat-pill" data-genre="Lofi">Lofi</button>
+        <button class="cat-pill" data-genre="EDM">EDM</button>
+      </div>
+
       <!-- View Containers -->
       <div class="content-scroll-container" id="contentContainer">
-        <!-- 1. HOME VIEW -->
+        <!-- 1. HOME VIEW (SimpMusic Style) -->
         <section class="view-panel active" id="view-home">
-          <!-- Hero Banner -->
-          <div class="hero-banner" id="heroBanner">
-            <div class="hero-content">
-              <span class="hero-tag">FEATURED SOUNDSCAPE</span>
-              <h1 class="hero-title" id="heroSongTitle">Vector Drive — Neon Eclipse</h1>
-              <p class="hero-desc">Synthwave frequencies engineered for deep coding flow, high-focus productivity, and late-night aesthetic sessions.</p>
-              <div class="hero-actions">
-                <button class="btn-primary" id="heroPlayBtn">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                  <span>Play Master Track</span>
-                </button>
-                <button class="btn-secondary" id="heroQueueBtn">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                  <span>Add to Queue</span>
-                </button>
-              </div>
-            </div>
-            <div class="hero-art">
-              <img src="assets/covers/cyberpunk.jpg" alt="Featured Album Cover" id="heroCoverArt">
-              <div class="hero-art-reflection"></div>
-            </div>
-          </div>
-
-          <!-- Mood / Genre Filter Chips -->
-          <div class="chips-container" id="genreChips">
-            <button class="chip active" data-genre="all">All Tracks</button>
-            <button class="chip" data-genre="Synthwave">🌆 Synthwave</button>
-            <button class="chip" data-genre="Lofi">☕ Lo-Fi Chill</button>
-            <button class="chip" data-genre="EDM">⚡ Cosmic EDM</button>
-            <button class="chip" data-genre="Coding Flow">💻 Coding Flow</button>
-            <button class="chip" data-genre="Ambient">🌌 Ambient</button>
-          </div>
-
-          <!-- Quick Picks / Playlist Grid -->
+          <!-- Listen Again Section (Frames 00:08, 00:21) -->
           <div class="section-block">
             <div class="section-header">
               <div>
-                <h2 class="section-title">Quick Picks & Trending</h2>
-                <p class="section-subtitle">SimpMusic style curated playlist with dynamic frequency matching</p>
+                <span class="section-kicker">SAGOR &bull; DISCOVER</span>
+                <h2 class="section-title">Listen again</h2>
+              </div>
+              <button class="section-more-btn" id="listenAgainMoreBtn">More &rarr;</button>
+            </div>
+            <div class="horizontal-cards-row" id="listenAgainRow">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Quick Picks Section (Frames 00:08, 00:22) -->
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <span class="section-kicker">LET'S START WITH A RADIO</span>
+                <h2 class="section-title">Quick picks</h2>
+              </div>
+            </div>
+            <div class="quick-picks-stack" id="quickPicksStack">
+              <!-- Dynamically populated 4-track stack -->
+            </div>
+          </div>
+
+          <!-- Covers and Remixes (Frames 00:09, 00:23) -->
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Covers and remixes</h2>
+              </div>
+            </div>
+            <div class="horizontal-cards-row" id="coversRow">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Trending Songs For You (Frame 00:24) -->
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Trending songs for you</h2>
+              </div>
+            </div>
+            <div class="horizontal-cards-row" id="trendingRow">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Dance & Electronic (Frame 00:25) -->
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Dance & electronic</h2>
+              </div>
+            </div>
+            <div class="horizontal-cards-row" id="danceRow">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Albums For You (Frame 00:26) -->
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Albums for you</h2>
+              </div>
+            </div>
+            <div class="horizontal-cards-row" id="albumsRow">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- All Curated Tracks Grid -->
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">All Curated Soundscapes</h2>
+                <p class="section-subtitle">High-fidelity tracks routed through the 3D M/S widener and bass exciter</p>
               </div>
               <div class="track-count-badge"><span id="trackCount">0</span> tracks</div>
             </div>
@@ -206,6 +271,202 @@
               <h3>Drag & Drop Your Audio Files Here</h3>
               <p>Supports MP3, WAV, OGG, FLAC and AAC files directly in your browser. Real-time visualizer & EQ will automatically process your local music.</p>
               <button class="btn-secondary" onclick="document.getElementById('localFileInput').click()">Browse Local Files</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- MIX VIEW (Frame 00:19, 00:20 in video) -->
+        <section class="view-panel" id="view-mix">
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Mix for you</h2>
+                <p class="section-subtitle">Endless auto-mixes and radio streams generated from your music taste</p>
+              </div>
+            </div>
+
+            <div class="mix-cards-grid" id="mixCardsGrid">
+              <!-- Liked Music auto playlist -->
+              <div class="mix-card mix-card-liked" id="mixCardLiked">
+                <div class="mix-card-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>
+                </div>
+                <div class="mix-card-body">
+                  <span class="mix-card-title">Liked Music</span>
+                  <span class="mix-card-sub">Auto playlist &bull; Favorites</span>
+                </div>
+              </div>
+
+              <!-- Supermix -->
+              <div class="mix-card" data-mix="supermix">
+                <div class="mix-art-placeholder grad-purple">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                </div>
+                <div class="mix-card-body">
+                  <span class="mix-card-title">My Supermix</span>
+                  <span class="mix-card-sub">Daily curated blend</span>
+                </div>
+              </div>
+
+              <!-- Mix 1 -->
+              <div class="mix-card" data-mix="synthwave">
+                <div class="mix-art-placeholder grad-coral">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                </div>
+                <div class="mix-card-body">
+                  <span class="mix-card-title">My Mix 1</span>
+                  <span class="mix-card-sub">Synthwave & Electro</span>
+                </div>
+              </div>
+
+              <!-- Mix 2 -->
+              <div class="mix-card" data-mix="lofi">
+                <div class="mix-art-placeholder grad-yellow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                </div>
+                <div class="mix-card-body">
+                  <span class="mix-card-title">My Mix 2</span>
+                  <span class="mix-card-sub">Lo-Fi Study Beats</span>
+                </div>
+              </div>
+
+              <!-- Discover Mix -->
+              <div class="mix-card" data-mix="discover">
+                <div class="mix-art-placeholder grad-lime">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                </div>
+                <div class="mix-card-body">
+                  <span class="mix-card-title">Discover Mix</span>
+                  <span class="mix-card-sub">New releases for you</span>
+                </div>
+              </div>
+
+              <!-- Feel Good Mix -->
+              <div class="mix-card" data-mix="feelgood">
+                <div class="mix-art-placeholder grad-teal">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                </div>
+                <div class="mix-card-body">
+                  <span class="mix-card-title">Feel Good Mix</span>
+                  <span class="mix-card-sub">Upbeat energy boost</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- LIBRARY VIEW (Exact 2x2 Colorful Grid from Video Frames 00:10, 00:32) -->
+        <section class="view-panel" id="view-library">
+          <div class="library-header-section">
+            <h1 class="library-title">Library</h1>
+            <div class="library-subtabs-scroll" id="libSubtabs">
+              <button class="lib-subtab active" data-libtab="all">Your library</button>
+              <button class="lib-subtab" data-libtab="charts">SimpMusic Charts</button>
+              <button class="lib-subtab" data-libtab="playlists">Your Playlists</button>
+              <button class="lib-subtab" data-libtab="downloaded">Downloaded</button>
+            </div>
+
+            <!-- 4 Big Colorful Action Tiles (Frame 00:10 in video) -->
+            <div class="library-tiles-grid">
+              <!-- Tile 1: Favorite (Coral Red) -->
+              <div class="lib-tile tile-favorite" id="libTileFavorite" role="button">
+                <div class="tile-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </div>
+                <span class="tile-label">Favorite</span>
+              </div>
+
+              <!-- Tile 2: Followed (Golden Yellow) -->
+              <div class="lib-tile tile-followed" id="libTileFollowed" role="button">
+                <div class="tile-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11V3H8v6H2v12h20V11h-6zm-6-6h4v6h-4V5zm-6 8h4v6H4v-6zm16 6h-8v-6h8v6z"/></svg>
+                </div>
+                <span class="tile-label">Followed</span>
+              </div>
+
+              <!-- Tile 3: Most Played (Teal / Cyan) -->
+              <div class="lib-tile tile-mostplayed" id="libTileMostPlayed" role="button">
+                <div class="tile-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                </div>
+                <span class="tile-label">Most Played</span>
+              </div>
+
+              <!-- Tile 4: Downloaded (Lime Green) -->
+              <div class="lib-tile tile-downloaded" id="libTileDownloaded" role="button">
+                <div class="tile-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </div>
+                <span class="tile-label">Downloaded</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recently Added Section (Frame 00:10 in video) -->
+          <div class="section-block">
+            <div class="section-header">
+              <h2 class="section-title">Recently Added</h2>
+            </div>
+            <div class="library-tracks-list" id="libraryTracksList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </section>
+
+        <!-- SEARCH VIEW (Frames 00:41, 00:44 in video) -->
+        <section class="view-panel" id="view-search">
+          <div class="search-view-container">
+            <div class="search-pill-bar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="simpSearchInput" placeholder="Search for song, artist, album..." autocomplete="off">
+              <button class="clear-search-btn" id="simpClearSearchBtn" style="display:none;">&times;</button>
+            </div>
+
+            <!-- Search Landing Page (When not searching) -->
+            <div class="search-landing-content" id="searchLandingContent">
+              <div class="search-promo-box">
+                <h2 class="search-promo-title">Everything you need</h2>
+                <p class="search-promo-subtitle">Search for songs, artists, albums, playlists, and more</p>
+                <div class="simp-chart-badge">✨ Introducing Vibra Studio Chart</div>
+              </div>
+
+              <!-- 2-Column Colorful Genre Gradient Cards (Frame 00:42) -->
+              <div class="genre-cards-grid">
+                <div class="genre-card grad-lime" data-query="Family"><span>Family</span></div>
+                <div class="genre-card grad-yellow" data-query="1990s"><span>1990s</span></div>
+                <div class="genre-card grad-coral" data-query="Chill"><span>Chill</span></div>
+                <div class="genre-card grad-orange" data-query="Gaming"><span>Gaming</span></div>
+                <div class="genre-card grad-purple" data-query="R&B"><span>R&B & soul</span></div>
+                <div class="genre-card grad-teal" data-query="Jazz"><span>Jazz</span></div>
+              </div>
+
+              <!-- Moods & Moments (Frame 00:42) -->
+              <div class="section-block">
+                <h3 class="section-title" style="margin-bottom:12px;">Moods & moments</h3>
+                <div class="moods-grid">
+                  <div class="mood-card grad-pink" data-query="Chill"><span>Chill</span></div>
+                  <div class="mood-card grad-sunset" data-query="Commute"><span>Commute</span></div>
+                  <div class="mood-card grad-violet" data-query="Energize"><span>Energize</span></div>
+                  <div class="mood-card grad-rose" data-query="Feel good"><span>Feel good</span></div>
+                </div>
+              </div>
+
+              <!-- Recent Search History (Frame 00:43) -->
+              <div class="search-history-box" id="searchHistoryBox">
+                <div class="history-header">
+                  <span>Recent Searches</span>
+                  <button id="clearSearchHistoryBtn" class="clear-history-link">Clear search history</button>
+                </div>
+                <div class="history-list" id="searchHistoryList"></div>
+              </div>
+            </div>
+
+            <!-- Search Results Section -->
+            <div class="search-results-box" id="searchResultsBox" style="display:none;">
+              <div class="section-header">
+                <h2 class="section-title" id="searchResultsHeading">Results</h2>
+              </div>
+              <div class="track-grid" id="searchResultGrid"></div>
             </div>
           </div>
         </section>
@@ -839,6 +1100,49 @@
     </div>
   </footer>
 
+  <!-- Floating Mini Player (SimpMusic Capsule Pill, Frames 00:08, 00:20) -->
+  <div class="floating-mini-player" id="floatingMiniPlayer">
+    <div class="f-mini-art" id="fMiniArt">
+      <img src="assets/covers/cyberpunk.jpg" id="fMiniCoverArt" alt="Cover">
+    </div>
+    <div class="f-mini-info" id="fMiniInfo">
+      <div class="f-mini-title" id="fMiniTitle">Neon Eclipse</div>
+      <div class="f-mini-artist" id="fMiniArtist">Vector Drive</div>
+    </div>
+    <div class="f-mini-actions">
+      <button class="f-mini-btn" id="fMiniLikeBtn" title="Favorite">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+      </button>
+      <button class="f-mini-btn f-mini-play" id="fMiniPlayBtn" title="Play / Pause">
+        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+      </button>
+    </div>
+    <div class="f-mini-progress-bar">
+      <div class="f-mini-progress-fill" id="fMiniProgressFill"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar (Frame 00:08, 00:10, 00:20 in video) -->
+  <nav class="bottom-nav-bar" id="bottomNavBar">
+    <button class="b-nav-item active" data-view="home" id="bNavHome">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <span>Home</span>
+    </button>
+    <button class="b-nav-item" data-view="mix" id="bNavMix">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path></svg>
+      <span>Mix</span>
+    </button>
+    <button class="b-nav-item" data-view="library" id="bNavLibrary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M6 6h10"></path><path d="M6 10h10"></path></svg>
+      <span>Library</span>
+    </button>
+    <button class="b-nav-item" data-view="search" id="bNavSearch">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <span>Search</span>
+    </button>
+  </nav>
+
   <!-- Up Next Queue Slide-Over Drawer -->
   <aside class="queue-drawer" id="queueDrawer">
     <div class="queue-header">
@@ -853,35 +1157,175 @@
     </div>
   </aside>
 
-  <!-- SimpMusic Inspired Fullscreen Now Playing Overlay Modal -->
+  <!-- SimpMusic Inspired Fullscreen Now Playing Overlay Modal (Frames 00:46 to 00:51) -->
   <div class="expanded-player-modal" id="expandedPlayerModal">
     <div class="modal-bg-blur" id="modalBgBlur"></div>
-    <button class="modal-close-btn" id="closeExpandedModalBtn" title="Close Expanded Player">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-    </button>
+    
+    <!-- Top Bar with Down Chevron, Header, and 3-dots -->
+    <div class="expanded-modal-top-bar">
+      <button class="modal-close-btn" id="closeExpandedModalBtn" title="Close Expanded Player">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+      <div class="expanded-header-title-box">
+        <span class="np-header-tag">NOW PLAYING</span>
+        <span class="np-next-title" id="npNextTitle">Next in Queue</span>
+      </div>
+      <button class="icon-circle-btn" id="expandedMenuBtn" title="Options">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
+      </button>
+    </div>
 
     <div class="expanded-player-content">
-      <!-- Left side: Large Cover + Info -->
-      <div class="expanded-art-column">
-        <div class="expanded-art-frame">
-          <img src="assets/covers/cyberpunk.jpg" alt="Album Cover" id="expandedAlbumArt">
-          <div class="expanded-art-glow" id="expandedArtGlow"></div>
-        </div>
-        <div class="expanded-track-meta">
+      <!-- Center: Large Glowing Cover Artwork (Frame 00:46) -->
+      <div class="expanded-art-frame">
+        <img src="assets/covers/cyberpunk.jpg" alt="Album Cover" id="expandedAlbumArt">
+        <div class="expanded-art-glow" id="expandedArtGlow"></div>
+      </div>
+
+      <!-- Track Info Row: Title & Artist on left, Heart & Add on right (Frame 00:47) -->
+      <div class="expanded-track-meta-row">
+        <div class="expanded-meta-left">
           <h2 id="expandedTitle">Neon Eclipse</h2>
           <p id="expandedArtist">Vector Drive</p>
         </div>
+        <div class="expanded-meta-right">
+          <button class="like-btn" id="expandedLikeBtn" title="Favorite">
+            <svg class="heart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          </button>
+          <button class="action-btn" id="expandedAddPlaylistBtn" title="Add to playlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+          </button>
+        </div>
       </div>
 
-      <!-- Right side: Synced Apple-Music Karaoke Lyrics Panel -->
-      <div class="expanded-lyrics-column">
-        <div class="expanded-lyrics-header">
-          <span>REAL-TIME SYNCED LYRICS</span>
-          <span class="lyrics-source-tag">SimpLyrics &bull; LRCLIB</span>
+      <!-- Scrubber Timeline (Frame 00:47) -->
+      <div class="expanded-scrubber-box">
+        <div class="seek-track" id="expandedSeekTrack">
+          <div class="seek-progress" id="expandedSeekProgress"></div>
+          <div class="seek-thumb" id="expandedSeekThumb"></div>
         </div>
-        <div class="expanded-lyrics-scroll" id="expandedLyricsScroll">
-          <!-- Dynamically populated -->
+        <div class="expanded-time-labels">
+          <span id="expandedCurrentTime">0:00</span>
+          <span id="expandedDuration">3:45</span>
         </div>
+      </div>
+
+      <!-- Master Controls Row (Shuffle, Prev, Big White Circle Play/Pause, Next, Repeat) (Frame 00:47) -->
+      <div class="expanded-master-controls">
+        <button class="ctrl-btn" id="expandedShuffleBtn" title="Shuffle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+        </button>
+        <button class="ctrl-btn" id="expandedPrevBtn" title="Previous Track">
+          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line></svg>
+        </button>
+        <button class="big-circle-play-btn" id="expandedPlayBtn" title="Play / Pause">
+          <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+          <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+        <button class="ctrl-btn" id="expandedNextBtn" title="Next Track">
+          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line></svg>
+        </button>
+        <button class="ctrl-btn" id="expandedRepeatBtn" title="Repeat Mode">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+        </button>
+      </div>
+
+      <!-- Bottom Quick Actions: Info, EQ, Lyrics, Queue (Frame 00:47) -->
+      <div class="expanded-quick-actions">
+        <button class="quick-act-btn active" id="expandedInfoToggleBtn" title="Track Info & Details">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        </button>
+        <button class="quick-act-btn" id="expandedEqToggleBtn" title="Equalizer & FX">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+        </button>
+        <button class="quick-act-btn" id="expandedLyricsToggleBtn" title="Synced Lyrics">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M8 7h6"></path><path d="M8 11h8"></path></svg>
+        </button>
+        <button class="quick-act-btn" id="expandedQueueToggleBtn" title="Up Next Queue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <!-- Slide-Up Details Card (Artist & Description Cards, Frames 00:49, 00:50 in video) -->
+      <div class="expanded-slide-up-card" id="expandedSlideUpCard">
+        <!-- Artists Card (Frame 00:49) -->
+        <div class="np-artist-card">
+          <span class="np-card-header">Artists</span>
+          <div class="np-artist-row">
+            <img src="assets/covers/cyberpunk.jpg" class="np-artist-avatar" id="npArtistAvatar" alt="Artist">
+            <div class="np-artist-meta">
+              <h3 id="npArtistName">Vector Drive</h3>
+              <span id="npArtistSubs">128K subscribers</span>
+            </div>
+            <button class="np-subscribe-btn">Follow</button>
+          </div>
+        </div>
+
+        <!-- Description Card (Frame 00:49) -->
+        <div class="np-desc-card">
+          <div class="np-desc-stats-row">
+            <span class="np-pub-date" id="npPubDate">Published on Oct 26, 2026</span>
+            <div class="np-stat-counters">
+              <span id="npViewsCounter">1,245,890 views</span> &bull; <span id="npLikesCounter">48K likes</span>
+            </div>
+          </div>
+          <p class="np-desc-body" id="npDescBody">
+            Audiophile master stream processed by Vibra 3D Spatial Stereo Widener and Harmonic Bass Exciter. Real-time sub-second karaoke lyrics synced via LRCLIB.
+          </p>
+          <div class="np-desc-tags" id="npDescTags">
+            <span>#vibra</span><span>#simpMusic</span><span>#audiophile</span><span>#dsp</span><span>#kazinehal</span>
+          </div>
+        </div>
+
+        <!-- Synced Lyrics View inside Expanded Player -->
+        <div class="expanded-lyrics-container" id="expandedLyricsContainer" style="display:none;">
+          <div class="expanded-lyrics-header">
+            <span>REAL-TIME SYNCED LYRICS</span>
+            <span class="lyrics-source-tag">SimpLyrics &bull; LRCLIB</span>
+          </div>
+          <div class="expanded-lyrics-scroll" id="expandedLyricsScroll"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Developer & App Modal (Explicitly Requested: Name, Date Created, Version) -->
+  <div class="modal-backdrop" id="aboutModal" style="display:none;">
+    <div class="modal-dialog about-dialog">
+      <div class="about-hero">
+        <div class="about-avatar-glow">
+          <div class="about-avatar">KN</div>
+        </div>
+        <div class="about-creator-badge">CREATOR &amp; ARCHITECT</div>
+        <h2 class="about-name">Kazi Nehal</h2>
+        <p class="about-subtitle">Designer &amp; Developer of Vibra</p>
+      </div>
+
+      <div class="about-info-grid">
+        <div class="about-card">
+          <span class="about-label">Application</span>
+          <span class="about-val">Vibra Music Experience</span>
+        </div>
+        <div class="about-card">
+          <span class="about-label">App Version</span>
+          <span class="about-val highlight">v2.0.0 (Release)</span>
+        </div>
+        <div class="about-card">
+          <span class="about-label">Created Date</span>
+          <span class="about-val">October 26, 2026</span>
+        </div>
+        <div class="about-card">
+          <span class="about-label">Core Engine</span>
+          <span class="about-val">SimpMusic &bull; Web Audio DSP</span>
+        </div>
+      </div>
+
+      <div class="about-description">
+        <p>Built by <strong>Kazi Nehal</strong> as an ultra-modern, audiophile music streaming app featuring 3D M/S Spatial Stereo Widener, Bass Harmonic Exciter, 6-band Parametric Equalizer, sub-second word-sync karaoke lyrics, and low-latency native Android streaming.</p>
+      </div>
+
+      <div class="modal-dialog-footer">
+        <button class="btn-primary" id="closeAboutModalBtn" style="width:100%;">Close</button>
       </div>
     </div>
   </div>
