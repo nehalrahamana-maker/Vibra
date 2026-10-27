@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="apple-glass">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibra — Next-Gen Music Experience</title>
+  <meta name="description" content="Vibra is a modern, high-fidelity web music streaming player and audio visualizer inspired by SimpMusic, featuring synced lyrics, 5-band equalizer, and curated soundscapes.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#fa2d48">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient Dynamic Background Canvas -->
+  <div class="ambient-backdrop" id="ambientBackdrop">
+    <div class="ambient-orb orb-1" id="ambientOrb1"></div>
+    <div class="ambient-orb orb-2" id="ambientOrb2"></div>
+    <div class="ambient-orb orb-3" id="ambientOrb3"></div>
+  </div>
+
+  <div class="app-layout" id="appLayout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-header">
+        <div class="brand-logo">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+          <div class="logo-glow"></div>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">Vibra</span>
+          <span class="brand-badge">SimpCore</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu" id="primaryNav">
+        <div class="nav-section-title">DISCOVER</div>
+        <button class="nav-item active" data-view="home" id="navHomeBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Home</span>
+        </button>
+        <button class="nav-item" data-view="explore" id="navExploreBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+          <span>Explore & Charts</span>
+        </button>
+        <button class="nav-item" data-view="lyrics" id="navLyricsBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M8 7h6"></path><path d="M8 11h8"></path></svg>
+          <span>Synced Lyrics</span>
+          <span class="nav-pill">Live</span>
+        </button>
+
+        <div class="nav-section-title">STUDIO & SOUND</div>
+        <button class="nav-item" data-view="equalizer" id="navEqualizerBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+          <span>Equalizer & FX</span>
+        </button>
+        <button class="nav-item" data-view="visualizer" id="navVisualizerBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h3l3-9 4 18 4-12 3 6 3-3"></path></svg>
+          <span>Audio Spectrum</span>
+        </button>
+        <button class="nav-item" data-view="analytics" id="navAnalyticsBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
+          <span>Listening Insights</span>
+        </button>
+
+        <div class="nav-section-title">MY LIBRARY</div>
+        <button class="nav-item" data-view="playlists" id="navPlaylistsBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15V6a2 2 0 0 0-2-2H7l-4 4v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Z"></path><path d="M3 8h4v4H3Z"></path><path d="M11 8h6"></path><path d="M11 12h6"></path></svg>
+          <span>Playlists (<span id="playlistCountBadge">0</span>)</span>
+        </button>
+        <button class="nav-item" data-view="downloads" id="navDownloadsBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>Offline (<span id="downloadsCountBadge">0</span>)</span>
+        </button>
+        <button class="nav-item" data-view="library" id="navLibraryBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          <span>Favorites (<span id="favCount">0</span>)</span>
+        </button>
+        <button class="nav-item" data-view="settings" id="navSettingsBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <span>Settings</span>
+        </button>
+        <label for="localFileInput" class="nav-item upload-item" id="uploadNavItem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <span>Import Audio Files</span>
+          <input type="file" id="localFileInput" accept="audio/*" multiple style="display:none;">
+        </label>
+      </nav>
+
+      <!-- Now Playing Mini Card in Sidebar -->
+      <div class="sidebar-mini-player" id="sidebarMiniCard">
+        <div class="mini-art-wrapper">
+          <img src="assets/covers/cyberpunk.jpg" alt="Cover Artwork" id="sidebarTrackArt">
+          <div class="audio-waves-indicator" id="sidebarWaves">
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="mini-track-info">
+          <div class="mini-track-title" id="sidebarTrackTitle">Neon Eclipse</div>
+          <div class="mini-track-artist" id="sidebarTrackArtist">Vector Drive</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-viewport" id="mainViewport">
+      <!-- Top Action Bar -->
+      <header class="top-bar" id="topBar">
+        <div class="search-box-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="trackSearchInput" placeholder="Search songs, artists, genres or moods..." autocomplete="off">
+          <button class="clear-search-btn" id="clearSearchBtn" title="Clear search" style="display: none;">&times;</button>
+        </div>
+
+        <div class="top-bar-actions">
+          <!-- Theme Switcher -->
+          <div class="theme-selector-dropdown">
+            <button class="icon-pill-btn" id="themeMenuBtn" title="Change Theme Style">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+              <span id="currentThemeLabel">Apple Glass</span>
+            </button>
+            <div class="theme-dropdown-menu" id="themeDropdownMenu">
+              <button class="theme-opt active" data-theme="apple-glass">🍎 Apple Music Glass</button>
+              <button class="theme-opt" data-theme="cyberpunk-neon">⚡ Cyberpunk Neon</button>
+              <button class="theme-opt" data-theme="material-expressive">🎨 Material 3 Expressive</button>
+              <button class="theme-opt" data-theme="midnight-amoled">🌑 Midnight AMOLED</button>
+            </div>
+          </div>
+
+          <!-- Sleep Timer Button -->
+          <button class="icon-pill-btn" id="sleepTimerBtn" title="Set Sleep Timer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path><path d="M15 9h4l-4 4h4"></path></svg>
+            <span id="sleepTimerBadge">Sleep</span>
+          </button>
+
+          <!-- SimpMusic Inspired Player Mode Switcher -->
+          <button class="icon-pill-btn now-playing-view-btn" id="expandPlayerBtn" title="Open Expanded Player">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            <span>Now Playing</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- View Containers -->
+      <div class="content-scroll-container" id="contentContainer">
+        <!-- 1. HOME VIEW -->
+        <section class="view-panel active" id="view-home">
+          <!-- Hero Banner -->
+          <div class="hero-banner" id="heroBanner">
+            <div class="hero-content">
+              <span class="hero-tag">FEATURED SOUNDSCAPE</span>
+              <h1 class="hero-title" id="heroSongTitle">Vector Drive — Neon Eclipse</h1>
+              <p class="hero-desc">Synthwave frequencies engineered for deep coding flow, high-focus productivity, and late-night aesthetic sessions.</p>
+              <div class="hero-actions">
+                <button class="btn-primary" id="heroPlayBtn">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                  <span>Play Master Track</span>
+                </button>
+                <button class="btn-secondary" id="heroQueueBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <span>Add to Queue</span>
+                </button>
+              </div>
+            </div>
+            <div class="hero-art">
+              <img src="assets/covers/cyberpunk.jpg" alt="Featured Album Cover" id="heroCoverArt">
+              <div class="hero-art-reflection"></div>
+            </div>
+          </div>
+
+          <!-- Mood / Genre Filter Chips -->
+          <div class="chips-container" id="genreChips">
+            <button class="chip active" data-genre="all">All Tracks</button>
+            <button class="chip" data-genre="Synthwave">🌆 Synthwave</button>
+            <button class="chip" data-genre="Lofi">☕ Lo-Fi Chill</button>
+            <button class="chip" data-genre="EDM">⚡ Cosmic EDM</button>
+            <button class="chip" data-genre="Coding Flow">💻 Coding Flow</button>
+            <button class="chip" data-genre="Ambient">🌌 Ambient</button>
+          </div>
+
+          <!-- Quick Picks / Playlist Grid -->
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Quick Picks & Trending</h2>
+                <p class="section-subtitle">SimpMusic style curated playlist with dynamic frequency matching</p>
+              </div>
+              <div class="track-count-badge"><span id="trackCount">0</span> tracks</div>
+            </div>
+            <div class="track-grid" id="trackGrid">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- Local File Drop Zone -->
+          <div class="section-block">
+            <div class="dropzone-card" id="dropzoneCard">
+              <div class="dropzone-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              </div>
+              <h3>Drag & Drop Your Audio Files Here</h3>
+              <p>Supports MP3, WAV, OGG, FLAC and AAC files directly in your browser. Real-time visualizer & EQ will automatically process your local music.</p>
+              <button class="btn-secondary" onclick="document.getElementById('localFileInput').click()">Browse Local Files</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. EXPLORE & CHARTS VIEW -->
+        <section class="view-panel" id="view-explore">
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Global Viral Charts</h2>
+                <p class="section-subtitle">Top played tracks across the Vibra audio network</p>
+              </div>
+            </div>
+            <div class="charts-table-card">
+              <div class="charts-table-header">
+                <span class="col-rank">#</span>
+                <span class="col-title">TRACK TITLE</span>
+                <span class="col-album">ALBUM</span>
+                <span class="col-genre">GENRE</span>
+                <span class="col-time">DURATION</span>
+                <span class="col-action">ACTION</span>
+              </div>
+              <div class="charts-table-body" id="chartsTableBody">
+                <!-- Dynamically loaded -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. SYNCED LYRICS VIEW -->
+        <section class="view-panel" id="view-lyrics">
+          <div class="lyrics-view-wrapper" id="lyricsContainer">
+            <div class="lyrics-track-header">
+              <img src="assets/covers/cyberpunk.jpg" alt="Track Cover" id="lyricsArtwork" class="lyrics-art">
+              <div class="lyrics-meta">
+                <span class="lyrics-indicator">● LIVE KARAOKE SYNC</span>
+                <h2 id="lyricsTrackName">Neon Eclipse</h2>
+                <p id="lyricsArtistName">Vector Drive</p>
+              </div>
+            </div>
+            <div class="lyrics-scroll-box" id="lyricsScrollBox">
+              <!-- Synced lyric lines dynamically loaded -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. EQUALIZER & FX STUDIO -->
+        <section class="view-panel" id="view-equalizer">
+          <div class="equalizer-card">
+            <div class="eq-header">
+              <div>
+                <h2 class="section-title">Master Studio Equalizer</h2>
+                <p class="section-subtitle">100% Real-Time Web Audio API Biquad Filtering Chain</p>
+              </div>
+              <div class="eq-toggle-wrapper">
+                <label class="switch">
+                  <input type="checkbox" id="eqPowerToggle" checked>
+                  <span class="slider round"></span>
+                </label>
+                <span class="eq-power-label">EQ ACTIVE</span>
+              </div>
+            </div>
+
+            <!-- Presets -->
+            <div class="eq-presets-bar" id="eqPresetsBar">
+              <button class="eq-preset-btn active" data-preset="flat">Flat / Natural</button>
+              <button class="eq-preset-btn" data-preset="bass-boost">⚡ Bass Boost</button>
+              <button class="eq-preset-btn" data-preset="edm">🎧 EDM & Club</button>
+              <button class="eq-preset-btn" data-preset="vocal">🎤 Vocal Clarity</button>
+              <button class="eq-preset-btn" data-preset="rock">🎸 Rock / Metal</button>
+              <button class="eq-preset-btn" data-preset="acoustic">🎻 Acoustic & Warm</button>
+            </div>
+
+            <!-- Frequency Sliders -->
+            <div class="eq-sliders-grid">
+              <div class="eq-band-col">
+                <div class="eq-gain-val" id="gainVal60">0 dB</div>
+                <div class="slider-vertical-wrapper">
+                  <input type="range" class="eq-slider" id="eq60" min="-12" max="12" step="1" value="0" orient="vertical">
+                </div>
+                <div class="eq-freq-label">60 Hz</div>
+                <span class="freq-tag">Sub</span>
+              </div>
+
+              <div class="eq-band-col">
+                <div class="eq-gain-val" id="gainVal150">0 dB</div>
+                <div class="slider-vertical-wrapper">
+                  <input type="range" class="eq-slider" id="eq150" min="-12" max="12" step="1" value="0" orient="vertical">
+                </div>
+                <div class="eq-freq-label">150 Hz</div>
+                <span class="freq-tag">Bass</span>
+              </div>
+
+              <div class="eq-band-col">
+                <div class="eq-gain-val" id="gainVal400">0 dB</div>
+                <div class="slider-vertical-wrapper">
+                  <input type="range" class="eq-slider" id="eq400" min="-12" max="12" step="1" value="0" orient="vertical">
+                </div>
+                <div class="eq-freq-label">400 Hz</div>
+                <span class="freq-tag">Low Mid</span>
+              </div>
+
+              <div class="eq-band-col">
+                <div class="eq-gain-val" id="gainVal1k">0 dB</div>
+                <div class="slider-vertical-wrapper">
+                  <input type="range" class="eq-slider" id="eq1k" min="-12" max="12" step="1" value="0" orient="vertical">
+                </div>
+                <div class="eq-freq-label">1.0 kHz</div>
+                <span class="freq-tag">Mid</span>
+              </div>
+
+              <div class="eq-band-col">
+                <div class="eq-gain-val" id="gainVal2k4">0 dB</div>
+                <div class="slider-vertical-wrapper">
+                  <input type="range" class="eq-slider" id="eq2k4" min="-12" max="12" step="1" value="0" orient="vertical">
+                </div>
+                <div class="eq-freq-label">2.4 kHz</div>
+                <span class="freq-tag">High Mid</span>
+              </div>
+
+              <div class="eq-band-col">
+                <div class="eq-gain-val" id="gainVal15k">0 dB</div>
+                <div class="slider-vertical-wrapper">
+                  <input type="range" class="eq-slider" id="eq15k" min="-12" max="12" step="1" value="0" orient="vertical">
+                </div>
+                <div class="eq-freq-label">15 kHz</div>
+                <span class="freq-tag">Air</span>
+              </div>
+            </div>
+
+            <!-- Spatial & Audio Enhancers -->
+            <div class="fx-cards-row">
+              <div class="fx-card">
+                <div class="fx-info">
+                  <span class="fx-title">3D Spatial Stereo Width</span>
+                  <span class="fx-desc">Expands the stereo soundfield for a concert hall sensation</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="spatialAudioToggle">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+              <div class="fx-card">
+                <div class="fx-info">
+                  <span class="fx-title">Ultra Bass Harmonic Exciter</span>
+                  <span class="fx-desc">Injects psychoacoustic sub-bass punch for punchy headphones</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="bassHarmonicToggle">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. AUDIO SPECTRUM VISUALIZER -->
+        <section class="view-panel" id="view-visualizer">
+          <div class="visualizer-stage-card">
+            <div class="vis-toolbar">
+              <div class="vis-modes">
+                <button class="vis-mode-btn active" data-vismode="bars">Bars & Glow</button>
+                <button class="vis-mode-btn" data-vismode="wave">Oscilloscope Wave</button>
+                <button class="vis-mode-btn" data-vismode="circular">Radial Pulse</button>
+              </div>
+              <div class="vis-stats">
+                <span id="visFps">60 FPS</span>
+                <span id="visBands">64 Frequency Bins</span>
+              </div>
+            </div>
+            <div class="canvas-wrapper">
+              <canvas id="audioVisualizerCanvas"></canvas>
+            </div>
+            <div class="vis-footer">
+              <div class="now-playing-hud">
+                <span class="hud-label">SPECTRAL MONITOR</span>
+                <span class="hud-track" id="visTrackLabel">Vector Drive — Neon Eclipse</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. ANALYTICS & WRAPPED VIEW -->
+        <section class="view-panel" id="view-analytics">
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Vibra Wrapped & Listening Stats</h2>
+                <p class="section-subtitle">Real-time local listening telemetry inspired by SimpMusic Analytics</p>
+              </div>
+            </div>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <span class="stat-num" id="statPlayCount">0</span>
+                <span class="stat-label">Tracks Played</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-num" id="statListenMinutes">0</span>
+                <span class="stat-label">Minutes Listened</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-num" id="statFavoritesCount">0</span>
+                <span class="stat-label">Liked Soundtracks</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-num" id="statTopGenre">Synthwave</span>
+                <span class="stat-label">Top Genre</span>
+              </div>
+            </div>
+
+            <!-- Listening Share Receipt -->
+            <div class="receipt-card">
+              <div class="receipt-header">
+                <h3>Vibra Listening Receipt</h3>
+                <span>Session ID: #CSE-NEHAL-2026</span>
+              </div>
+              <div class="receipt-body">
+                <div class="receipt-row"><span>Listener</span><strong>Kazi Nehal</strong></div>
+                <div class="receipt-row"><span>Favorite Audio Engine</span><strong>Web Audio Biquad Chain</strong></div>
+                <div class="receipt-row"><span>Sound Signature</span><strong>High Fidelity Hi-Res</strong></div>
+                <div class="receipt-row"><span>Platform</span><strong>Vibra Core v1.0.0</strong></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. PLAYLISTS VIEW -->
+        <section class="view-panel" id="view-playlists">
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">My Custom Playlists</h2>
+                <p class="section-subtitle">Create, organize, and curate your personalized music collections</p>
+              </div>
+              <button class="btn-primary" id="openCreatePlaylistBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>New Playlist</span>
+              </button>
+            </div>
+
+            <!-- Custom Playlists Grid -->
+            <div class="playlists-grid" id="playlistsGrid">
+              <!-- Populated dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- Active Playlist Detail Sub-View (Hidden by default) -->
+          <div class="playlist-detail-container" id="playlistDetailContainer" style="display: none;">
+            <div class="playlist-detail-header">
+              <button class="icon-pill-btn" id="backToPlaylistsBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                <span>All Playlists</span>
+              </button>
+              <div class="playlist-detail-info">
+                <div class="playlist-art-collage" id="playlistArtCollage">
+                  <img src="assets/covers/cyberpunk.jpg" alt="Playlist Art">
+                </div>
+                <div class="playlist-meta-box">
+                  <span class="playlist-tag">CUSTOM PLAYLIST</span>
+                  <h1 class="playlist-name-display" id="detailPlaylistName">My Study Beats</h1>
+                  <p class="playlist-desc-display" id="detailPlaylistDesc">Late night coding and focus frequencies</p>
+                  <div class="playlist-stats-row">
+                    <span id="detailTrackCount">0 songs</span> &bull; <span id="detailDuration">0 min</span>
+                  </div>
+                  <div class="playlist-action-bar">
+                    <button class="btn-primary" id="playEntirePlaylistBtn">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                      <span>Play All</span>
+                    </button>
+                    <button class="btn-secondary" id="renamePlaylistBtn">Rename</button>
+                    <button class="btn-secondary delete-btn" id="deletePlaylistBtn">Delete</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="playlist-tracks-list" id="playlistTracksList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. OFFLINE DOWNLOADS VIEW -->
+        <section class="view-panel" id="view-downloads">
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Offline Music Vault</h2>
+                <p class="section-subtitle">Songs downloaded to your device storage for offline playback with zero internet</p>
+              </div>
+              <button class="btn-secondary" id="clearAllDownloadsBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <span>Clear All Offline</span>
+              </button>
+            </div>
+
+            <!-- Offline Storage Stats Badge -->
+            <div class="offline-storage-card">
+              <div class="storage-info">
+                <span class="storage-title">IndexedDB Offline Storage</span>
+                <span class="storage-subtitle" id="storageUsageLabel">0 tracks saved &bull; 0 MB cached</span>
+              </div>
+              <div class="offline-badge">
+                <span class="offline-dot"></span> NO INTERNET REQUIRED
+              </div>
+            </div>
+
+            <!-- Downloaded Tracks Grid -->
+            <div class="track-grid" id="downloadsGrid">
+              <!-- Dynamically loaded -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 10. SETTINGS VIEW -->
+        <section class="view-panel" id="view-settings">
+          <div class="section-block">
+            <div class="section-header">
+              <div>
+                <h2 class="section-title">Settings & Engine Control</h2>
+                <p class="section-subtitle">Configure music sources, streaming routing, audio processing, and storage quotas</p>
+              </div>
+            </div>
+
+            <div class="settings-grid">
+              <!-- 1. SONG SOURCE -->
+              <div class="settings-card">
+                <h3>Online Music Source</h3>
+                <p class="settings-card-desc">Select primary search and audio streaming provider</p>
+                <div class="source-list" id="sourceList">
+                  <label class="source-opt"><input type="radio" name="src" value="itunes" checked> <div class="opt-text"><span>iTunes</span><em>30s official AAC preview &bull; Direct CORS</em></div></label>
+                  <label class="source-opt"><input type="radio" name="src" value="audius"> <div class="opt-text"><span>Audius</span><em>Full streaming tracks &bull; Direct CORS</em></div></label>
+                  <label class="source-opt"><input type="radio" name="src" value="jamendo"> <div class="opt-text"><span>Jamendo</span><em>Full CC tracks &bull; Direct CORS</em></div></label>
+                  <label class="source-opt"><input type="radio" name="src" value="ytmusic"> <div class="opt-text"><span>YouTube Music</span><em>Full tracks &bull; Requires Worker proxy</em></div></label>
+                  <label class="source-opt"><input type="radio" name="src" value="local"> <div class="opt-text"><span>Local files only</span><em>No network requests</em></div></label>
+                </div>
+                <div class="settings-row">
+                  <label for="fallbackSourceSel">Fallback Source</label>
+                  <select id="fallbackSourceSel" class="settings-select">
+                    <option value="itunes">iTunes (Direct 30s)</option>
+                    <option value="audius" selected>Audius (Direct Full)</option>
+                    <option value="jamendo">Jamendo (Direct Full)</option>
+                    <option value="local">Local Library</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 2. PROXY / CONNECTION -->
+              <div class="settings-card">
+                <h3>Connection & Gateway</h3>
+                <p class="settings-card-desc">Cloudflare Worker endpoint for proxied streams (optional for iTunes/Audius)</p>
+                <div class="settings-row">
+                  <label for="apiBaseInput">Worker API Base URL</label>
+                  <input type="text" id="apiBaseInput" class="modal-text-input" placeholder="https://vibra-api.yourname.workers.dev">
+                </div>
+                <div class="settings-row">
+                  <label for="timeoutSel">Request Timeout</label>
+                  <select id="timeoutSel" class="settings-select">
+                    <option value="4000">4,000 ms (Fast)</option>
+                    <option value="8000" selected>8,000 ms (Balanced)</option>
+                    <option value="15000">15,000 ms (Patient)</option>
+                  </select>
+                </div>
+                <div class="settings-action-row">
+                  <button class="btn-secondary" id="testConnBtn">Test Connection</button>
+                  <span id="testConnResult" class="test-conn-badge"></span>
+                </div>
+              </div>
+
+              <!-- 3. LYRICS -->
+              <div class="settings-card">
+                <h3>Lyrics Provider</h3>
+                <p class="settings-card-desc">Synchronized and plain-text lyrics engine</p>
+                <div class="source-list">
+                  <label class="source-opt"><input type="radio" name="lyr" value="lrclib" checked> <div class="opt-text"><span>LRCLIB</span><em>Community open synced lyrics</em></div></label>
+                  <label class="source-opt"><input type="radio" name="lyr" value="off"> <div class="opt-text"><span>Disabled</span><em>Do not fetch lyrics online</em></div></label>
+                </div>
+                <div class="settings-row">
+                  <label for="lyricsPlainFallback">Fetch plain lyrics fallback</label>
+                  <label class="switch">
+                    <input type="checkbox" id="lyricsPlainFallback" checked>
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="settings-row">
+                  <label for="lyricsWordSyncToggle">Word-by-word karaoke sync</label>
+                  <label class="switch">
+                    <input type="checkbox" id="lyricsWordSyncToggle" checked>
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="settings-row">
+                  <label for="lyricsApiBaseInput">Lyrics API Base URL (Spotify/Custom)</label>
+                  <input type="text" id="lyricsApiBaseInput" class="modal-text-input" placeholder="https://vibra-lyrics.up.railway.app">
+                </div>
+                <div class="settings-row">
+                  <label for="lyricsOrderSel">Preferred Router Order</label>
+                  <select id="lyricsOrderSel" class="settings-select">
+                    <option value="lrclib-first" selected>LRCLIB First (Fast, Open)</option>
+                    <option value="spotify-first">Spotify First (Word Sync)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 4. AUDIO / DSP -->
+              <div class="settings-card">
+                <h3>Audio Engine & Playback</h3>
+                <p class="settings-card-desc">Web Audio playback, buffering, and quality</p>
+                <div class="settings-row">
+                  <label for="crossfadeRange">Crossfade duration (<span id="crossfadeValLabel">0</span>s)</label>
+                  <input type="range" id="crossfadeRange" min="0" max="12" value="0" class="settings-range">
+                </div>
+                <div class="settings-row">
+                  <label for="gaplessToggle">Gapless prebuffer</label>
+                  <label class="switch">
+                    <input type="checkbox" id="gaplessToggle" checked>
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="settings-row">
+                  <label for="normalizeToggle">Normalize volume (limiter)</label>
+                  <label class="switch">
+                    <input type="checkbox" id="normalizeToggle">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="settings-row">
+                  <label for="spatialWidthRange">Stereo width (<span id="spatialWidthValLabel">1.4</span>x)</label>
+                  <input type="range" id="spatialWidthRange" min="0.5" max="2.0" step="0.1" value="1.4" class="settings-range">
+                </div>
+                <div class="settings-row">
+                  <label for="exciterMixRange">Exciter mix (<span id="exciterMixValLabel">15</span>%)</label>
+                  <input type="range" id="exciterMixRange" min="0" max="0.4" step="0.05" value="0.15" class="settings-range">
+                </div>
+                <div class="settings-row">
+                  <label for="qualitySel">Stream Quality</label>
+                  <select id="qualitySel" class="settings-select">
+                    <option value="bestaudio" selected>Best available</option>
+                    <option value="140">AAC 128k</option>
+                    <option value="251">Opus 160k</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 5. STORAGE & OFFLINE -->
+              <div class="settings-card">
+                <h3>Storage & Offline</h3>
+                <p class="settings-card-desc">Device storage limits and IndexedDB offline cache</p>
+                <div class="settings-row">
+                  <label for="storageCapSel">Offline Storage Cap</label>
+                  <select id="storageCapSel" class="settings-select">
+                    <option value="200">200 MB</option>
+                    <option value="500" selected>500 MB</option>
+                    <option value="1024">1 GB</option>
+                    <option value="0">Unlimited</option>
+                  </select>
+                </div>
+                <div class="settings-row">
+                  <label for="autoCacheToggle">Auto-cache played tracks</label>
+                  <label class="switch">
+                    <input type="checkbox" id="autoCacheToggle">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="settings-row">
+                  <label for="persistToggle">Persist storage (anti-eviction)</label>
+                  <label class="switch">
+                    <input type="checkbox" id="persistToggle" checked>
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="settings-action-row">
+                  <button class="btn-secondary" id="clearCacheBtn">Clear All Cached Data</button>
+                  <span id="storageUsageLine" class="storage-usage-text">0 tracks &bull; 0 MB cached</span>
+                </div>
+              </div>
+
+              <!-- 6. LIBRARY / DATA -->
+              <div class="settings-card">
+                <h3>Library & Data</h3>
+                <p class="settings-card-desc">Backup and export your custom playlists, favorites, and settings</p>
+                <div class="settings-row">
+                  <label for="resultLimitSel">Max Search Results</label>
+                  <select id="resultLimitSel" class="settings-select">
+                    <option value="10">10 results</option>
+                    <option value="25" selected>25 results</option>
+                    <option value="50">50 results</option>
+                  </select>
+                </div>
+                <div class="settings-action-buttons">
+                  <button class="btn-secondary" id="exportDataBtn">Export Library JSON</button>
+                  <button class="btn-secondary" id="importDataBtn">Import Library JSON</button>
+                  <input type="file" id="importFileInput" accept=".json" style="display:none;">
+                  <button class="btn-secondary delete-btn" id="resetAllBtn">Reset Everything</button>
+                </div>
+              </div>
+
+              <!-- 7. APPEARANCE -->
+              <div class="settings-card">
+                <h3>Appearance & Visuals</h3>
+                <p class="settings-card-desc">Theme and canvas motion effects</p>
+                <div class="settings-row">
+                  <label for="themeSel">Theme</label>
+                  <select id="themeSel" class="settings-select">
+                    <option value="apple-glass">Apple Glass</option>
+                    <option value="cyberpunk-neon">Cyberpunk Neon</option>
+                    <option value="material-expressive">Material 3</option>
+                    <option value="midnight-amoled">Midnight AMOLED</option>
+                  </select>
+                </div>
+                <div class="settings-row">
+                  <label for="visModeSel">Visualizer Mode</label>
+                  <select id="visModeSel" class="settings-select">
+                    <option value="bars">Bars & Glow</option>
+                    <option value="wave">Oscilloscope Wave</option>
+                    <option value="circular">Radial Pulse</option>
+                  </select>
+                </div>
+                <div class="settings-row">
+                  <label for="reduceMotionToggle">Reduce motion</label>
+                  <label class="switch">
+                    <input type="checkbox" id="reduceMotionToggle">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 8. SHORTCUTS -->
+              <div class="settings-card">
+                <h3>Keyboard Shortcuts</h3>
+                <p class="settings-card-desc">Hardware shortcuts supported across the player</p>
+                <div class="shortcut-grid">
+                  <span>Play / Pause</span><kbd>Space</kbd>
+                  <span>Next / Previous</span><kbd>&rarr; / &larr;</kbd>
+                  <span>Volume Adjust</span><kbd>&uarr; / &darr;</kbd>
+                  <span>Mute Audio</span><kbd>M</kbd>
+                  <span>Toggle Shuffle</span><kbd>S</kbd>
+                  <span>Toggle Repeat</span><kbd>R</kbd>
+                  <span>Open Synced Lyrics</span><kbd>L</kbd>
+                  <span>Open Settings</span><kbd>,</kbd>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Persistent Bottom Player Bar -->
+  <footer class="player-bar" id="playerBar">
+    <!-- Left: Track Details -->
+    <div class="player-left">
+      <div class="player-art-box" id="playerArtTrigger" title="Click to view full player">
+        <img src="assets/covers/cyberpunk.jpg" alt="Current Track Art" id="playerCoverArt">
+        <div class="art-hover-overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline></svg>
+        </div>
+      </div>
+      <div class="player-meta">
+        <div class="player-title-row">
+          <span class="player-track-name" id="playerTrackTitle">Neon Eclipse</span>
+          <button class="like-btn" id="playerLikeBtn" title="Add to favorites">
+            <svg class="heart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          </button>
+          <button class="action-btn download-action-btn" id="playerDownloadBtn" title="Download for offline playback">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button class="action-btn playlist-add-btn" id="playerAddPlaylistBtn" title="Add to custom playlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"></path></svg>
+          </button>
+        </div>
+        <span class="player-artist-name" id="playerArtistName">Vector Drive</span>
+      </div>
+    </div>
+
+    <!-- Center: Master Controls & Progress -->
+    <div class="player-center">
+      <div class="playback-controls">
+        <button class="ctrl-btn" id="shuffleBtn" title="Shuffle playback (S)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+        </button>
+        <button class="ctrl-btn" id="prevTrackBtn" title="Previous Track (Left Arrow)">
+          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line></svg>
+        </button>
+        <button class="play-pause-btn" id="masterPlayBtn" title="Play / Pause (Space)">
+          <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+        <button class="ctrl-btn" id="nextTrackBtn" title="Next Track (Right Arrow)">
+          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line></svg>
+        </button>
+        <button class="ctrl-btn" id="repeatBtn" title="Repeat Mode (R)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+        </button>
+      </div>
+
+      <!-- Scrubber Timeline -->
+      <div class="progress-bar-container">
+        <span class="time-label" id="currentTimeLabel">0:00</span>
+        <div class="seek-track" id="seekTrack">
+          <div class="seek-buffer" id="seekBuffer"></div>
+          <div class="seek-progress" id="seekProgress"></div>
+          <div class="seek-thumb" id="seekThumb"></div>
+          <div class="seek-tooltip" id="seekTooltip">0:00</div>
+        </div>
+        <span class="time-label" id="durationTimeLabel">3:45</span>
+      </div>
+    </div>
+
+    <!-- Right: Volume, Speed & Extra Utilities -->
+    <div class="player-right">
+      <!-- Playback Speed -->
+      <button class="text-pill-btn" id="speedToggleBtn" title="Playback Speed">1.0x</button>
+
+      <!-- Queue Drawer Toggle -->
+      <button class="ctrl-btn" id="queueToggleBtn" title="Up Next Queue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+      </button>
+
+      <!-- Volume Bar -->
+      <div class="volume-slider-group">
+        <button class="ctrl-btn" id="volumeMuteBtn" title="Mute / Unmute (M)">
+          <svg class="vol-high" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+          <svg class="vol-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+        </button>
+        <div class="volume-track" id="volumeTrack">
+          <div class="volume-fill" id="volumeFill"></div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Up Next Queue Slide-Over Drawer -->
+  <aside class="queue-drawer" id="queueDrawer">
+    <div class="queue-header">
+      <div class="queue-title-box">
+        <h3>Up Next</h3>
+        <span class="queue-count" id="queueCount">0 tracks</span>
+      </div>
+      <button class="close-queue-btn" id="closeQueueBtn">&times;</button>
+    </div>
+    <div class="queue-list" id="queueList">
+      <!-- Populated dynamically -->
+    </div>
+  </aside>
+
+  <!-- SimpMusic Inspired Fullscreen Now Playing Overlay Modal -->
+  <div class="expanded-player-modal" id="expandedPlayerModal">
+    <div class="modal-bg-blur" id="modalBgBlur"></div>
+    <button class="modal-close-btn" id="closeExpandedModalBtn" title="Close Expanded Player">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </button>
+
+    <div class="expanded-player-content">
+      <!-- Left side: Large Cover + Info -->
+      <div class="expanded-art-column">
+        <div class="expanded-art-frame">
+          <img src="assets/covers/cyberpunk.jpg" alt="Album Cover" id="expandedAlbumArt">
+          <div class="expanded-art-glow" id="expandedArtGlow"></div>
+        </div>
+        <div class="expanded-track-meta">
+          <h2 id="expandedTitle">Neon Eclipse</h2>
+          <p id="expandedArtist">Vector Drive</p>
+        </div>
+      </div>
+
+      <!-- Right side: Synced Apple-Music Karaoke Lyrics Panel -->
+      <div class="expanded-lyrics-column">
+        <div class="expanded-lyrics-header">
+          <span>REAL-TIME SYNCED LYRICS</span>
+          <span class="lyrics-source-tag">SimpLyrics &bull; LRCLIB</span>
+        </div>
+        <div class="expanded-lyrics-scroll" id="expandedLyricsScroll">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sleep Timer Modal -->
+  <div class="modal-backdrop" id="sleepModalBackdrop" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-dialog-header">
+        <h3>Set Sleep Timer</h3>
+        <button class="dialog-close-btn" id="closeSleepModalBtn">&times;</button>
+      </div>
+      <p>Audio playback will smoothly fade out and pause when timer finishes.</p>
+      <div class="sleep-options-list">
+        <button class="sleep-opt" data-minutes="0">Off (Cancel Timer)</button>
+        <button class="sleep-opt" data-minutes="15">15 Minutes</button>
+        <button class="sleep-opt" data-minutes="30">30 Minutes</button>
+        <button class="sleep-opt" data-minutes="45">45 Minutes</button>
+        <button class="sleep-opt" data-minutes="60">1 Hour</button>
+        <button class="sleep-opt" data-minutes="-1">At End of Current Track</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Playlist Modal -->
+  <div class="modal-backdrop" id="createPlaylistModal" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-dialog-header">
+        <h3>Create New Playlist</h3>
+        <button class="dialog-close-btn" id="closeCreatePlaylistModalBtn">&times;</button>
+      </div>
+      <p>Give your playlist a title and an optional vibe description.</p>
+      <div class="modal-form-group">
+        <label for="newPlaylistNameInput">Playlist Name</label>
+        <input type="text" id="newPlaylistNameInput" class="modal-text-input" placeholder="e.g., Midnight Coding, Gym Boost..." autocomplete="off">
+      </div>
+      <div class="modal-form-group">
+        <label for="newPlaylistDescInput">Description (Optional)</label>
+        <input type="text" id="newPlaylistDescInput" class="modal-text-input" placeholder="e.g., Deep focus beats for programming" autocomplete="off">
+      </div>
+      <div class="modal-dialog-footer">
+        <button class="btn-secondary" id="cancelCreatePlaylistBtn">Cancel</button>
+        <button class="btn-primary" id="saveNewPlaylistBtn">Create Playlist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add to Playlist Picker Modal -->
+  <div class="modal-backdrop" id="addToPlaylistModal" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-dialog-header">
+        <h3>Add to Playlist</h3>
+        <button class="dialog-close-btn" id="closeAddToPlaylistModalBtn">&times;</button>
+      </div>
+      <p id="addToPlaylistPrompt">Select which playlist to add this track to:</p>
+      <div class="playlist-picker-list" id="playlistPickerList">
+        <!-- Playlists populated dynamically -->
+      </div>
+      <div class="modal-dialog-footer">
+        <button class="btn-secondary" id="cancelAddToPlaylistBtn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Hidden Native Audio Engine (Dual Slot for Crossfade) -->
+  <audio id="nativeAudio" crossorigin="anonymous" preload="auto"></audio>
+  <audio id="nativeAudioB" crossorigin="anonymous" preload="auto"></audio>
+
+  <script src="app.js"></script>
+</body>
+</html>

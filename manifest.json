@@ -1,0 +1,16 @@
+{
+  "name": "Vibra — Next-Gen Music Experience",
+  "short_name": "Vibra",
+  "description": "High-fidelity modern music player with synced lyrics, Web Audio equalizer, and streaming.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0b10",
+  "theme_color": "#fa2d48",
+  "icons": [
+    {
+      "src": "assets/covers/cyberpunk.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
