@@ -11,146 +11,252 @@
 
 const CURATED_TRACKS = [
   {
-    id: 'track-1',
-    title: 'Neon Eclipse',
-    artist: 'Vector Drive',
-    album: 'Synthetic Horizons',
-    genre: 'Synthwave',
-    duration: 372,
-    art: 'assets/covers/cyberpunk.jpg',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-    lyrics: `[00:00.00] (Neon synthesizer intro initiates)
-[00:08.50] Gliding through the obsidian rain
-[00:15.20] Purple lasers pulsing through my veins
-[00:23.00] Zero latency in the midnight air
-[00:29.80] Neon shadows dancing everywhere
-[00:37.40] We run the circuit board
-[00:44.20] Unbound by wires, electric Lord
-[00:51.90] Feel the sub-bass rumble deep
-[00:58.70] Promises the digital heavens keep
-[01:06.50] Cybernetic skyline burning bright
-[01:13.80] Chasing the pulse of electric night
-[01:21.00] (Analog filter sweep & arpeggiator solo)
-[01:36.00] Signals reverberate across the sea
-[01:43.50] Living inside this frequency
-[01:50.00] Neon Eclipse, set us free`
+    id: 'real-1635014240',
+    title: 'Kesariya (From "Brahmastra")',
+    artist: 'Pritam, Arijit Singh & Amitabh Bhattacharya',
+    album: 'Kesariya - Single',
+    genre: 'Bollywood',
+    duration: 268,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/9f/13/ca/9f13ca3b-e533-03e0-f19a-f0aaa774581d/196589311191.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/38/4c/5c/384c5c8f-3ff8-e457-b2f7-3158ce108649/mzaf_12389299033886433185.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Acoustic guitar intro)
+[00:05.00] Mujhko itna bataye koyi
+[00:09.00] Kaise tujhse dil na lagaye koyi
+[00:15.00] Rabba ne tujhko banane mein
+[00:19.00] Kar di hai husn ki khaali tijoriyan
+[00:24.00] Kajre ki siyahi se likhi
+[00:28.00] Hai tune jaane kitno ki love storiyan
+[00:32.00] Kesariya tera ishq hai piya
+[00:38.00] Rang jaaun jo main haath lagaun
+[00:43.00] Din beete saara teri fikr mein
+[00:48.00] Rain saari teri khair manaun`
   },
   {
-    id: 'track-2',
-    title: 'Midnight Rain & Study Tea',
-    artist: 'Lofi Future',
-    album: 'Bedroom Dreams',
-    genre: 'Lofi',
-    duration: 423,
-    art: 'assets/covers/lofi.jpg',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-    lyrics: `[00:00.00] (Vinyl crackle and gentle raindrops on glass)
-[00:12.00] Steam rises slow from the porcelain cup
-[00:24.00] Late night assignments, never giving up
-[00:36.50] Warm acoustic guitar in the gentle breeze
-[00:48.00] Mind drifts away with absolute ease
-[01:00.00] Soft rhodes piano fills the quiet space
-[01:12.50] Raindrops cascading in a gentle race
-[01:24.00] Focus unlocked, tension starts to fade
-[01:36.00] In the peaceful sanctuary we have made`
+    id: 'real-1653219849',
+    title: 'Apna Bana Le (From "Bhediya")',
+    artist: 'Arijit Singh, Sachin-Jigar & Amitabh Bhattacharya',
+    album: 'Apna Bana Le - Single',
+    genre: 'Bollywood',
+    duration: 262,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/2e/0b/c0/2e0bc070-112f-a827-6ad8-6bc64f7caaff/840214460180.png/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/eb/27/61/eb2761c7-d606-0912-dff0-2dc6b69974bd/mzaf_2023722930851223219.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Melodic piano melody)
+[00:08.00] Tu mera koyi na hoke bhi kuch laage
+[00:16.00] Kiya re jo bhi tune kaise kiya re
+[00:23.00] Jiya ko mere baandh aise liya re
+[00:30.00] Samajh ke bhi na samajh main sakun
+[00:38.00] Apna bana le piya, apna bana le piya`
   },
   {
-    id: 'track-3',
-    title: 'Astra Nebula',
-    artist: 'Cosmic Pulse',
-    album: 'Stardust Odyssey',
-    genre: 'EDM',
-    duration: 345,
-    art: 'assets/covers/cosmic.jpg',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-    lyrics: `[00:00.00] (Deep ambient space atmosphere)
-[00:14.00] Launching thrusters past the atmosphere
-[00:21.50] Leaving gravity and earthly fear
-[00:29.00] Stars align across the galactic dome
-[00:36.20] Infinite cosmos is our only home
-[00:44.00] 3, 2, 1 — Drop into warp speed!
-[00:52.00] (Heavy energetic synth bass drops)
-[01:08.00] Supernova glowing in our eyes
-[01:16.00] Flying through holographic skies
-[01:24.00] Astra Nebula, carry us far
-[01:32.00] Riding the frequency of a burning star`
+    id: 'real-1440870375',
+    title: 'Starboy (feat. Daft Punk)',
+    artist: 'The Weeknd',
+    album: 'Starboy',
+    genre: 'R&B/Soul',
+    duration: 230,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b5/92/bb/b592bb72-52e3-e756-9b26-9f56d08f47ab/16UMGIM67864.rgb.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/11/71/d6/1171d6ad-3c96-e027-2af6-58028426588c/mzaf_15137631797407745471.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Daft Punk electro synth sequence)
+[00:06.00] I'm tryna put you in the worst mood, ah
+[00:10.00] P1 cleaner than your church shoes, ah
+[00:14.00] Milli point two just to hurt you, ah
+[00:17.00] All red Lamb' just to tease you, ah
+[00:21.00] Look what you've done
+[00:24.00] I'm a motherfuckin' starboy`
   },
   {
-    id: 'track-4',
-    title: 'Flow State Algorithm',
-    artist: 'Binary Bloom',
-    album: 'Code & Harmony',
-    genre: 'Coding Flow',
-    duration: 302,
-    art: 'assets/covers/cyberpunk.jpg',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
-    lyrics: `[00:00.00] (Subtle rhythmic click and deep 808 sub)
-[00:10.00] Binary thoughts in a lucid stream
-[00:20.00] Building the logic of an open dream
-[00:30.00] Clean architecture, elegant lines
-[00:40.00] Where mathematical beauty shines
-[00:50.00] Uninterrupted focus hour by hour
-[01:00.00] Coding with effortless mental power`
+    id: 'real-1894792753',
+    title: 'Morni',
+    artist: 'Diljit Dosanjh, Chani Nattan & Tru-Skool',
+    album: 'The Call of Panjab',
+    genre: 'Worldwide',
+    duration: 206,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/97/86/86/97868694-9413-a543-514a-a6374469ff97/859736427250_cover.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f5/6e/e4/f56ee414-2027-b605-7455-a24fbc433373/mzaf_3937962578481238111.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Bhangra dhol beats intro)
+[00:08.00] Diljit Dosanjh in the house
+[00:16.00] Nachdi tu morni wargi
+[00:24.00] Saari duniya te chha gayi`
   },
   {
-    id: 'track-5',
-    title: 'Ethereal Echoes',
-    artist: 'Solaris Wave',
-    album: 'Zero Horizon',
-    genre: 'Ambient',
-    duration: 310,
-    art: 'assets/covers/cosmic.jpg',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
-    lyrics: `[00:00.00] (Ethereal reverberated piano chords)
-[00:15.00] Echoes travelling through time and space
-[00:30.00] Soft reflections in an empty place
-[00:45.00] Breathing in the serenity of silence
-[01:00.00] Peace restored in harmonious balance`
+    id: 'real-1193701392',
+    title: 'Shape of You',
+    artist: 'Ed Sheeran',
+    album: '÷ (Deluxe)',
+    genre: 'Pop',
+    duration: 234,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/15/e6/e8/15e6e8a4-4190-6a8b-86c3-ab4a51b88288/190295851286.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/44/c7/4f/44c74f0d-72dc-6143-d4d0-ba14d661ca0d/mzaf_9566898362556366703.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Marimba rhythmic loop)
+[00:04.00] The club isn't the best place to find a lover
+[00:07.00] So the bar is where I go
+[00:10.00] Me and my friends at the table doing shots
+[00:13.00] Drinking fast and then we talk slow
+[00:16.00] I'm in love with the shape of you
+[00:20.00] We push and pull like a magnet do`
   },
   {
-    id: 'track-6',
-    title: 'Cyberpunk Horizon',
-    artist: 'Neon Nexus',
-    album: 'Future Tokyo',
-    genre: 'Synthwave',
-    duration: 360,
-    art: 'assets/covers/cyberpunk.jpg',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3',
-    lyrics: `[00:00.00] (High tempo 80s synth sequence)
-[00:12.00] Holographic billboards glowing in the haze
-[00:24.00] Lost in the chrome electric maze
-[00:36.00] Faster than light, we break the speed
-[00:48.00] Vibra rhythm is all we need`
+    id: 'real-1193069189',
+    title: 'Tum Hi Ho (From "Aashiqui 2")',
+    artist: 'Arijit Singh',
+    album: 'Aashiqui 2',
+    genre: 'Bollywood',
+    duration: 262,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/2d/11/b9/2d11b994-b4fa-19eb-953d-70b472165e95/8903431566911_cover.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/77/59/c5/7759c5b2-b044-0e68-fea5-1fc4b84f312a/mzaf_3185920023072222766.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Piano chords initiation)
+[00:08.00] Hum tere bin ab reh nahi sakte
+[00:14.00] Tere bina kya wajood mera
+[00:20.00] Tujhse juda gar ho jaayenge
+[00:26.00] Toh khud se hi ho jaayenge juda
+[00:32.00] Kyunki tum hi ho, ab tum hi ho
+[00:38.00] Zindagi ab tum hi ho`
   },
   {
-    id: 'track-7',
-    title: 'Retro Groove Odyssey',
-    artist: 'Kazi Nehal',
-    album: 'Vibra Master Studio',
-    genre: 'Electronic',
-    duration: 340,
-    art: 'assets/covers/cosmic.jpg',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3',
-    lyrics: `[00:00.00] (Funky retro synth baseline)
-[00:14.00] Handcrafted by Kazi Nehal
-[00:28.00] Studio-grade audio master
-[00:42.00] Let the frequency elevate your soul
-[00:56.00] Music without limits or delay`
+    id: 'real-1411628233',
+    title: 'Believer',
+    artist: 'Imagine Dragons',
+    album: 'Evolve',
+    genre: 'Alternative',
+    duration: 204,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/11/7a/b8/117ab805-6811-8929-18b9-0fad7baf0c25/17UMGIM98210.rgb.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/c0/3f/36/c03f367a-b66b-fd0a-a54c-30f8250c4410/mzaf_12768434238801682952.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Heavy rhythmic stomps)
+[00:04.00] First things first, I'ma say all the words inside my head
+[00:08.00] I'm fired up and tired of the way that things have been, oh-ooh
+[00:16.00] Pain! You made me a, you made me a believer, believer!`
   },
   {
-    id: 'track-8',
-    title: 'Deep Midnight Echoes',
-    artist: 'Synthwave Rider',
-    album: 'Dark City Nights',
-    genre: 'Ambient',
-    duration: 380,
-    art: 'assets/covers/lofi.jpg',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
-    lyrics: `[00:00.00] (Atmospheric nocturnal resonance)
-[00:16.00] Quiet streets under sodium lamps
-[00:32.00] Distant thunder in the midnight air
-[00:48.00] Pure tranquility and soothing sound
-[01:04.00] Vibra carries you all night long`
+    id: 'real-1531596345',
+    title: 'Brown Munde',
+    artist: 'AP Dhillon, Gurinder Gill & Shinda Kahlon',
+    album: 'Brown Munde',
+    genre: 'Hip-Hop/Rap',
+    duration: 254,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/26/a3/ac/26a3ac64-69e4-95ec-80ab-1f5a477537d2/859742042973_cover.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/97/74/69/977469be-a9d5-35a7-80ad-ebe12a799ccc/mzaf_804867738726203367.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Trap baseline & guitar pluck)
+[00:08.00] Desi munde, global sound
+[00:16.00] Gaddi ch flow, shinda kahlon
+[00:24.00] Brown Munde, Brown Munde!`
+  },
+  {
+    id: 'real-1538003843',
+    title: 'Levitating',
+    artist: 'Dua Lipa',
+    album: 'Future Nostalgia',
+    genre: 'Pop',
+    duration: 204,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/6c/11/d6/6c11d681-aa3a-d59e-4c2e-f77e181026ab/190295092665.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/59/dc/4d/59dc4dda-93ff-8f1c-c536-f005f6ea6af5/mzaf_3066686759813252385.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Funky disco beat)
+[00:06.00] If you wanna run away with me, I know a galaxy
+[00:10.00] And I can take you for a ride
+[00:14.00] I had a premonition that we fell into a rhythm
+[00:18.00] Where the music don't stop for life
+[00:22.00] You want me, I want you, baby
+[00:26.00] My sugarboo, I'm levitating`
+  },
+  {
+    id: 'real-1071074558',
+    title: 'Agar Tum Saath Ho',
+    artist: 'Alka Yagnik & Arijit Singh',
+    album: 'Tamasha (Soundtrack)',
+    genre: 'Bollywood',
+    duration: 341,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/cb/ac/67/cbac673a-9213-7118-bb4e-2440273afb03/8902894357470_cover.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/75/a8/7d/75a87dcc-5b69-795d-7dcc-27d1c728f31f/mzaf_18055325784732588932.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Soft strings intro)
+[00:08.00] Pal bhar thehar jaao, dil yeh sambhal jaaye
+[00:16.00] Kaise tumhe roka karun
+[00:24.00] Meri taraf aata har gham phisal jaaye
+[00:32.00] Aankhon mein tum ko bharun
+[00:40.00] Bin bole baatein tumse karun
+[00:48.00] Agar tum saath ho...`
+  },
+  {
+    id: 'real-1615585008',
+    title: 'As It Was',
+    artist: 'Harry Styles',
+    album: "Harry's House",
+    genre: 'Pop',
+    duration: 167,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/2a/19/fb/2a19fb85-2f70-9e44-f2a9-82abe679b88e/886449990061.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/67/10/16/67101606-3869-ca44-6c03-e13d6322cb51/mzaf_1135399237022217274.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Bouncy 80s indie pop beat)
+[00:06.00] Holdin' me back
+[00:09.00] Gravity's holdin' me back
+[00:13.00] I want you to hold out the palm of your hand
+[00:17.00] Why don't we leave it at that?
+[00:20.00] In this world, it's just us
+[00:24.00] You know it's not the same as it was`
+  },
+  {
+    id: 'real-1580955743',
+    title: 'Raataan Lambiyan',
+    artist: 'Tanishk Bagchi, Jubin Nautiyal & Asees Kaur',
+    album: 'Shershaah (Soundtrack)',
+    genre: 'Bollywood',
+    duration: 230,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/61/65/ae/6165aee9-8bb9-0bd4-02b0-5d0f1e6257a3/886449510238.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/99/0c/38/990c381b-0530-8c0d-87a9-18b050b97f0a/mzaf_10418866714500530894.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Romantic flute & guitar melody)
+[00:08.00] Teri meri gallan ho gayi mashhoor
+[00:14.00] Kar na kabhi tu mujhe nazron se door
+[00:20.00] Kithe chaliye tu kithe chaliye
+[00:26.00] Kaatun kaise raataan, o saawre?
+[00:32.00] Jiya nahi jaata, sun bawre
+[00:38.00] Raataan lambiyan lambiyan re`
+  },
+  {
+    id: 'real-1574968888',
+    title: 'STAY',
+    artist: 'The Kid LAROI & Justin Bieber',
+    album: 'STAY - Single',
+    genre: 'Pop',
+    duration: 142,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/89/59/6a/89596ab9-fa3c-8d08-4d95-a6450fa2013c/886449400515.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/d7/4a/84/d74a84d5-9afa-761e-b632-baab55c2a23b/mzaf_11865500880477235553.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Fast tempo synth sequence)
+[00:04.00] I do the same thing I told you that I never would
+[00:08.00] I told you I'd change, even when I knew I never could
+[00:12.00] Know that I can't find nobody else as good as you
+[00:16.00] I need you to stay, need you to stay, hey`
+  },
+  {
+    id: 'real-1169015785',
+    title: 'Channa Mereya',
+    artist: 'Pritam & Arijit Singh',
+    album: 'Ae Dil Hai Mushkil (Soundtrack)',
+    genre: 'Bollywood',
+    duration: 289,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/bc/6e/4d/bc6e4d0c-adec-b431-7b60-16f5689f9664/886446201597.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/d5/f9/98/d5f998a7-0090-ee2d-03f8-557ad6c5bf65/mzaf_14251357991592637728.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Harmonium & acoustic guitar chords)
+[00:08.00] Accha chalta hoon, duaon mein yaad rakhna
+[00:16.00] Mere zikr ka zubaan pe swaad rakhna
+[00:24.00] Dil ke sandookon mein mere acche kaam rakhna
+[00:32.00] Chitthi-taaron mein bhi mera tu salaam rakhna
+[00:40.00] Andhera tera maine le liya, mera ujla sitaara tere naam kiya
+[00:48.00] Channa mereya mereya, channa mereya mereya!`
+  },
+  {
+    id: 'real-1445949267',
+    title: 'Sunflower',
+    artist: 'Post Malone & Swae Lee',
+    album: 'Spider-Man: Into the Spider-Verse',
+    genre: 'Hip-Hop/Rap',
+    duration: 158,
+    art: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/4b/30/2c/4b302cb6-7a14-5464-4e97-0577e9d0be49/18UMGIM82277.rgb.jpg/600x600bb.jpg',
+    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/98/f0/d6/98f0d67e-f8bf-762d-cac7-1c6b3b6b35dd/mzaf_4543283896248560946.plus.aac.p.m4a',
+    lyrics: `[00:00.00] (Mellow guitar riff)
+[00:05.00] Ayy, ayy, ayy, ayy
+[00:09.00] Needless to say, I keep her in check
+[00:13.00] She was a bad-bad, nevertheless
+[00:17.00] Callin' it quits now, baby, I'm a wreck
+[00:21.00] Crash at my place, baby, you're a wreck
+[00:25.00] Then you're left in the dust, unless I stuck by ya
+[00:29.00] You're the sunflower, I think your love would be too much`
   }
 ];
 
@@ -236,16 +342,10 @@ class VibraState {
 
     // Persisted Queue Architecture
     const savedQueueData = loadJson('vibra_queue_v1', null);
-    if (savedQueueData && Array.isArray(savedQueueData.queue) && savedQueueData.queue.length > 0) {
-      // Migrate any stale 403 URLs from prior visits
-      this.queue = savedQueueData.queue.map(qTrack => {
-        const match = CURATED_TRACKS.find(ct => ct.id === qTrack.id);
-        if (match) return match;
-        if (qTrack.audioUrl && qTrack.audioUrl.includes('pixabay.com')) {
-          qTrack.audioUrl = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
-        }
-        return qTrack;
-      });
+    const hasLegacyDummy = savedQueueData && Array.isArray(savedQueueData.queue) &&
+      savedQueueData.queue.some(q => q.id && (q.id.startsWith('track-') || (q.audioUrl && q.audioUrl.includes('soundhelix'))));
+    if (savedQueueData && Array.isArray(savedQueueData.queue) && savedQueueData.queue.length > 0 && !hasLegacyDummy) {
+      this.queue = savedQueueData.queue;
       this.currentIndex = Math.min(Math.max(0, savedQueueData.currentIndex || 0), this.queue.length - 1);
     } else {
       this.queue = [...CURATED_TRACKS];
@@ -258,7 +358,7 @@ class VibraState {
     this.playbackRate = 1.0;
     this.isShuffle = false;
     this.repeatMode = 'all'; // 'off', 'all', 'one'
-    this.favorites = loadJson('vibra_favorites', ['track-1']);
+    this.favorites = loadJson('vibra_favorites', ['real-1635014240']);
     this.currentTheme = localStorage.getItem('vibra_theme') || settings.theme || 'apple-glass';
     this.sleepTimerMinutes = 0;
     this.sleepTimerRemaining = 0;

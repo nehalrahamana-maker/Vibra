@@ -27,6 +27,10 @@ import com.kazinehal.vibra.model.Track
 import com.kazinehal.vibra.player.VibraPlayer
 import com.kazinehal.vibra.ui.theme.*
 
+import androidx.compose.material.icons.filled.Close
+import com.kazinehal.vibra.data.MusicRepository
+import kotlinx.coroutines.delay
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -37,14 +41,47 @@ fun HomeScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedGenre by remember { mutableStateOf("All") }
-    val genres = listOf("All", "Synthwave", "Lofi", "EDM", "Coding Flow", "Ambient")
+    val genres = listOf("All", "Bollywood", "Pop", "Hip-Hop", "R&B", "Worldwide")
 
-    val filteredTracks = remember(searchQuery, selectedGenre, tracks) {
-        tracks.filter { track ->
-            val matchesQuery = track.title.contains(searchQuery, ignoreCase = true) ||
-                    track.artist.contains(searchQuery, ignoreCase = true)
-            val matchesGenre = selectedGenre == "All" || track.genre.equals(selectedGenre, ignoreCase = true)
-            matchesQuery && matchesGenre
+    var displayedTracks by remember { mutableStateOf(tracks) }
+    var isSearching by remember { mutableStateOf(false) }
+
+    // Live Online Music Search & Genre Filter (SimpMusic Engine)
+    LaunchedEffect(searchQuery, selectedGenre) {
+        val q = searchQuery.trim()
+        if (q.isNotEmpty()) {
+            isSearching = true
+            delay(350) // Debounce typing
+            try {
+                val results = MusicRepository.searchOnline(q)
+                displayedTracks = if (selectedGenre == "All") {
+                    results
+                } else {
+                    results.filter { it.genre.contains(selectedGenre, ignoreCase = true) }
+                }
+            } catch (e: Exception) {
+                displayedTracks = tracks.filter {
+                    it.title.contains(q, ignoreCase = true) || it.artist.contains(q, ignoreCase = true)
+                }
+            } finally {
+                isSearching = false
+            }
+        } else if (selectedGenre != "All") {
+            val localGenre = tracks.filter { it.genre.contains(selectedGenre, ignoreCase = true) }
+            if (localGenre.isNotEmpty()) {
+                displayedTracks = localGenre
+            } else {
+                isSearching = true
+                try {
+                    displayedTracks = MusicRepository.searchOnline(selectedGenre)
+                } catch (e: Exception) {
+                    displayedTracks = tracks
+                } finally {
+                    isSearching = false
+                }
+            }
+        } else {
+            displayedTracks = tracks
         }
     }
 
@@ -70,7 +107,7 @@ fun HomeScreen(
                         color = TextPrimary
                     )
                     Text(
-                        text = "Native Jetpack Compose Audiophile",
+                        text = "Stream Millions of Real Songs • Zero Ads • SimpCore",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = VibraAccentPrimary
@@ -80,14 +117,21 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(20.dp))
         }
 
-        // Search Bar
+        // Search Bar with Real Online Search
         item {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search songs, artists, or genres...", color = TextMuted) },
+                placeholder = { Text("Search any song, artist (e.g. Arijit, Diljit, Weeknd)...", color = TextMuted) },
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search", tint = TextMuted) },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Clear", tint = TextMuted)
+                        }
+                    }
+                },
                 singleLine = true,
                 shape = RoundedCornerShape(24.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -97,6 +141,14 @@ fun HomeScreen(
                     unfocusedContainerColor = VibraSurface
                 )
             )
+            if (isSearching) {
+                Spacer(modifier = Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth().height(2.dp),
+                    color = VibraAccentPrimary,
+                    trackColor = VibraSurface
+                )
+            }
             Spacer(modifier = Modifier.height(20.dp))
         }
 
@@ -129,9 +181,9 @@ fun HomeScreen(
         }
 
         // Hero Featured Card
-        if (tracks.isNotEmpty()) {
+        if (displayedTracks.isNotEmpty() && searchQuery.isEmpty()) {
             item {
-                val hero = tracks.first()
+                val hero = displayedTracks.first()
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -182,10 +234,17 @@ fun HomeScreen(
             }
         }
 
-        // Quick Picks Section Title
+        // Quick Picks Section Title / Search Results Header
         item {
+            val titleText = if (searchQuery.isNotEmpty()) {
+                "Search Results (${displayedTracks.size})"
+            } else if (selectedGenre != "All") {
+                "$selectedGenre Hits (${displayedTracks.size})"
+            } else {
+                "Trending Hits & Quick Picks"
+            }
             Text(
-                text = "Quick Picks & Tracks",
+                text = titleText,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
@@ -193,8 +252,8 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(14.dp))
         }
 
-        // Track List Items
-        items(filteredTracks) { track ->
+        // Track List Items (Real Songs, No Ads)
+        items(displayedTracks) { track ->
             val isCurrentPlaying = player.currentTrack?.id == track.id
             Row(
                 modifier = Modifier
