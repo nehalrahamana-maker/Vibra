@@ -16,11 +16,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import com.kazinehal.vibra.data.MusicRepository
+import com.kazinehal.vibra.data.UserLibraryManager
 import com.kazinehal.vibra.player.VibraPlayer
 import com.kazinehal.vibra.ui.components.BottomNavBar
 import com.kazinehal.vibra.ui.components.BottomPlayerBar
-import com.kazinehal.vibra.ui.components.SettingsDialog
 import com.kazinehal.vibra.ui.components.RivaTab
+import com.kazinehal.vibra.ui.components.SettingsDialog
 import com.kazinehal.vibra.ui.screens.*
 import com.kazinehal.vibra.ui.theme.VibraBackground
 import com.kazinehal.vibra.ui.theme.VibraTheme
@@ -28,12 +29,14 @@ import com.kazinehal.vibra.ui.theme.VibraTheme
 class MainActivity : ComponentActivity() {
 
     private lateinit var player: VibraPlayer
-
-    // Real Worldwide Hit Songs Catalog (Bollywood, Global Pop, Punjabi, Hip-Hop)
     private val seedTracks = MusicRepository.trendingTracks
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize persistent user library
+        UserLibraryManager.init(applicationContext)
+
         player = VibraPlayer(applicationContext)
         player.queue = seedTracks.toMutableList()
 
@@ -96,7 +99,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // 4 Riva Tabs
+                        // 4 Riva Navigation Tabs
                         when (selectedTab) {
                             RivaTab.HOME -> {
                                 HomeScreen(
@@ -108,11 +111,12 @@ class MainActivity : ComponentActivity() {
                                         }
                                         player.playTrack(track)
                                     },
+                                    onOpenSearch = { selectedTab = RivaTab.SEARCH },
                                     onOpenSettings = { isSettingsOpen = true }
                                 )
                             }
-                            RivaTab.MIX -> {
-                                MixScreen(
+                            RivaTab.SEARCH -> {
+                                SearchScreen(
                                     player = player,
                                     tracks = seedTracks,
                                     onTrackSelect = { track ->
@@ -135,8 +139,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             }
-                            RivaTab.SEARCH -> {
-                                SearchScreen(
+                            RivaTab.MIX -> {
+                                MixScreen(
                                     player = player,
                                     tracks = seedTracks,
                                     onTrackSelect = { track ->
@@ -161,7 +165,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Settings & Import Dialog
+                        // Settings Dialog
                         if (isSettingsOpen) {
                             SettingsDialog(onDismiss = { isSettingsOpen = false })
                         }
@@ -173,6 +177,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        player.release()
+        if (::player.isInitialized) {
+            player.release()
+        }
     }
 }

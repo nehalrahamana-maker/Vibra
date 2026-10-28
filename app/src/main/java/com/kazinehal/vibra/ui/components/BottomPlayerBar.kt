@@ -24,10 +24,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.kazinehal.vibra.data.UserLibraryManager
 import com.kazinehal.vibra.player.VibraPlayer
+import com.kazinehal.vibra.ui.theme.RivaRed
 import com.kazinehal.vibra.ui.theme.TextMuted
 import com.kazinehal.vibra.ui.theme.TextPrimary
-import com.kazinehal.vibra.ui.theme.VibraAccentPrimary
 
 @Composable
 fun BottomPlayerBar(
@@ -36,7 +37,7 @@ fun BottomPlayerBar(
     modifier: Modifier = Modifier
 ) {
     val track = player.currentTrack ?: return
-    var isLiked by remember(track.id) { mutableStateOf(false) }
+    var isLiked by remember(track.id) { mutableStateOf(UserLibraryManager.isLiked(track.id)) }
 
     Box(
         modifier = modifier
@@ -44,7 +45,7 @@ fun BottomPlayerBar(
             .padding(horizontal = 10.dp, vertical = 6.dp)
             .shadow(elevation = 16.dp, shape = RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF222224))
+            .background(Color(0xFF18181A))
             .clickable { onBarClick() }
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -54,13 +55,13 @@ fun BottomPlayerBar(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Album Artwork Thumbnail
+                // Artwork Thumbnail
                 AsyncImage(
                     model = track.artUrl,
                     contentDescription = track.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(46.dp)
                         .clip(RoundedCornerShape(10.dp))
                 )
 
@@ -85,33 +86,44 @@ fun BottomPlayerBar(
                     )
                 }
 
-                // Like / Heart button
+                // Working Heart / Like button
                 IconButton(
-                    onClick = { isLiked = !isLiked },
+                    onClick = {
+                        isLiked = UserLibraryManager.toggleLike(track)
+                    },
                     modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = "Like",
-                        tint = if (isLiked) VibraAccentPrimary else TextMuted,
+                        contentDescription = "Favorite",
+                        tint = if (isLiked) RivaRed else TextMuted,
                         modifier = Modifier.size(20.dp)
                     )
                 }
 
-                // Play / Pause Circle Button
-                IconButton(
-                    onClick = { player.togglePlayPause() },
+                // Play / Pause Circle Button with Loading state
+                Box(
                     modifier = Modifier
                         .size(38.dp)
                         .clip(CircleShape)
                         .background(Color.White)
+                        .clickable { player.togglePlayPause() },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = if (player.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        contentDescription = "Play/Pause",
-                        tint = Color.Black,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    if (player.isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.Black,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = if (player.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                            contentDescription = "Play/Pause",
+                            tint = Color.Black,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(4.dp))
@@ -130,7 +142,7 @@ fun BottomPlayerBar(
                 }
             }
 
-            // Real-time Mini Progress line at capsule bottom
+            // Real-time Mini Progress line
             val progress = if (player.durationMs > 0) {
                 (player.currentPositionMs.toFloat() / player.durationMs.toFloat()).coerceIn(0f, 1f)
             } else 0f
@@ -140,10 +152,9 @@ fun BottomPlayerBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(2.dp),
-                color = VibraAccentPrimary,
+                color = RivaRed,
                 trackColor = Color.White.copy(alpha = 0.08f)
             )
         }
     }
 }
-

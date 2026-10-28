@@ -503,6 +503,41 @@ async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
     }
   }
 
+  // Fallback to Invidious & Piped mirrors if direct InnerTube player was blocked
+  const mirrors = [
+    `https://inv.tux.pizza/api/v1/videos/${videoId}`,
+    `https://vid.puffyan.us/api/v1/videos/${videoId}`,
+    `https://invidious.nerdvpn.de/api/v1/videos/${videoId}`,
+    `https://pipedapi.adminforge.de/streams/${videoId}`,
+    `https://api.piped.private.coffee/streams/${videoId}`
+  ];
+
+  for (const mirror of mirrors) {
+    try {
+      const res = await fetch(mirror, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      if (res.ok) {
+        const data = await res.json();
+        let streamUrl = null;
+        if (data.adaptiveFormats) {
+          const af = data.adaptiveFormats.find(f => (f.type || '').startsWith('audio/'));
+          if (af && af.url) streamUrl = af.url;
+        } else if (data.audioStreams && data.audioStreams.length > 0) {
+          streamUrl = data.audioStreams[0].url;
+        }
+        if (streamUrl) {
+          return {
+            url: streamUrl,
+            source: 'mirror',
+            attempts,
+            expiresAt: Date.now() + 3.8 * 3600 * 1000
+          };
+        }
+      }
+    } catch (e) {
+      attempts.push(`mirror: ${e.message}`);
+    }
+  }
+
   // Every rung failed — client falls back to its next source
   return { url: null, error: 'All stream clients failed', attempts };
 }

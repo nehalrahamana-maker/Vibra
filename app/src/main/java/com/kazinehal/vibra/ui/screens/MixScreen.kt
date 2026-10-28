@@ -126,7 +126,12 @@ fun MixScreen(
                             )
                         )
                         .clickable {
-                            if (tracks.isNotEmpty()) onTrackSelect(tracks.first())
+                            val liked = com.kazinehal.vibra.data.UserLibraryManager.getLikedTracks()
+                            if (liked.isNotEmpty()) {
+                                onTrackSelect(liked.first())
+                            } else if (tracks.isNotEmpty()) {
+                                onTrackSelect(tracks.first())
+                            }
                         }
                         .padding(horizontal = 20.dp),
                     verticalAlignment = Alignment.CenterVertically

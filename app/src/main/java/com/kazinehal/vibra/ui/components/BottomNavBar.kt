@@ -21,9 +21,9 @@ import com.kazinehal.vibra.ui.theme.RivaRed
 
 enum class RivaTab(val label: String, val icon: ImageVector) {
     HOME("Home", Icons.Filled.Home),
-    MIX("Mix", Icons.Filled.Tune),
+    SEARCH("Search", Icons.Filled.Search),
     LIBRARY("Library", Icons.Filled.Bookmarks),
-    SEARCH("Search", Icons.Filled.Search)
+    MIX("Mix", Icons.Filled.Tune)
 }
 
 @Composable

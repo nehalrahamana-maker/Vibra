@@ -56,14 +56,15 @@ jobs:
         with:
           tag_name: v2.0.0
           name: Riva Release v2.0.0 (Native Jetpack Compose APK)
+          overwrite_files: true
           body: |
-            ### 🎵 Riva v2.0.0 — Pure Audiophile AMOLED Music Player
+            ### 🎵 Riva v2.0.0 — YouTube Music Jetpack Compose Player
             
             - **App Name: Riva** (Signature Red Branding)
-            - **100% Full-Length 320kbps Audio Streams (Zero 30s snippets)**
-            - **YouTube Music backend integration**
+            - **Genuine YouTube Music backend with multi-tier streaming engine**
+            - **100% Full Song Playback (Zero 30s cutoffs)**
             - **Pure AMOLED Black UI (#000000)**
-            - **6-Band Equalizer & Dynamics Compressor/Limiter**
+            - **Working Favorites & Listening History**
             - **Author: Kazi Nehal Rahman**
             - **Build Date: October 26, 2026**
             
