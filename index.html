@@ -148,10 +148,30 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           </button>
 
-          <!-- User Avatar & About Trigger -->
-          <button class="user-avatar-badge-btn" id="headerAboutBtn" title="About Kazi Nehal & Vibra v2.0.0">
-            <span class="avatar-kn">KN</span>
-            <span class="avatar-author-name">Kazi Nehal</span>
+          <!-- Quick Theme Toggle (Light / Dark) -->
+          <button class="icon-circle-btn" id="headerThemeToggleBtn" title="Toggle Light / Dark Mode">
+            <svg id="headerThemeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+
+          <!-- User Profile & About Trigger (Clean Modern Icon, No "KN" text) -->
+          <button class="user-avatar-badge-btn" id="headerAboutBtn" title="About Vibra & Creator">
+            <span class="avatar-profile-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </span>
+            <span class="avatar-author-name">About</span>
           </button>
         </div>
       </header>
@@ -795,23 +815,46 @@
               <!-- 0. PLAYLIST IMPORT & ACCOUNT SYNC (SimpMusic Feature) -->
               <div class="settings-card import-sync-card">
                 <h3>Playlist Import &amp; Account Sync</h3>
-                <p class="settings-card-desc">Import playlists from YouTube Music and sync your Spotify saved songs and playlists</p>
+                <p class="settings-card-desc">Import and sync playlists, listening history, and recommendations from YouTube Music and Spotify</p>
                 
-                <div class="settings-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
-                  <label for="ytPlaylistInput" style="font-weight:600; font-size:13px;">Import YouTube Music Playlist</label>
+                <!-- YouTube Music Sync -->
+                <div class="settings-row" style="flex-direction:column; align-items:flex-start; gap:8px; margin-bottom:14px;">
+                  <label for="ytPlaylistInput" style="font-weight:600; font-size:13px; display:flex; align-items:center; gap:6px;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="#ff0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    Import YouTube Music Playlist / Album
+                  </label>
                   <div style="display:flex; width:100%; gap:8px;">
                     <input type="text" id="ytPlaylistInput" class="modal-text-input" placeholder="Paste YouTube Music playlist URL (e.g. music.youtube.com/playlist?list=...)" style="flex:1;">
                     <button class="btn-primary" id="btnImportYT" style="white-space:nowrap; padding:8px 16px;">Import &amp; Sync</button>
                   </div>
                 </div>
 
+                <!-- Spotify Sync -->
+                <div class="settings-row" style="flex-direction:column; align-items:flex-start; gap:8px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08);">
+                  <label for="spotifyPlaylistInput" style="font-weight:600; font-size:13px; display:flex; align-items:center; gap:6px;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="#1db954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+                    Import Spotify Playlist / Saved Songs
+                  </label>
+                  <div style="display:flex; width:100%; gap:8px;">
+                    <input type="text" id="spotifyPlaylistInput" class="modal-text-input" placeholder="Paste Spotify playlist URL (e.g. open.spotify.com/playlist/...)" style="flex:1;">
+                    <button class="btn-primary" id="btnImportSpotifyPlaylist" style="white-space:nowrap; padding:8px 16px; background:#1db954;">Import Playlist</button>
+                  </div>
+                  <div style="display:flex; width:100%; justify-content:space-between; align-items:center; margin-top:8px;">
+                    <span style="font-size:12px; color:var(--text-muted);" id="spotifySyncStatus">Or link your Spotify account to sync your saved favorites &amp; history</span>
+                    <button class="btn-secondary" id="btnSyncSpotify" style="background:#1db954; color:#fff; border:none; font-weight:600; padding:6px 14px; border-radius:8px; font-size:12px;">
+                      Connect Spotify
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Sync History & Recommendations -->
                 <div class="settings-row" style="margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
                   <div>
-                    <strong style="display:block; font-size:14px;">Spotify Account Sync</strong>
-                    <span style="font-size:12px; color:var(--text-muted);" id="spotifySyncStatus">Connect Spotify to import saved tracks and playlists</span>
+                    <strong style="display:block; font-size:14px;">Personalized Recommendations &amp; History</strong>
+                    <span style="font-size:12px; color:var(--text-muted);" id="recommendationSyncStatus">Generates "Made for You" mixes based on your listening trends</span>
                   </div>
-                  <button class="btn-secondary" id="btnSyncSpotify" style="background:#1db954; color:#fff; border:none; font-weight:600; padding:8px 18px; border-radius:8px;">
-                    Login with Spotify
+                  <button class="btn-secondary" id="btnSyncHistory" style="font-weight:600; padding:6px 14px; border-radius:8px; font-size:12px;">
+                    Refresh Mixes
                   </button>
                 </div>
                 <div id="importSyncToast" style="display:none; margin-top:10px; font-size:13px; color:#10b981; font-weight:600;"></div>
@@ -822,18 +865,18 @@
                 <h3>Online Music Source</h3>
                 <p class="settings-card-desc">Select primary search and audio streaming provider</p>
                 <div class="source-list" id="sourceList">
-                  <label class="source-opt"><input type="radio" name="src" value="itunes" checked> <div class="opt-text"><span>iTunes</span><em>30s official AAC preview &bull; Direct CORS</em></div></label>
+                  <label class="source-opt"><input type="radio" name="src" value="ytmusic" checked> <div class="opt-text"><span>YouTube Music</span><em>Full tracks &bull; Cloudflare Worker ladder</em></div></label>
                   <label class="source-opt"><input type="radio" name="src" value="audius"> <div class="opt-text"><span>Audius</span><em>Full streaming tracks &bull; Direct CORS</em></div></label>
                   <label class="source-opt"><input type="radio" name="src" value="jamendo"> <div class="opt-text"><span>Jamendo</span><em>Full CC tracks &bull; Direct CORS</em></div></label>
-                  <label class="source-opt"><input type="radio" name="src" value="ytmusic"> <div class="opt-text"><span>YouTube Music</span><em>Full tracks &bull; Requires Worker proxy</em></div></label>
+                  <label class="source-opt"><input type="radio" name="src" value="itunes"> <div class="opt-text"><span>iTunes</span><em>30s official AAC preview &bull; Direct CORS</em></div></label>
                   <label class="source-opt"><input type="radio" name="src" value="local"> <div class="opt-text"><span>Local files only</span><em>No network requests</em></div></label>
                 </div>
                 <div class="settings-row">
                   <label for="fallbackSourceSel">Fallback Source</label>
                   <select id="fallbackSourceSel" class="settings-select">
-                    <option value="itunes">iTunes (Direct 30s)</option>
                     <option value="audius" selected>Audius (Direct Full)</option>
                     <option value="jamendo">Jamendo (Direct Full)</option>
+                    <option value="itunes">iTunes (Direct 30s)</option>
                     <option value="local">Local Library</option>
                   </select>
                 </div>
@@ -992,14 +1035,25 @@
               <!-- 7. APPEARANCE -->
               <div class="settings-card">
                 <h3>Appearance & Visuals</h3>
-                <p class="settings-card-desc">Theme and canvas motion effects</p>
+                <p class="settings-card-desc">Light/Dark Mode, color themes, and canvas visualizer effects</p>
                 <div class="settings-row">
-                  <label for="themeSel">Theme</label>
+                  <label for="themeModeToggle">Color Scheme Mode</label>
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:12px; font-weight:600; color:var(--text-muted);" id="themeModeLabel">Dark</span>
+                    <label class="switch">
+                      <input type="checkbox" id="themeModeToggle">
+                      <span class="slider round"></span>
+                    </label>
+                  </div>
+                </div>
+                <div class="settings-row">
+                  <label for="themeSel">Theme Style</label>
                   <select id="themeSel" class="settings-select">
-                    <option value="apple-glass">Apple Glass</option>
+                    <option value="midnight-amoled" selected>Midnight AMOLED (Pure Black)</option>
+                    <option value="light">Crisp Modern (Light Mode)</option>
+                    <option value="apple-glass">Apple Glass (Frosted Dark)</option>
                     <option value="cyberpunk-neon">Cyberpunk Neon</option>
-                    <option value="material-expressive">Material 3</option>
-                    <option value="midnight-amoled">Midnight AMOLED</option>
+                    <option value="material-expressive">Material 3 Expressive</option>
                   </select>
                 </div>
                 <div class="settings-row">
@@ -1319,7 +1373,13 @@
     <div class="modal-dialog about-dialog">
       <div class="about-hero">
         <div class="about-avatar-glow">
-          <div class="about-avatar">KN</div>
+          <div class="about-avatar" style="display:flex;align-items:center;justify-content:center;">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 2a10 10 0 0 1 10 10"></path>
+            </svg>
+          </div>
         </div>
         <div class="about-creator-badge">CREATOR &amp; ARCHITECT</div>
         <h2 class="about-name">Kazi Nehal</h2>

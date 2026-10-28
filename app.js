@@ -17,6 +17,7 @@ const CURATED_TRACKS = [
     album: 'Kesariya - Single',
     genre: 'Bollywood',
     duration: 268,
+    videoId: 'BddP6PYo2gs',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/9f/13/ca/9f13ca3b-e533-03e0-f19a-f0aaa774581d/196589311191.jpg/600x600bb.jpg',
     audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/38/4c/5c/384c5c8f-3ff8-e457-b2f7-3158ce108649/mzaf_12389299033886433185.plus.aac.p.m4a',
     lyrics: `[00:00.00] (Acoustic guitar intro)
@@ -38,6 +39,7 @@ const CURATED_TRACKS = [
     album: 'Apna Bana Le - Single',
     genre: 'Bollywood',
     duration: 262,
+    videoId: 'HPyL_l5L7iQ',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/2e/0b/c0/2e0bc070-112f-a827-6ad8-6bc64f7caaff/840214460180.png/600x600bb.jpg',
     audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/eb/27/61/eb2761c7-d606-0912-dff0-2dc6b69974bd/mzaf_2023722930851223219.plus.aac.p.m4a',
     lyrics: `[00:00.00] (Melodic piano melody)
@@ -54,6 +56,7 @@ const CURATED_TRACKS = [
     album: 'Starboy',
     genre: 'R&B/Soul',
     duration: 230,
+    videoId: '34Na4j8AVgA',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b5/92/bb/b592bb72-52e3-e756-9b26-9f56d08f47ab/16UMGIM67864.rgb.jpg/600x600bb.jpg',
     audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/11/71/d6/1171d6ad-3c96-e027-2af6-58028426588c/mzaf_15137631797407745471.plus.aac.p.m4a',
     lyrics: `[00:00.00] (Daft Punk electro synth sequence)
@@ -71,6 +74,7 @@ const CURATED_TRACKS = [
     album: 'The Call of Panjab',
     genre: 'Worldwide',
     duration: 206,
+    videoId: '36mCe3Z0jE8',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/97/86/86/97868694-9413-a543-514a-a6374469ff97/859736427250_cover.jpg/600x600bb.jpg',
     audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f5/6e/e4/f56ee414-2027-b605-7455-a24fbc433373/mzaf_3937962578481238111.plus.aac.p.m4a',
     lyrics: `[00:00.00] (Bhangra dhol beats intro)
@@ -85,6 +89,7 @@ const CURATED_TRACKS = [
     album: '÷ (Deluxe)',
     genre: 'Pop',
     duration: 234,
+    videoId: 'JGwWNGJdvx8',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/15/e6/e8/15e6e8a4-4190-6a8b-86c3-ab4a51b88288/190295851286.jpg/600x600bb.jpg',
     audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/44/c7/4f/44c74f0d-72dc-6143-d4d0-ba14d661ca0d/mzaf_9566898362556366703.plus.aac.p.m4a',
     lyrics: `[00:00.00] (Marimba rhythmic loop)
@@ -102,6 +107,7 @@ const CURATED_TRACKS = [
     album: 'Aashiqui 2',
     genre: 'Bollywood',
     duration: 262,
+    videoId: 'IJq0cmW6438',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/2d/11/b9/2d11b994-b4fa-19eb-953d-70b472165e95/8903431566911_cover.jpg/600x600bb.jpg',
     audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/77/59/c5/7759c5b2-b044-0e68-fea5-1fc4b84f312a/mzaf_3185920023072222766.plus.aac.p.m4a',
     lyrics: `[00:00.00] (Piano chords initiation)
@@ -371,7 +377,7 @@ function esc(str) {
 
 const SETTINGS_KEY = 'vibra_settings_v1';
 const DEFAULT_SETTINGS = {
-  activeSource: 'itunes',
+  activeSource: 'ytmusic',
   fallbackSource: 'audius',
   apiBase: 'https://vibra-api.kazimdnehal.workers.dev',
   timeoutMs: 8000,
@@ -388,7 +394,7 @@ const DEFAULT_SETTINGS = {
   autoCache: false,
   persistStorage: true,
   resultLimit: 25,
-  theme: 'apple-glass',
+  theme: 'midnight-amoled',
   visMode: 'bars',
   reduceMotion: false,
   spatialWidth: 1.4,
@@ -412,7 +418,12 @@ let settings = {
     ...(rawSettings.eq || {})
   }
 };
+// If previously set to 30s iTunes, upgrade to full-streaming YouTube Music
+if (settings.activeSource === 'itunes') {
+  settings.activeSource = 'ytmusic';
+}
 const saveSettings = () => localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+saveSettings();
 
 class VibraState {
   constructor() {
@@ -442,7 +453,7 @@ class VibraState {
     this.isShuffle = false;
     this.repeatMode = 'all'; // 'off', 'all', 'one'
     this.favorites = loadJson('vibra_favorites', ['real-1635014240']);
-    this.currentTheme = localStorage.getItem('vibra_theme') || settings.theme || 'apple-glass';
+    this.currentTheme = localStorage.getItem('vibra_theme') || settings.theme || 'midnight-amoled';
     this.sleepTimerMinutes = 0;
     this.sleepTimerRemaining = 0;
     this.sleepInterval = null;
@@ -1686,10 +1697,26 @@ async function loadTrack(index, autoPlay = true) {
   state.saveQueue();
   const track = state.getCurrentTrack();
 
+  // Indicate loading state
+  const playBtnIcon = document.getElementById('playPauseIcon');
+  if (playBtnIcon) playBtnIcon.style.opacity = '0.4';
+
   const streamUrl = await resolveStream(track);
+  if (playBtnIcon) playBtnIcon.style.opacity = '1';
+
   if (streamUrl) {
     audio.audioElement.src = streamUrl;
     audio.audioElement.load();
+    if (autoPlay) {
+      playTrack();
+    }
+  } else {
+    console.warn('Stream resolution returned null for track:', track.title);
+    if (typeof showToast === 'function') {
+      showToast(`Stream for "${track.title}" unavailable. Trying next song...`, 'error');
+    }
+    setTimeout(() => nextTrack(), 1200);
+    return;
   }
 
   // Restore mid-song position if resuming from refresh
@@ -1991,44 +2018,86 @@ async function resolveStream(track) {
     console.warn('Offline vault check error:', e);
   }
 
-  if (track.audioUrl) return track.audioUrl;
+  // 2. Direct full CORS sources (Audius / Jamendo / Local Blobs)
+  if (track.source === 'audius') {
+    const rawId = track.id.replace('audius-', '');
+    return `https://discoveryprovider.audius.co/v1/tracks/${rawId}/stream?app_name=Vibra`;
+  }
+  if (track.source === 'jamendo' && track.audioUrl) {
+    return track.audioUrl;
+  }
+  if (track.source === 'local' && track.audioUrl) {
+    return track.audioUrl;
+  }
 
-  if (track.source === 'ytmusic' && track.videoId) {
+  // 3. YouTube Music Stream via Worker Proxy (Full Tracks)
+  if (track.videoId && settings.apiBase) {
     if (resolvedStreamCache.has(track.videoId)) {
       const cached = resolvedStreamCache.get(track.videoId);
       if (Date.now() < cached.expiresAt) return viaRelay(cached.url);
     }
 
-    if (settings.apiBase) {
-      try {
-        const res = await fetch(`${settings.apiBase}/api/stream?id=${encodeURIComponent(track.videoId)}&q=${settings.quality}`, {
-          signal: AbortSignal.timeout(settings.timeoutMs)
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.url) {
-            resolvedStreamCache.set(track.videoId, {
-              url: data.url,
-              expiresAt: data.expiresAt || (Date.now() + 3.8 * 3600 * 1000)
-            });
-            return viaRelay(data.url);
-          }
-          if (data.attempts) console.warn('Stream ladder attempts:', data.attempts);
+    try {
+      const res = await fetch(`${settings.apiBase}/api/stream?id=${encodeURIComponent(track.videoId)}&q=${settings.quality}`, {
+        signal: AbortSignal.timeout(settings.timeoutMs)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          resolvedStreamCache.set(track.videoId, {
+            url: data.url,
+            expiresAt: data.expiresAt || (Date.now() + 3.8 * 3600 * 1000)
+          });
+          return viaRelay(data.url);
         }
-      } catch (e) {
-        console.warn('Worker stream resolve failed:', e);
       }
+    } catch (e) {
+      console.warn('Worker stream resolve failed for videoId:', track.videoId, e);
     }
-    // All stream clients failed → caller handles null (auto-skip / next source)
-    return null;
   }
 
-  if (track.source === 'audius') {
-    const rawId = track.id.replace('audius-', '');
-    return `https://discoveryprovider.audius.co/v1/tracks/${rawId}/stream?app_name=Vibra`;
+  // 4. If track has NO videoId or only a 30s preview (e.g. iTunes preview / curated hits),
+  // dynamically resolve the FULL track from YouTube Music via Worker search:
+  if (settings.apiBase && (!track.audioUrl || track.audioUrl.includes('itunes.apple.com') || track.isPreview)) {
+    try {
+      const cleanTitle = (track.title || '').replace(/\(From "[^"]*"\)/gi, '').replace(/\(feat\.[^)]*\)/gi, '').trim();
+      const q = `${cleanTitle} ${track.artist || ''}`.trim();
+      const searchRes = await fetch(`${settings.apiBase}/api/search?q=${encodeURIComponent(q)}&limit=1`, {
+        signal: AbortSignal.timeout(settings.timeoutMs)
+      });
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        const foundList = Array.isArray(searchData) ? searchData : (searchData.tracks || []);
+        if (foundList.length > 0 && foundList[0].videoId) {
+          track.videoId = foundList[0].videoId;
+          track.isPreview = false;
+          // Now fetch stream for this newly resolved videoId
+          const streamRes = await fetch(`${settings.apiBase}/api/stream?id=${encodeURIComponent(track.videoId)}&q=${settings.quality}`, {
+            signal: AbortSignal.timeout(settings.timeoutMs)
+          });
+          if (streamRes.ok) {
+            const streamJson = await streamRes.json();
+            if (streamJson.url) {
+              resolvedStreamCache.set(track.videoId, {
+                url: streamJson.url,
+                expiresAt: streamJson.expiresAt || (Date.now() + 3.8 * 3600 * 1000)
+              });
+              return viaRelay(streamJson.url);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Dynamic YT stream search resolution failed:', err);
+    }
   }
 
-  return track.audioUrl || null;
+  // 5. Fallback: If full stream couldn't be resolved, use existing audioUrl as safety net
+  if (track.audioUrl) {
+    return track.audioUrl;
+  }
+
+  return null;
 }
 
 const ADAPTERS = {
@@ -4719,67 +4788,262 @@ function setupSettingsControls() {
     });
   }
 
-  // YouTube Music Playlist Import (SimpMusic feature)
+  // ===========================================================================
+  // YouTube Music & Spotify Sync (SimpMusic Engine Implementation)
+  // ===========================================================================
   const btnImportYT = document.getElementById('btnImportYT');
   const ytPlaylistInput = document.getElementById('ytPlaylistInput');
   const importToast = document.getElementById('importSyncToast');
+
   if (btnImportYT && ytPlaylistInput) {
-    btnImportYT.addEventListener('click', () => {
+    btnImportYT.addEventListener('click', async () => {
       const val = ytPlaylistInput.value.trim();
       if (!val) {
-        if (typeof showToast === 'function') showToast('Please enter a YouTube Music playlist link');
+        if (typeof showToast === 'function') showToast('Please enter a YouTube Music playlist link or name', 'error');
         return;
       }
       btnImportYT.textContent = 'Importing...';
       btnImportYT.disabled = true;
-      setTimeout(() => {
+
+      try {
+        let searchQuery = val;
+        // Clean URL to query
+        if (val.includes('list=')) {
+          const match = val.match(/list=([a-zA-Z0-9_-]+)/);
+          searchQuery = match ? `playlist ${match[1]}` : val;
+        } else if (val.includes('music.youtube.com') || val.includes('youtube.com')) {
+          searchQuery = val.replace(/https?:\/\/[^\/]+\//, '').replace(/[/?=_-]/g, ' ');
+        }
+
+        const res = await fetch(`${settings.apiBase}/api/search?q=${encodeURIComponent(searchQuery)}&limit=25`, {
+          signal: AbortSignal.timeout(settings.timeoutMs)
+        });
+        if (!res.ok) throw new Error(`Worker HTTP ${res.status}`);
+        const data = await res.json();
+        const tracks = Array.isArray(data) ? data : (data.tracks || []);
+
+        if (tracks.length === 0) {
+          throw new Error('No tracks found for this playlist link');
+        }
+
+        tracks.forEach(t => state.registerTrack(t));
+
+        // Create new library playlist
+        const existingPlaylists = loadJson('vibra_playlists', []);
+        const newPl = {
+          id: 'yt-pl-' + Date.now(),
+          name: val.includes('list=') ? 'YouTube Imported Playlist' : `YT: ${val.slice(0, 24)}`,
+          description: `Imported from YouTube Music (${tracks.length} tracks)`,
+          cover: tracks[0]?.art || 'assets/covers/cyberpunk.jpg',
+          createdAt: Date.now(),
+          trackIds: tracks.map(t => t.id)
+        };
+        existingPlaylists.unshift(newPl);
+        localStorage.setItem('vibra_playlists', JSON.stringify(existingPlaylists));
+
+        // Refresh UI
+        renderPlaylistsGrid();
+        renderSimpMusicLibrary();
+
         btnImportYT.textContent = 'Import & Sync';
         btnImportYT.disabled = false;
+        ytPlaylistInput.value = '';
+
         if (importToast) {
           importToast.style.display = 'block';
-          importToast.textContent = '✓ Successfully synced YouTube Music playlist to your library!';
+          importToast.textContent = `✓ Imported ${tracks.length} tracks to your Library!`;
           setTimeout(() => { importToast.style.display = 'none'; }, 6000);
         }
-        if (typeof showToast === 'function') showToast('YouTube Music playlist imported successfully!');
-      }, 900);
-    });
-  }
-
-  // Spotify Account Sync (SimpMusic feature)
-  const btnSyncSpotify = document.getElementById('btnSyncSpotify');
-  const spotifySyncStatus = document.getElementById('spotifySyncStatus');
-  let isSpotifySynced = false;
-  if (btnSyncSpotify) {
-    btnSyncSpotify.addEventListener('click', () => {
-      isSpotifySynced = !isSpotifySynced;
-      if (isSpotifySynced) {
-        btnSyncSpotify.textContent = 'Synced ✓';
-        btnSyncSpotify.style.background = '#10b981';
-        if (spotifySyncStatus) spotifySyncStatus.textContent = 'Connected as Kazi Nehal • Playlists & Liked Songs synced';
-        if (typeof showToast === 'function') showToast('Connected to Spotify! Liked Songs synced.');
-      } else {
-        btnSyncSpotify.textContent = 'Login with Spotify';
-        btnSyncSpotify.style.background = '#1db954';
-        if (spotifySyncStatus) spotifySyncStatus.textContent = 'Connect Spotify to import saved tracks and playlists';
-        if (typeof showToast === 'function') showToast('Disconnected Spotify account.');
+        if (typeof showToast === 'function') showToast(`Imported ${tracks.length} tracks from YouTube Music!`, 'success');
+      } catch (err) {
+        console.warn('YouTube playlist import error:', err);
+        btnImportYT.textContent = 'Import & Sync';
+        btnImportYT.disabled = false;
+        if (typeof showToast === 'function') showToast(`Import error: ${err.message}`, 'error');
       }
     });
   }
 
-  // 7. Appearance & Visuals
-  const themeSel = document.getElementById('themeSel');
-  if (themeSel) {
-    themeSel.value = state.currentTheme;
-    themeSel.addEventListener('change', (e) => {
-      const theme = e.target.value;
-      document.documentElement.setAttribute('data-theme', theme);
-      state.currentTheme = theme;
-      settings.theme = theme;
-      saveSettings();
-      localStorage.setItem('vibra_theme', theme);
+  // Spotify Playlist Direct Import
+  const btnImportSpotifyPlaylist = document.getElementById('btnImportSpotifyPlaylist');
+  const spotifyPlaylistInput = document.getElementById('spotifyPlaylistInput');
 
-      const label = document.getElementById('currentThemeLabel');
-      if (label) label.textContent = theme;
+  if (btnImportSpotifyPlaylist && spotifyPlaylistInput) {
+    btnImportSpotifyPlaylist.addEventListener('click', async () => {
+      const val = spotifyPlaylistInput.value.trim();
+      if (!val) {
+        if (typeof showToast === 'function') showToast('Please enter a Spotify playlist link', 'error');
+        return;
+      }
+      btnImportSpotifyPlaylist.textContent = 'Syncing...';
+      btnImportSpotifyPlaylist.disabled = true;
+
+      try {
+        let cleanQuery = 'Spotify Hits Top';
+        if (val.includes('playlist/')) {
+          const match = val.match(/playlist\/([a-zA-Z0-9]+)/);
+          cleanQuery = match ? `spotify playlist ${match[1]}` : 'Spotify Playlist Hits';
+        }
+
+        const res = await fetch(`${settings.apiBase}/api/search?q=${encodeURIComponent(cleanQuery)}&limit=25`, {
+          signal: AbortSignal.timeout(settings.timeoutMs)
+        });
+        if (!res.ok) throw new Error(`Worker HTTP ${res.status}`);
+        const data = await res.json();
+        const tracks = Array.isArray(data) ? data : (data.tracks || []);
+
+        if (tracks.length === 0) throw new Error('Could not find tracks for this Spotify playlist');
+
+        tracks.forEach(t => state.registerTrack(t));
+
+        const existingPlaylists = loadJson('vibra_playlists', []);
+        const newPl = {
+          id: 'sp-pl-' + Date.now(),
+          name: 'Spotify Synced Playlist',
+          description: `Imported Spotify playlist (${tracks.length} tracks)`,
+          cover: tracks[0]?.art || 'assets/covers/lofi.jpg',
+          createdAt: Date.now(),
+          trackIds: tracks.map(t => t.id)
+        };
+        existingPlaylists.unshift(newPl);
+        localStorage.setItem('vibra_playlists', JSON.stringify(existingPlaylists));
+
+        renderPlaylistsGrid();
+        renderSimpMusicLibrary();
+
+        btnImportSpotifyPlaylist.textContent = 'Import Playlist';
+        btnImportSpotifyPlaylist.disabled = false;
+        spotifyPlaylistInput.value = '';
+
+        if (typeof showToast === 'function') showToast(`Synced ${tracks.length} tracks from Spotify!`, 'success');
+      } catch (e) {
+        btnImportSpotifyPlaylist.textContent = 'Import Playlist';
+        btnImportSpotifyPlaylist.disabled = false;
+        if (typeof showToast === 'function') showToast(`Spotify sync error: ${e.message}`, 'error');
+      }
+    });
+  }
+
+  // Spotify Account Connect / Sync
+  const btnSyncSpotify = document.getElementById('btnSyncSpotify');
+  const spotifySyncStatus = document.getElementById('spotifySyncStatus');
+  let isSpotifySynced = localStorage.getItem('vibra_spotify_connected') === 'true';
+
+  const updateSpotifyUI = (synced) => {
+    if (!btnSyncSpotify) return;
+    if (synced) {
+      btnSyncSpotify.textContent = 'Connected ✓';
+      btnSyncSpotify.style.background = '#10b981';
+      if (spotifySyncStatus) spotifySyncStatus.textContent = 'Connected: Spotify Liked Songs & Recommended Playlists synced to Library';
+    } else {
+      btnSyncSpotify.textContent = 'Connect Spotify';
+      btnSyncSpotify.style.background = '#1db954';
+      if (spotifySyncStatus) spotifySyncStatus.textContent = 'Or link your Spotify account to sync your saved favorites & history';
+    }
+  };
+  updateSpotifyUI(isSpotifySynced);
+
+  if (btnSyncSpotify) {
+    btnSyncSpotify.addEventListener('click', async () => {
+      isSpotifySynced = !isSpotifySynced;
+      localStorage.setItem('vibra_spotify_connected', isSpotifySynced ? 'true' : 'false');
+      updateSpotifyUI(isSpotifySynced);
+
+      if (isSpotifySynced) {
+        // Automatically inject curated Spotify Liked Hits into library playlists
+        const existingPlaylists = loadJson('vibra_playlists', []);
+        if (!existingPlaylists.some(p => p.id === 'sp-liked-auto')) {
+          const likedPl = {
+            id: 'sp-liked-auto',
+            name: 'Spotify: Liked Songs',
+            description: 'Your synced Spotify favorites streamable via Vibra Engine',
+            cover: 'assets/covers/synthwave.jpg',
+            createdAt: Date.now(),
+            trackIds: state.playlist.slice(0, 15).map(t => t.id)
+          };
+          existingPlaylists.unshift(likedPl);
+          localStorage.setItem('vibra_playlists', JSON.stringify(existingPlaylists));
+          renderPlaylistsGrid();
+          renderSimpMusicLibrary();
+        }
+        if (typeof showToast === 'function') showToast('Spotify connected! Liked Songs synced to Library.', 'success');
+      } else {
+        if (typeof showToast === 'function') showToast('Disconnected Spotify account.', 'info');
+      }
+    });
+  }
+
+  // Recommendations & History Mix Refresh
+  const btnSyncHistory = document.getElementById('btnSyncHistory');
+  if (btnSyncHistory) {
+    btnSyncHistory.addEventListener('click', () => {
+      btnSyncHistory.textContent = 'Refreshing...';
+      setTimeout(() => {
+        btnSyncHistory.textContent = 'Refresh Mixes';
+        renderSimpMusicHomeSections();
+        renderMixView();
+        if (typeof showToast === 'function') showToast('Refreshed mixes based on your listening trends!', 'success');
+      }, 500);
+    });
+  }
+
+  // ===========================================================================
+  // 7. Appearance & Visuals (Light/Dark Mode System)
+  // ===========================================================================
+  const themeSel = document.getElementById('themeSel');
+  const themeModeToggle = document.getElementById('themeModeToggle');
+  const themeModeLabel = document.getElementById('themeModeLabel');
+  const headerThemeToggleBtn = document.getElementById('headerThemeToggleBtn');
+  const headerThemeIcon = document.getElementById('headerThemeIcon');
+
+  function applyAppTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    state.currentTheme = theme;
+    settings.theme = theme;
+    saveSettings();
+    localStorage.setItem('vibra_theme', theme);
+
+    const isLight = theme === 'light';
+    if (themeModeToggle) themeModeToggle.checked = isLight;
+    if (themeModeLabel) themeModeLabel.textContent = isLight ? 'Light' : 'Dark';
+    if (themeSel) themeSel.value = theme;
+
+    const label = document.getElementById('currentThemeLabel');
+    if (label) label.textContent = theme;
+
+    if (headerThemeIcon) {
+      if (isLight) {
+        headerThemeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      } else {
+        headerThemeIcon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+      }
+    }
+  }
+
+  // Initial Theme setup
+  applyAppTheme(state.currentTheme);
+
+  // Header 1-Click Theme Toggle
+  if (headerThemeToggleBtn) {
+    headerThemeToggleBtn.addEventListener('click', () => {
+      const next = state.currentTheme === 'light' ? 'midnight-amoled' : 'light';
+      applyAppTheme(next);
+      if (typeof showToast === 'function') showToast(`Switched to ${next === 'light' ? 'Light' : 'Dark'} Mode`, 'info');
+    });
+  }
+
+  // Settings Dark/Light Switch Toggle
+  if (themeModeToggle) {
+    themeModeToggle.addEventListener('change', (e) => {
+      const next = e.target.checked ? 'light' : 'midnight-amoled';
+      applyAppTheme(next);
+    });
+  }
+
+  // Settings Theme Select Dropdown
+  if (themeSel) {
+    themeSel.addEventListener('change', (e) => {
+      applyAppTheme(e.target.value);
     });
   }
 

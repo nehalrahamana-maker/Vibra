@@ -65,18 +65,36 @@ class VibraPlayer(context: Context) {
     fun playTrack(track: Track) {
         currentTrack = track
 
-        if (track.videoId.isNotBlank() && track.audioUrl.isBlank()) {
-            // YT Music track: resolve a fresh stream URL right now (they expire ~4h)
+        // Always resolve full YouTube Music stream (InnerTube ladder via Worker)
+        if (track.videoId.isNotBlank() || track.audioUrl.contains("itunes.apple.com") || track.audioUrl.isBlank()) {
             scope.launch {
-                val resolved = withContext(Dispatchers.IO) {
-                    YtMusicSource.resolveStream(track.videoId)
-                }
-                // Ignore if the user already switched to another track
-                if (currentTrack?.id != track.id) return@launch
-                if (resolved != null) {
-                    startPlayback(resolved)
+                val vId = if (track.videoId.isNotBlank()) {
+                    track.videoId
                 } else {
-                    android.util.Log.w("VibraPlayer", "Stream resolve failed for ${track.videoId}")
+                    val cleanQuery = track.title.replace(Regex("""\(From "[^"]*"\)"""), "").trim()
+                    val searchResults = withContext(Dispatchers.IO) {
+                        YtMusicSource.search("$cleanQuery ${track.artist}", 1)
+                    }
+                    searchResults.firstOrNull()?.videoId ?: ""
+                }
+
+                if (vId.isNotBlank()) {
+                    val resolved = withContext(Dispatchers.IO) {
+                        YtMusicSource.resolveStream(vId)
+                    }
+                    // Ignore if user already switched to another track
+                    if (currentTrack?.id != track.id) return@launch
+                    if (resolved != null) {
+                        startPlayback(resolved)
+                        return@launch
+                    }
+                }
+
+                // Fallback to preview or cached audioUrl if worker stream resolution was blocked
+                if (track.audioUrl.isNotBlank()) {
+                    startPlayback(track.audioUrl)
+                } else {
+                    android.util.Log.w("VibraPlayer", "Stream resolve failed for ${track.title}")
                 }
             }
             return
