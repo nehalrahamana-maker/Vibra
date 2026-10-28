@@ -12,6 +12,7 @@ val VibraCard = Color(0xFF161616)
 val RivaRed = Color(0xFFE50914) // Vibrant Riva Red
 val VibraAccentPrimary = RivaRed
 val VibraAccentSecondary = Color(0xFF06B6D4) // Teal / Cyan
+val VibraNeonMagenta = Color(0xFFFF007A)
 
 // 4 Action Tile Colors
 val TileFavorite = RivaRed
