@@ -22,7 +22,7 @@ import com.kazinehal.vibra.ui.theme.VibraAccentPrimary
 
 enum class SimpTab(val label: String, val icon: ImageVector) {
     HOME("Home", Icons.Filled.Home),
-    MIX("Mix for you", Icons.Filled.Radio),
+    MIX("Mix", Icons.Filled.Tune),
     LIBRARY("Library", Icons.Filled.Bookmarks),
     SEARCH("Search", Icons.Filled.Search)
 }
@@ -37,7 +37,7 @@ fun BottomNavBar(
         modifier = modifier
             .fillMaxWidth()
             .height(64.dp)
-            .background(Color(0xFF0A0A0A))
+            .background(Color.Black)
             .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
@@ -48,14 +48,14 @@ fun BottomNavBar(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .clickable { onTabSelected(tab) }
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Icon(
                     imageVector = tab.icon,
                     contentDescription = tab.label,
-                    tint = if (isSelected) VibraAccentPrimary else TextMuted,
+                    tint = if (isSelected) Color(0xFF38BDF8) else Color(0xFF9E9E9E),
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.height(3.dp))
@@ -63,7 +63,7 @@ fun BottomNavBar(
                     text = tab.label,
                     fontSize = 11.sp,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    color = if (isSelected) Color.White else TextMuted
+                    color = if (isSelected) Color.White else Color(0xFF9E9E9E)
                 )
             }
         }

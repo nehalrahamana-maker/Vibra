@@ -6,8 +6,10 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.kazinehal.vibra.data.MusicRepository
 import com.kazinehal.vibra.data.YtMusicSource
 import com.kazinehal.vibra.model.Track
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +35,9 @@ class VibraPlayer(context: Context) {
     var durationMs by mutableLongStateOf(1L)
         private set
 
+    var isShuffleOn by mutableStateOf(false)
+    var isRepeatOn by mutableStateOf(false)
+
     var queue = mutableListOf<Track>()
     private var currentIndex = 0
 
@@ -46,18 +51,37 @@ class VibraPlayer(context: Context) {
                 if (playbackState == Player.STATE_READY) {
                     durationMs = exoPlayer.duration.coerceAtLeast(1L)
                 } else if (playbackState == Player.STATE_ENDED) {
-                    next()
+                    if (isRepeatOn) {
+                        seekTo(0)
+                        exoPlayer.play()
+                    } else {
+                        next()
+                    }
+                }
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                android.util.Log.e("VibraPlayer", "ExoPlayer error: ${error.message}", error)
+                // If stream failed (e.g. 403 expired), fallback to instant preview audio
+                val track = currentTrack ?: return
+                scope.launch {
+                    val fallback = withContext(Dispatchers.IO) {
+                        MusicRepository.findInstantAudio(track.title, track.artist)
+                    }
+                    if (fallback != null && fallback != track.audioUrl) {
+                        startPlayback(fallback)
+                    }
                 }
             }
         })
 
-        // Position ticker
+        // Position ticker for real-time scrubber update
         scope.launch {
             while (true) {
                 if (isPlaying) {
                     currentPositionMs = exoPlayer.currentPosition
                 }
-                delay(250)
+                delay(200)
             }
         }
     }
@@ -65,50 +89,58 @@ class VibraPlayer(context: Context) {
     fun playTrack(track: Track) {
         currentTrack = track
 
-        // Always resolve full YouTube Music stream (InnerTube ladder via Worker)
-        if (track.videoId.isNotBlank() || track.audioUrl.contains("itunes.apple.com") || track.audioUrl.isBlank()) {
-            scope.launch {
-                val vId = if (track.videoId.isNotBlank()) {
-                    track.videoId
-                } else {
-                    val cleanQuery = track.title.replace(Regex("""\(From "[^"]*"\)"""), "").trim()
-                    val searchResults = withContext(Dispatchers.IO) {
-                        YtMusicSource.search("$cleanQuery ${track.artist}", 1)
-                    }
-                    searchResults.firstOrNull()?.videoId ?: ""
-                }
-
-                if (vId.isNotBlank()) {
-                    val resolved = withContext(Dispatchers.IO) {
-                        YtMusicSource.resolveStream(vId)
-                    }
-                    // Ignore if user already switched to another track
-                    if (currentTrack?.id != track.id) return@launch
-                    if (resolved != null) {
-                        startPlayback(resolved)
-                        return@launch
-                    }
-                }
-
-                // Fallback to preview or cached audioUrl if worker stream resolution was blocked
-                if (track.audioUrl.isNotBlank()) {
-                    startPlayback(track.audioUrl)
-                } else {
-                    android.util.Log.w("VibraPlayer", "Stream resolve failed for ${track.title}")
-                }
-            }
-            return
+        // CRITICAL FIX: If track has a playable URL (iTunes preview or cached audio),
+        // START PLAYBACK IMMEDIATELY! Do not make the user wait 10 seconds!
+        if (track.audioUrl.isNotBlank()) {
+            startPlayback(track.audioUrl)
         }
 
-        startPlayback(track.audioUrl)
+        // Background high-res stream resolution (YouTube Music InnerTube)
+        if (track.videoId.isNotBlank()) {
+            scope.launch {
+                val resolved = withContext(Dispatchers.IO) {
+                    YtMusicSource.resolveStream(track.videoId)
+                }
+                if (currentTrack?.id != track.id) return@launch
+                if (resolved != null && resolved != track.audioUrl) {
+                    val curPos = exoPlayer.currentPosition
+                    val mediaItem = MediaItem.fromUri(resolved)
+                    exoPlayer.setMediaItem(mediaItem, curPos)
+                    exoPlayer.prepare()
+                    exoPlayer.play()
+                } else if (track.audioUrl.isBlank()) {
+                    // Try instant iTunes audio fallback
+                    val fallback = withContext(Dispatchers.IO) {
+                        MusicRepository.findInstantAudio(track.title, track.artist)
+                    }
+                    if (currentTrack?.id == track.id && !fallback.isNullOrBlank()) {
+                        startPlayback(fallback)
+                    }
+                }
+            }
+        } else if (track.audioUrl.isBlank()) {
+            // Track has no audioUrl and no videoId -> fetch instant audio
+            scope.launch {
+                val fallback = withContext(Dispatchers.IO) {
+                    MusicRepository.findInstantAudio(track.title, track.artist)
+                }
+                if (currentTrack?.id == track.id && !fallback.isNullOrBlank()) {
+                    startPlayback(fallback)
+                }
+            }
+        }
     }
 
     private fun startPlayback(url: String) {
         if (url.isBlank()) return
-        val mediaItem = MediaItem.fromUri(url)
-        exoPlayer.setMediaItem(mediaItem)
-        exoPlayer.prepare()
-        exoPlayer.play()
+        try {
+            val mediaItem = MediaItem.fromUri(url)
+            exoPlayer.setMediaItem(mediaItem)
+            exoPlayer.prepare()
+            exoPlayer.play()
+        } catch (e: Exception) {
+            android.util.Log.e("VibraPlayer", "startPlayback failed: ${e.message}", e)
+        }
     }
 
     fun togglePlayPause() {
@@ -124,9 +156,21 @@ class VibraPlayer(context: Context) {
         currentPositionMs = positionMs
     }
 
+    fun toggleShuffle() {
+        isShuffleOn = !isShuffleOn
+    }
+
+    fun toggleRepeat() {
+        isRepeatOn = !isRepeatOn
+    }
+
     fun next() {
         if (queue.isEmpty()) return
-        currentIndex = (currentIndex + 1) % queue.size
+        currentIndex = if (isShuffleOn && queue.size > 1) {
+            (queue.indices - currentIndex).random()
+        } else {
+            (currentIndex + 1) % queue.size
+        }
         playTrack(queue[currentIndex])
     }
 

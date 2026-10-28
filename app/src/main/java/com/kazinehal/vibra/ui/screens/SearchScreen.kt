@@ -1,15 +1,19 @@
 package com.kazinehal.vibra.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.NorthEast
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,30 +45,38 @@ fun SearchScreen(
     onTrackSelect: (Track) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     var searchResults by remember { mutableStateOf<List<Track>>(emptyList()) }
     var isSearching by remember { mutableStateOf(false) }
 
+    // Genre Cards from Video Frame 00:53
     val genreCards = listOf(
-        GenreCardData("Family", Brush.linearGradient(listOf(Color(0xFF84CC16), Color(0xFFA3E635)))),
-        GenreCardData("1990s", Brush.linearGradient(listOf(Color(0xFFEAB308), Color(0xFFFDE047)))),
-        GenreCardData("Chill", Brush.linearGradient(listOf(Color(0xFFF97316), Color(0xFFFB923C)))),
-        GenreCardData("Gaming", Brush.linearGradient(listOf(Color(0xFFEA580C), Color(0xFFF97316)))),
-        GenreCardData("R&B & soul", Brush.linearGradient(listOf(Color(0xFFA855F7), Color(0xFFC084FC)))),
-        GenreCardData("Jazz", Brush.linearGradient(listOf(Color(0xFF0D9488), Color(0xFF14B8A6))))
+        GenreCardData("African", Brush.linearGradient(listOf(Color(0xFFE11D48), Color(0xFFFB923C)))),
+        GenreCardData("Party", Brush.linearGradient(listOf(Color(0xFF84CC16), Color(0xFFFDE047)))),
+        GenreCardData("Classical", Brush.linearGradient(listOf(Color(0xFF06B6D4), Color(0xFF38BDF8)))),
+        GenreCardData("Hindi", Brush.linearGradient(listOf(Color(0xFFEC4899), Color(0xFFF43F5E)))),
+        GenreCardData("Desi hip-hop", Brush.linearGradient(listOf(Color(0xFF3B82F6), Color(0xFF6366F1)))),
+        GenreCardData("Haryanvi", Brush.linearGradient(listOf(Color(0xFF8B5CF6), Color(0xFFA855F7))))
     )
 
-    val moods = listOf("Chill", "Commute", "Energize", "Feel good", "Workout", "Party")
-    val recentQueries = listOf("Arijit Singh", "Diljit Dosanjh", "Starboy", "Kesariya", "The Weeknd")
+    // Moods & Moments from Video Frame 00:53
+    val moodCards = listOf(
+        GenreCardData("Chill", Brush.linearGradient(listOf(Color(0xFF6366F1), Color(0xFF8B5CF6)))),
+        GenreCardData("Commute", Brush.linearGradient(listOf(Color(0xFFEA580C), Color(0xFFF97316)))),
+        GenreCardData("Energize", Brush.linearGradient(listOf(Color(0xFFEC4899), Color(0xFFD946EF)))),
+        GenreCardData("Feel good", Brush.linearGradient(listOf(Color(0xFF06B6D4), Color(0xFF10B981))))
+    )
 
-    // Debounced Live Search
+    // Live debounced online search
     LaunchedEffect(searchQuery) {
         val q = searchQuery.trim()
         if (q.isNotEmpty()) {
             isSearching = true
-            delay(350)
+            delay(300)
             try {
-                searchResults = MusicRepository.searchOnline(q)
+                val results = MusicRepository.searchOnline(q)
+                searchResults = results
             } catch (e: Exception) {
                 searchResults = tracks.filter {
                     it.title.contains(q, ignoreCase = true) || it.artist.contains(q, ignoreCase = true)
@@ -80,259 +93,270 @@ fun SearchScreen(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(VibraBackground)
-            .padding(horizontal = 20.dp),
+            .background(Color.Black)
+            .padding(horizontal = 18.dp),
         contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp)
     ) {
-        // Search Pill Bar
+        // Search Bar (Rounded pill shape from Video Frame 00:53)
         item {
-            OutlinedTextField(
+            TextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search for song, artist, album...", color = TextMuted) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search", tint = TextMuted) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(24.dp)),
+                placeholder = {
+                    Text(
+                        text = "Search for song...",
+                        color = Color(0xFF9E9E9E),
+                        fontSize = 15.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.Search,
+                        contentDescription = "Search",
+                        tint = Color(0xFF9E9E9E)
+                    )
+                },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Clear", tint = TextMuted)
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Clear",
+                                tint = Color(0xFF9E9E9E)
+                            )
                         }
                     }
                 },
-                singleLine = true,
-                shape = RoundedCornerShape(28.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = VibraAccentPrimary,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.12f),
-                    focusedContainerColor = VibraSurface,
-                    unfocusedContainerColor = VibraSurface
-                )
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF1E1E1E),
+                    unfocusedContainerColor = Color(0xFF1E1E1E),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                ),
+                singleLine = true
             )
-
-            if (isSearching) {
-                Spacer(modifier = Modifier.height(6.dp))
-                LinearProgressIndicator(
-                    modifier = Modifier.fillMaxWidth().height(2.dp),
-                    color = VibraAccentPrimary,
-                    trackColor = VibraSurface
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(18.dp))
         }
 
-        // When User is Searching: Display Live Search Results
-        if (searchQuery.isNotEmpty()) {
-            item {
-                Text(
-                    text = "Search Results (${searchResults.size})",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            items(searchResults) { track ->
-                val isCurrentPlaying = player.currentTrack?.id == track.id
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(if (isCurrentPlaying) VibraSurfaceVariant else Color.Transparent)
-                        .clickable { onTrackSelect(track) }
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AsyncImage(
-                        model = track.artUrl,
-                        contentDescription = track.title,
-                        contentScale = ContentScale.Crop,
+        // If searching: Show results or spinner
+        if (searchQuery.isNotBlank()) {
+            if (isSearching) {
+                item {
+                    Box(
                         modifier = Modifier
-                            .size(52.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                    )
-
-                    Spacer(modifier = Modifier.width(14.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = Color(0xFF38BDF8), modifier = Modifier.size(32.dp))
+                    }
+                }
+            } else if (searchResults.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            text = track.title,
-                            color = if (isCurrentPlaying) VibraAccentPrimary else TextPrimary,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = "${track.artist} • ${track.album}",
-                            color = TextMuted,
-                            fontSize = 12.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            text = "No tracks found for \"$searchQuery\"",
+                            fontSize = 14.sp,
+                            color = Color(0xFF9E9E9E)
                         )
                     }
-
-                    IconButton(onClick = { onTrackSelect(track) }) {
-                        Icon(
-                            imageVector = Icons.Filled.PlayArrow,
-                            contentDescription = "Play",
-                            tint = if (isCurrentPlaying) VibraAccentPrimary else TextMuted
+                }
+            } else {
+                items(searchResults) { track ->
+                    val isCurrent = player.currentTrack?.id == track.id
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 5.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isCurrent) Color(0xFF1E1E1E) else Color.Transparent)
+                            .clickable { onTrackSelect(track) }
+                            .padding(horizontal = 6.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AsyncImage(
+                            model = track.artUrl,
+                            contentDescription = track.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(RoundedCornerShape(8.dp))
                         )
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = track.title,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isCurrent) Color(0xFF38BDF8) else Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "${track.artist} • ${track.album}",
+                                fontSize = 12.sp,
+                                color = Color(0xFF9E9E9E),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        IconButton(onClick = { Toast.makeText(context, track.title, Toast.LENGTH_SHORT).show() }) {
+                            Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = "More",
+                                tint = Color(0xFF9E9E9E),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
         } else {
-            // When Not Searching: SimpMusic Explore Landing Page
+            // DEFAULT VIEW (Video Frame 00:53)
             item {
-                // Everything you need Promo Box
+                Text(
+                    text = "Everything you need",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Search for songs, artists, albums, playlists, and more",
+                    fontSize = 13.sp,
+                    color = Color(0xFF9E9E9E)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Yellow Chart Pill Banner
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(
-                            Brush.linearGradient(
-                                listOf(Color(0xFF2E0854), Color(0xFF1E1035))
-                            )
-                        )
-                        .padding(22.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFF2B2516))
+                        .clickable { Toast.makeText(context, "Opening SimpMusic Chart", Toast.LENGTH_SHORT).show() }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Column {
-                        Text(
-                            text = "Everything you need",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Search for songs, artists, albums, playlists, and more",
-                            fontSize = 13.sp,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(Color.White.copy(alpha = 0.15f))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Text(
-                                text = "✨ Introducing Vibra Studio Chart",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White
-                            )
-                        }
-                    }
+                    Text(
+                        text = "✦  Introducing SimpMusic Chart",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFFFDE047)
+                    )
                 }
-
                 Spacer(modifier = Modifier.height(24.dp))
-
-                // 2-Column Colorful Genre Cards
-                Text(
-                    text = "Explore Categories",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-                Spacer(modifier = Modifier.height(14.dp))
             }
 
-            // 2-column genre grid items
-            items(genreCards.chunked(2)) { pair ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    pair.forEach { card ->
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(64.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(card.gradient)
-                                .clickable { searchQuery = card.title }
-                                .padding(horizontal = 14.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Text(
-                                text = card.title,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
-                    }
-                    if (pair.size == 1) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
-            }
-
+            // 2-Column Genre Cards
             item {
-                Spacer(modifier = Modifier.height(24.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    for (i in 0 until genreCards.size step 2) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            GenreTile(
+                                card = genreCards[i],
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                searchQuery = genreCards[i].title
+                            }
+                            if (i + 1 < genreCards.size) {
+                                GenreTile(
+                                    card = genreCards[i + 1],
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    searchQuery = genreCards[i + 1].title
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(28.dp))
+            }
 
-                // Moods & Moments
+            // Moods & Moments Section
+            item {
                 Text(
                     text = "Moods & moments",
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    color = Color.White
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(moods) { mood ->
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(VibraSurface)
-                                .clickable { searchQuery = mood }
-                                .padding(horizontal = 16.dp, vertical = 10.dp)
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    for (i in 0 until moodCards.size step 2) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(
-                                text = mood,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = TextPrimary
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                // Recent Searches
-                Text(
-                    text = "Recent Searches",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(recentQueries) { query ->
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(18.dp))
-                                .background(VibraSurfaceVariant)
-                                .clickable { searchQuery = query }
-                                .padding(horizontal = 14.dp, vertical = 7.dp)
-                        ) {
-                            Text(
-                                text = query,
-                                fontSize = 12.sp,
-                                color = TextSecondary
-                            )
+                            GenreTile(
+                                card = moodCards[i],
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                searchQuery = moodCards[i].title
+                            }
+                            if (i + 1 < moodCards.size) {
+                                GenreTile(
+                                    card = moodCards[i + 1],
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    searchQuery = moodCards[i + 1].title
+                                }
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun GenreTile(
+    card: GenreCardData,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .height(84.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(card.gradient)
+            .clickable { onClick() }
+            .padding(14.dp),
+        contentAlignment = Alignment.BottomStart
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Text(
+                text = card.title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Icon(
+                imageVector = Icons.Filled.NorthEast,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }
