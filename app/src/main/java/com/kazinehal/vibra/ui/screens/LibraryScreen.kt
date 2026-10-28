@@ -40,7 +40,7 @@ fun LibraryScreen(
     modifier: Modifier = Modifier
 ) {
     var selectedSubtab by remember { mutableStateOf("Your library") }
-    val subtabs = listOf("Your library", "SimpMusic Charts", "Your Playlists", "Downloaded")
+    val subtabs = listOf("Your library", "Riva Charts", "Your Playlists", "Downloaded")
 
     val tiles = listOf(
         LibTileData("Favorite", Icons.Filled.Favorite, TileFavorite),

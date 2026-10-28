@@ -8,7 +8,7 @@ import java.net.URL
 import java.net.URLEncoder
 
 /**
- * YouTube Music backend for the native app (SimpMusic-style).
+ * YouTube Music backend for the native app (Riva engine).
  *
  * Talks to the Vibra Cloudflare Worker:
  *   GET /api/search?q=...      → InnerTube search (WEB_REMIX → ANDROID client ladder)

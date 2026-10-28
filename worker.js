@@ -3,7 +3,7 @@
  * $0 Free Tier — 100,000 requests/day permanent free tier
  * Provides CORS relay for YouTube Music InnerTube, Deezer, and caching.
  *
- * SimpMusic-style pipeline:
+ * Riva-style pipeline:
  *   1. Search: WEB_REMIX (YT Music shelves) → ANDROID client fallback + continuation paging
  *   2. Stream: ANDROID player (direct unciphered URLs) → IOS → WEB_REMIX ladder,
  *      with a 403 pre-check (YouTube URLs are session-bound and expire)
@@ -74,7 +74,7 @@ export default {
           ok: true,
           service: 'Vibra Gateway',
           version: '2.1.0',
-          pipeline: 'simpmusic-style',
+          pipeline: 'riva-style',
           searchLadder: SEARCH_LADDER,
           playerLadder: PLAYER_LADDER,
           timestamp: Date.now()
@@ -382,7 +382,7 @@ function parseSearchTracks(json, limit) {
 }
 
 // ---------------------------------------------------------------------------
-// Search (SimpMusic-style: client ladder + continuation paging)
+// Search (Riva-style: client ladder + continuation paging)
 // ---------------------------------------------------------------------------
 
 async function searchYouTubeMusic(query, limit = 25, continuation = null, continuationClient = null) {
@@ -417,7 +417,7 @@ async function searchYouTubeMusic(query, limit = 25, continuation = null, contin
 }
 
 // ---------------------------------------------------------------------------
-// Stream resolution (SimpMusic-style: client ladder + 403 pre-check)
+// Stream resolution (Riva-style: client ladder + 403 pre-check)
 // ---------------------------------------------------------------------------
 
 function pickAudioFormat(formats, quality) {

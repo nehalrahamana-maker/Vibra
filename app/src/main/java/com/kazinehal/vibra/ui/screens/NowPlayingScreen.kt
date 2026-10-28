@@ -123,7 +123,7 @@ fun NowPlayingScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Large Album Artwork (SimpMusic Style)
+            // Large Album Artwork (Riva Style)
             Box(
                 modifier = Modifier
                     .size(300.dp)

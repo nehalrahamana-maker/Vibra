@@ -20,7 +20,7 @@ import com.kazinehal.vibra.player.VibraPlayer
 import com.kazinehal.vibra.ui.components.BottomNavBar
 import com.kazinehal.vibra.ui.components.BottomPlayerBar
 import com.kazinehal.vibra.ui.components.SettingsDialog
-import com.kazinehal.vibra.ui.components.SimpTab
+import com.kazinehal.vibra.ui.components.RivaTab
 import com.kazinehal.vibra.ui.screens.*
 import com.kazinehal.vibra.ui.theme.VibraBackground
 import com.kazinehal.vibra.ui.theme.VibraTheme
@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             VibraTheme {
-                var selectedTab by remember { mutableStateOf(SimpTab.HOME) }
+                var selectedTab by remember { mutableStateOf(RivaTab.HOME) }
                 var isExpandedPlayerVisible by remember { mutableStateOf(false) }
                 var isSettingsOpen by remember { mutableStateOf(false) }
 
@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
                                     onBarClick = { isExpandedPlayerVisible = true }
                                 )
                             }
-                            // SimpMusic 4-Tab Bottom Navigation Bar
+                            // Riva 4-Tab Bottom Navigation Bar
                             BottomNavBar(
                                 selectedTab = selectedTab,
                                 onTabSelected = { selectedTab = it }
@@ -96,9 +96,9 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // 4 SimpMusic Tabs
+                        // 4 Riva Tabs
                         when (selectedTab) {
-                            SimpTab.HOME -> {
+                            RivaTab.HOME -> {
                                 HomeScreen(
                                     player = player,
                                     tracks = seedTracks,
@@ -111,7 +111,7 @@ class MainActivity : ComponentActivity() {
                                     onOpenSettings = { isSettingsOpen = true }
                                 )
                             }
-                            SimpTab.MIX -> {
+                            RivaTab.MIX -> {
                                 MixScreen(
                                     player = player,
                                     tracks = seedTracks,
@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             }
-                            SimpTab.LIBRARY -> {
+                            RivaTab.LIBRARY -> {
                                 LibraryScreen(
                                     player = player,
                                     tracks = seedTracks,
@@ -135,7 +135,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             }
-                            SimpTab.SEARCH -> {
+                            RivaTab.SEARCH -> {
                                 SearchScreen(
                                     player = player,
                                     tracks = seedTracks,

@@ -69,7 +69,7 @@ fun HomeScreen(
             .padding(horizontal = 18.dp),
         contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp)
     ) {
-        // TOP GREETING BAR (Exact SimpMusic layout: Avatar, Good Morning, 4 Icons)
+        // TOP GREETING BAR (Riva layout: Avatar, Good Morning, 4 Icons)
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -81,23 +81,23 @@ fun HomeScreen(
                         modifier = Modifier
                             .size(38.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF222222)),
+                            .background(Color(0xFF1E1E1E)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Filled.MusicNote,
-                            contentDescription = "SimpMusic",
-                            tint = Color.White,
+                            contentDescription = "Riva",
+                            tint = RivaRed,
                             modifier = Modifier.size(20.dp)
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            text = "SimpMusic",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            text = "Riva",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = RivaRed
                         )
                         Text(
                             text = greeting,
@@ -162,7 +162,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(18.dp))
         }
 
-        // CATEGORY PILLS ROW (SimpMusic Style: White on selected, Dark gray on unselected)
+        // CATEGORY PILLS ROW (White on selected, Dark gray on unselected)
         item {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(categories) { cat ->
@@ -302,7 +302,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        // SECTION: Quick Picks (SimpMusic-style stacked list from Frame 00:04)
+        // SECTION: Quick Picks (Riva-style stacked list)
         item {
             Text(
                 text = "LET'S START WITH A RADIO",

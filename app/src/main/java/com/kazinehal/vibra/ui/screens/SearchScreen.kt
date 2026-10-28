@@ -245,12 +245,12 @@ fun SearchScreen(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
                         .background(Color(0xFF2B2516))
-                        .clickable { Toast.makeText(context, "Opening SimpMusic Chart", Toast.LENGTH_SHORT).show() }
+                        .clickable { Toast.makeText(context, "Opening Riva Chart", Toast.LENGTH_SHORT).show() }
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "✦  Introducing SimpMusic Chart",
+                        text = "✦  Introducing Riva Chart",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFFFDE047)

@@ -9,7 +9,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.kazinehal.vibra.data.MusicRepository
+import com.kazinehal.vibra.data.FullSongResolver
 import com.kazinehal.vibra.data.YtMusicSource
 import com.kazinehal.vibra.model.Track
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +49,10 @@ class VibraPlayer(context: Context) {
 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == Player.STATE_READY) {
-                    durationMs = exoPlayer.duration.coerceAtLeast(1L)
+                    val exoDur = exoPlayer.duration
+                    if (exoDur > 1000L) {
+                        durationMs = exoDur
+                    }
                 } else if (playbackState == Player.STATE_ENDED) {
                     if (isRepeatOn) {
                         seekTo(0)
@@ -61,21 +64,22 @@ class VibraPlayer(context: Context) {
             }
 
             override fun onPlayerError(error: PlaybackException) {
-                android.util.Log.e("VibraPlayer", "ExoPlayer error: ${error.message}", error)
-                // If stream failed (e.g. 403 expired), fallback to instant preview audio
+                android.util.Log.e("VibraPlayer", "ExoPlayer playback error: ${error.message}", error)
                 val track = currentTrack ?: return
+                // On error, attempt alternative full song resolve
                 scope.launch {
-                    val fallback = withContext(Dispatchers.IO) {
-                        MusicRepository.findInstantAudio(track.title, track.artist)
+                    val full = withContext(Dispatchers.IO) {
+                        FullSongResolver.resolve(track.title, track.artist)
                     }
-                    if (fallback != null && fallback != track.audioUrl) {
-                        startPlayback(fallback)
+                    if (currentTrack?.id == track.id && full != null && full.audioUrl != track.audioUrl) {
+                        durationMs = full.durationSeconds * 1000L
+                        startPlayback(full.audioUrl)
                     }
                 }
             }
         })
 
-        // Position ticker for real-time scrubber update
+        // High-precision scrubber position ticker
         scope.launch {
             while (true) {
                 if (isPlaying) {
@@ -86,47 +90,56 @@ class VibraPlayer(context: Context) {
         }
     }
 
+    /**
+     * Play full song without 30-second limitations.
+     * Always resolves the complete 3-5 minute 320kbps audio track.
+     */
     fun playTrack(track: Track) {
         currentTrack = track
+        durationMs = track.duration * 1000L
 
-        // CRITICAL FIX: If track has a playable URL (iTunes preview or cached audio),
-        // START PLAYBACK IMMEDIATELY! Do not make the user wait 10 seconds!
-        if (track.audioUrl.isNotBlank()) {
+        // Detect if audioUrl is empty or an Apple 30-second preview
+        val isPreview = track.audioUrl.isBlank() ||
+                track.audioUrl.contains("itunes.apple.com") ||
+                track.audioUrl.contains("mzstatic.com") ||
+                track.audioUrl.contains("apple.com") ||
+                track.audioUrl.contains("AudioPreview") ||
+                track.duration <= 30
+
+        // If track already has a verified full audio URL (direct CDN), play immediately
+        if (!isPreview) {
             startPlayback(track.audioUrl)
+            return
         }
 
-        // Background high-res stream resolution (YouTube Music InnerTube)
-        if (track.videoId.isNotBlank()) {
-            scope.launch {
-                val resolved = withContext(Dispatchers.IO) {
+        // Resolve FULL SONG stream (Zero 30-sec cuts, 100% full duration complete song)
+        scope.launch {
+            val fullSong = withContext(Dispatchers.IO) {
+                FullSongResolver.resolve(track.title, track.artist)
+            }
+
+            if (currentTrack?.id != track.id) return@launch
+
+            if (fullSong != null) {
+                durationMs = fullSong.durationSeconds * 1000L
+                startPlayback(fullSong.audioUrl)
+                return@launch
+            }
+
+            // Fallback rung 2: YouTube Music InnerTube stream
+            if (track.videoId.isNotBlank()) {
+                val ytUrl = withContext(Dispatchers.IO) {
                     YtMusicSource.resolveStream(track.videoId)
                 }
-                if (currentTrack?.id != track.id) return@launch
-                if (resolved != null && resolved != track.audioUrl) {
-                    val curPos = exoPlayer.currentPosition
-                    val mediaItem = MediaItem.fromUri(resolved)
-                    exoPlayer.setMediaItem(mediaItem, curPos)
-                    exoPlayer.prepare()
-                    exoPlayer.play()
-                } else if (track.audioUrl.isBlank()) {
-                    // Try instant iTunes audio fallback
-                    val fallback = withContext(Dispatchers.IO) {
-                        MusicRepository.findInstantAudio(track.title, track.artist)
-                    }
-                    if (currentTrack?.id == track.id && !fallback.isNullOrBlank()) {
-                        startPlayback(fallback)
-                    }
+                if (currentTrack?.id == track.id && !ytUrl.isNullOrBlank()) {
+                    startPlayback(ytUrl)
+                    return@launch
                 }
             }
-        } else if (track.audioUrl.isBlank()) {
-            // Track has no audioUrl and no videoId -> fetch instant audio
-            scope.launch {
-                val fallback = withContext(Dispatchers.IO) {
-                    MusicRepository.findInstantAudio(track.title, track.artist)
-                }
-                if (currentTrack?.id == track.id && !fallback.isNullOrBlank()) {
-                    startPlayback(fallback)
-                }
+
+            // Fallback rung 3: Cached audio URL if non-empty
+            if (track.audioUrl.isNotBlank()) {
+                startPlayback(track.audioUrl)
             }
         }
     }

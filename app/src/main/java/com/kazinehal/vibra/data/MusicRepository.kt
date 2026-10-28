@@ -252,7 +252,7 @@ object MusicRepository {
         // 1. Fetch iTunes results (guaranteed immediate audio playback)
         val itunesResults = searchItunes(q, 25)
 
-        // 2. Fetch YouTube Music results (SimpMusic catalog)
+        // 2. Fetch YouTube Music results (Riva catalog)
         val ytResults = try {
             YtMusicSource.search(q, 20)
         } catch (e: Exception) {

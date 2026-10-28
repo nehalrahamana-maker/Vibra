@@ -1,9 +1,9 @@
 /* ==========================================================================
-   VIBRA — DESIGN SYSTEM & TOKENS (SimpMusic Inspired)
+   RIVA — DESIGN SYSTEM & TOKENS
    ========================================================================== */
 
 :root {
-  /* Default: Pure AMOLED SimpMusic Theme */
+  /* Default: Pure AMOLED Theme */
   --bg-primary: #000000; /* Pure Pitch Black */
   --bg-secondary: #0a0a0c;
   --bg-card: #141416;
@@ -12,10 +12,10 @@
   --glass-border-focus: rgba(255, 255, 255, 0.22);
   --glass-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%);
   
-  --accent-primary: #fa2d48; /* SimpMusic Crimson Red */
-  --accent-secondary: #ff5e62;
-  --accent-glow: rgba(250, 45, 72, 0.45);
-  --accent-gradient: linear-gradient(135deg, #fa2d48 0%, #ff6b8b 100%);
+  --accent-primary: #E50914; /* Riva Red */
+  --accent-secondary: #ff3b47;
+  --accent-glow: rgba(229, 9, 20, 0.45);
+  --accent-gradient: linear-gradient(135deg, #E50914 0%, #ff525d 100%);
 
   --text-main: #ffffff;
   --text-muted: #a1a1aa;
@@ -913,7 +913,7 @@ body {
   gap: 18px;
 }
 
-/* Track Card (SimpMusic Style) */
+/* Track Card (Riva Style) */
 .track-card {
   background: var(--bg-card);
   border: 1px solid var(--glass-border);
@@ -3044,7 +3044,7 @@ input:checked + .slider:before {
 }
 
 /* ==========================================================================
-   SIMPMUSIC AMOLED DESIGN SYSTEM (Inspired by Screenrecording_20261027_085521)
+   RIVA AMOLED DESIGN SYSTEM
    ========================================================================== */
 
 /* Simp Top Bar */

@@ -17,10 +17,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kazinehal.vibra.ui.theme.TextMuted
-import com.kazinehal.vibra.ui.theme.VibraAccentPrimary
+import com.kazinehal.vibra.ui.theme.RivaRed
 
-enum class SimpTab(val label: String, val icon: ImageVector) {
+enum class RivaTab(val label: String, val icon: ImageVector) {
     HOME("Home", Icons.Filled.Home),
     MIX("Mix", Icons.Filled.Tune),
     LIBRARY("Library", Icons.Filled.Bookmarks),
@@ -29,8 +28,8 @@ enum class SimpTab(val label: String, val icon: ImageVector) {
 
 @Composable
 fun BottomNavBar(
-    selectedTab: SimpTab,
-    onTabSelected: (SimpTab) -> Unit,
+    selectedTab: RivaTab,
+    onTabSelected: (RivaTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -42,7 +41,7 @@ fun BottomNavBar(
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        SimpTab.values().forEach { tab ->
+        RivaTab.values().forEach { tab ->
             val isSelected = selectedTab == tab
             Column(
                 modifier = Modifier
@@ -55,7 +54,7 @@ fun BottomNavBar(
                 Icon(
                     imageVector = tab.icon,
                     contentDescription = tab.label,
-                    tint = if (isSelected) Color(0xFF38BDF8) else Color(0xFF9E9E9E),
+                    tint = if (isSelected) RivaRed else Color(0xFF9E9E9E),
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.height(3.dp))

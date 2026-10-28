@@ -1,7 +1,7 @@
 {
   "name": "vibra",
   "version": "1.0.0",
-  "description": "Vibra — Next-Gen Music Streaming & Audio Visualizer inspired by SimpMusic",
+  "description": "Riva — Next-Gen Music Streaming & Audio Visualizer",
   "main": "index.html",
   "scripts": {
     "start": "npx serve .",
@@ -11,13 +11,13 @@
     "music",
     "music-player",
     "youtube-music",
-    "simpmusic",
+    "riva",
     "equalizer",
     "audio-visualizer",
     "lyrics",
     "pwa",
     "android-app"
   ],
-  "author": "Kazi Nehal",
+  "author": "Kazi Nehal Rahman",
   "license": "MIT"
 }

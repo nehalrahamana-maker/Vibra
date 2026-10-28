@@ -39,30 +39,37 @@ jobs:
           else
             find app/build/outputs/apk -name "*.apk" -exec cp {} Vibra-v2.0.0.apk \;
           fi
-          ls -la Vibra-v2.0.0.apk
+          cp Vibra-v2.0.0.apk Riva-v2.0.0.apk
+          ls -la *.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Vibra-v2.0.0-APK
-          path: Vibra-v2.0.0.apk
+          name: Riva-v2.0.0-APK
+          path: |
+            Riva-v2.0.0.apk
+            Vibra-v2.0.0.apk
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/heads/main')
         with:
           tag_name: v2.0.0
-          name: Vibra Release v2.0.0 (Native Jetpack Compose APK)
+          name: Riva Release v2.0.0 (Native Jetpack Compose APK)
           body: |
-            ### 🎵 Vibra v2.0.0 — Audiophile PWA & Jetpack Compose Music App
+            ### 🎵 Riva v2.0.0 — Pure Audiophile AMOLED Music Player
             
-            - **Web Audio 3D Spatial Stereo Widener & Bass Harmonic Exciter**
+            - **App Name: Riva** (Signature Red Branding)
+            - **100% Full-Length 320kbps Audio Streams (Zero 30s snippets)**
+            - **YouTube Music backend integration**
+            - **Pure AMOLED Black UI (#000000)**
             - **6-Band Equalizer & Dynamics Compressor/Limiter**
-            - **Seamless Dual-Slot Crossfading Engine**
-            - **Multi-Source Audio Streaming & Offline Vault**
-            - **Low-latency Native Android Engine**
+            - **Author: Kazi Nehal Rahman**
+            - **Build Date: October 26, 2026**
             
-            **Download the attached `Vibra-v2.0.0.apk` and install it on your Android phone!**
-          files: Vibra-v2.0.0.apk
+            **Download the attached `Riva-v2.0.0.apk` or `Vibra-v2.0.0.apk` and install it on your Android phone!**
+          files: |
+            Riva-v2.0.0.apk
+            Vibra-v2.0.0.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

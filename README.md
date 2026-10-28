@@ -5,7 +5,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/nehalrahamana-maker/Vibra?color=fa2d48&label=Latest%20APK)](https://github.com/nehalrahamana-maker/Vibra/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An ultra-sleek, audiophile-grade music streaming app & audio visualizer inspired by SimpMusic, Spotify, and Apple Music. Built with modern Web Audio DSP algorithms, live synchronized karaoke lyrics, an automated native Android APK pipeline, and an edge proxy worker.
+An ultra-sleek, audiophile-grade music streaming app & audio visualizer. Built with modern Web Audio DSP algorithms, live synchronized karaoke lyrics, an automated native Android APK pipeline, and an edge proxy worker.
 
 🌐 **Live Web App / PWA**: [https://nehalrahamana-maker.github.io/Vibra/](https://nehalrahamana-maker.github.io/Vibra/)  
 ⚡ **Edge Proxy**: [https://vibra-api.kazimdnehal.workers.dev](https://vibra-api.kazimdnehal.workers.dev)

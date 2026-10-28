@@ -1803,7 +1803,7 @@ function updateActiveTrackUI(track) {
   const visTrack = document.getElementById('visTrackLabel');
   if (visTrack) visTrack.textContent = `${track.artist} — ${track.title}`;
 
-  // SimpMusic Floating Mini Player Capsule update
+  // Riva Floating Mini Player Capsule update
   const fMiniArt = document.getElementById('fMiniCoverArt');
   if (fMiniArt) fMiniArt.src = track.art;
   const fMiniTitle = document.getElementById('fMiniTitle');
@@ -1813,13 +1813,13 @@ function updateActiveTrackUI(track) {
   const fMiniLike = document.getElementById('fMiniLikeBtn');
   if (fMiniLike) fMiniLike.classList.toggle('liked', state.isFavorite(track.id));
 
-  // App-wide Ambient Backdrop Glow (SimpMusic dynamic song background)
+  // App-wide Ambient Backdrop Glow (dynamic song background)
   const ambientBackdrop = document.getElementById('ambientBackdrop');
   if (ambientBackdrop && track && track.art) {
     ambientBackdrop.style.backgroundImage = `url("${track.art}")`;
   }
 
-  // SimpMusic Expanded Player Modal update
+  // Riva Expanded Player Modal update
   const modalBg = document.getElementById('modalBgBlur');
   if (modalBg) modalBg.style.backgroundImage = `url("${track.art}")`;
   const npArtistAvatar = document.getElementById('npArtistAvatar');
@@ -2202,7 +2202,7 @@ const ADAPTERS = {
     return json.tracks || [];
   },
 
-  // 4b. YouTube Music continuation page ("load more" — SimpMusic-style paging)
+  // 4b. YouTube Music continuation page ("load more" — Riva-style paging)
   ytmusicMore: async (cfg) => {
     if (!cfg.apiBase || !state.ytContinuation) return [];
     const limit = cfg.resultLimit || 25;
@@ -2341,7 +2341,7 @@ async function searchOnlineMusic(query) {
 }
 
 // =============================================================================
-// 7b. CONTINUATION PAGING ("Load more" — full result lists, SimpMusic-style)
+// 7b. CONTINUATION PAGING ("Load more" — full result lists, Riva-style)
 // =============================================================================
 
 function maybeAppendLoadMore(grid) {
@@ -3271,9 +3271,9 @@ function switchView(targetView) {
   });
 
   // Trigger view-specific renderers
-  if (targetView === 'home') renderSimpMusicHomeSections();
+  if (targetView === 'home') renderRivaHomeSections();
   if (targetView === 'mix') renderMixView();
-  if (targetView === 'library') renderSimpMusicLibrary();
+  if (targetView === 'library') renderRivaLibrary();
   if (targetView === 'search') initSearchView();
   if (targetView === 'explore') renderChartsTable();
   if (targetView === 'visualizer' && visualizer) visualizer.resizeCanvas();
@@ -3299,12 +3299,12 @@ function setupNavigation() {
     });
   });
 
-  setupSimpMusicUI();
+  setupRivaUI();
 }
 
 // Dynamic Top Bar Greeting & About Modal
-function setupSimpMusicUI() {
-  updateSimpGreeting();
+function setupRivaUI() {
+  updateGreeting();
 
   // About Modal Triggers
   const aboutModal = document.getElementById('aboutModal');
@@ -3336,10 +3336,10 @@ function setupSimpMusicUI() {
   setupExpandedPlayer();
 
   // Initial Home Sections Render
-  renderSimpMusicHomeSections();
+  renderRivaHomeSections();
 }
 
-function updateSimpGreeting() {
+function updateGreeting() {
   const greetingEl = document.getElementById('greetingText');
   if (!greetingEl) return;
   const hour = new Date().getHours();
@@ -3368,8 +3368,8 @@ function setupCategoryPills() {
   });
 }
 
-// SimpMusic Home Feed Carousels Rendering
-function renderSimpMusicHomeSections() {
+// Riva Home Feed Carousels Rendering
+function renderRivaHomeSections() {
   // 1. Listen Again Row (Recent history or reversed seed tracks)
   const listenAgainRow = document.getElementById('listenAgainRow');
   if (listenAgainRow) {
@@ -3541,7 +3541,7 @@ function renderSimpMusicHomeSections() {
   }
 }
 
-// SimpMusic Mix View Rendering
+// Riva Mix View Rendering
 function renderMixView() {
   const likedCard = document.getElementById('mixCardLiked');
   if (likedCard) {
@@ -3584,8 +3584,8 @@ function renderMixView() {
   });
 }
 
-// SimpMusic Library View Rendering
-function renderSimpMusicLibrary() {
+// Riva Library View Rendering
+function renderRivaLibrary() {
   // Action tiles
   const tileFav = document.getElementById('libTileFavorite');
   if (tileFav) {
@@ -3667,7 +3667,7 @@ function renderSimpMusicLibrary() {
   }
 }
 
-// SimpMusic Search View Initialization
+// Riva Search View Initialization
 function initSearchView() {
   const searchInput = document.getElementById('simpSearchInput');
   const clearBtn = document.getElementById('simpClearSearchBtn');
@@ -4789,7 +4789,7 @@ function setupSettingsControls() {
   }
 
   // ===========================================================================
-  // YouTube Music & Spotify Sync (SimpMusic Engine Implementation)
+  // YouTube Music & Spotify Sync (Riva Engine Implementation)
   // ===========================================================================
   const btnImportYT = document.getElementById('btnImportYT');
   const ytPlaylistInput = document.getElementById('ytPlaylistInput');
@@ -4843,7 +4843,7 @@ function setupSettingsControls() {
 
         // Refresh UI
         renderPlaylistsGrid();
-        renderSimpMusicLibrary();
+        renderRivaLibrary();
 
         btnImportYT.textContent = 'Import & Sync';
         btnImportYT.disabled = false;
@@ -4909,7 +4909,7 @@ function setupSettingsControls() {
         localStorage.setItem('vibra_playlists', JSON.stringify(existingPlaylists));
 
         renderPlaylistsGrid();
-        renderSimpMusicLibrary();
+        renderRivaLibrary();
 
         btnImportSpotifyPlaylist.textContent = 'Import Playlist';
         btnImportSpotifyPlaylist.disabled = false;
@@ -4964,7 +4964,7 @@ function setupSettingsControls() {
           existingPlaylists.unshift(likedPl);
           localStorage.setItem('vibra_playlists', JSON.stringify(existingPlaylists));
           renderPlaylistsGrid();
-          renderSimpMusicLibrary();
+          renderRivaLibrary();
         }
         if (typeof showToast === 'function') showToast('Spotify connected! Liked Songs synced to Library.', 'success');
       } else {
@@ -4980,7 +4980,7 @@ function setupSettingsControls() {
       btnSyncHistory.textContent = 'Refreshing...';
       setTimeout(() => {
         btnSyncHistory.textContent = 'Refresh Mixes';
-        renderSimpMusicHomeSections();
+        renderRivaHomeSections();
         renderMixView();
         if (typeof showToast === 'function') showToast('Refreshed mixes based on your listening trends!', 'success');
       }, 500);

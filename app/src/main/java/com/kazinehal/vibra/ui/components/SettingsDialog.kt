@@ -136,7 +136,7 @@ fun SettingsDialog(
                     SettingsSectionHeader("Devices")
                     SettingsItem(
                         title = "Send sign-ins to desktop",
-                        subtitle = "Scan the QR code shown by SimpMusic on your computer"
+                        subtitle = "Scan the QR code shown by Riva on your computer"
                     ) {
                         Toast.makeText(context, "Scanning desktop QR code...", Toast.LENGTH_SHORT).show()
                     }
@@ -170,7 +170,7 @@ fun SettingsDialog(
                         title = "Theme color",
                         subtitle = themeColor
                     ) {
-                        themeColor = if (themeColor == "Custom") "Simp Crimson" else "Custom"
+                        themeColor = if (themeColor == "Custom") "Riva Red" else "Custom"
                     }
 
                     SettingsItem(
@@ -263,7 +263,7 @@ fun SettingsDialog(
 
                     SettingsSwitchItem(
                         title = "Sync Follow with YouTube",
-                        subtitle = "Following an artist in SimpMusic also subscribes to their channel on your YouTube account",
+                        subtitle = "Following an artist in Riva also subscribes to their channel on your YouTube account",
                         checked = syncFollowWithYt,
                         onCheckedChange = { syncFollowWithYt = it }
                     )
@@ -376,7 +376,7 @@ fun SettingsDialog(
 
                     SettingsSwitchItem(
                         title = "Enable Canvas",
-                        subtitle = "Show Spotify Canvas in SimpMusic",
+                        subtitle = "Show Spotify Canvas in Riva",
                         checked = spotifyCanvasEnabled,
                         onCheckedChange = { spotifyCanvasEnabled = it }
                     )
@@ -500,7 +500,7 @@ fun SettingsDialog(
 
                     SettingsItem(
                         title = "Update channel",
-                        subtitle = "Vibra GitHub Release"
+                        subtitle = "Riva GitHub Release"
                     )
 
                     SettingsItem(
@@ -510,7 +510,7 @@ fun SettingsDialog(
                         isCheckingUpdate = true
                         lastCheckedText = "You are on the latest version v2.0.0!"
                         isCheckingUpdate = false
-                        Toast.makeText(context, "Vibra v2.0.0 is up to date!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Riva v2.0.0 is up to date!", Toast.LENGTH_SHORT).show()
                     }
 
                     SettingsItem(
@@ -533,7 +533,7 @@ fun SettingsDialog(
                         title = "Buy me a coffee",
                         subtitle = "If you love my work, give me a coffee"
                     ) {
-                        Toast.makeText(context, "Thank you for supporting Vibra!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Thank you for supporting Riva!", Toast.LENGTH_SHORT).show()
                     }
 
                     SettingsItem(
@@ -549,7 +549,7 @@ fun SettingsDialog(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "@2026 Vibra v2.0.0",
+                            text = "@2026 Riva v2.0.0",
                             fontSize = 12.sp,
                             color = Color.White.copy(alpha = 0.5f)
                         )
