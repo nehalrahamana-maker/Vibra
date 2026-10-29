@@ -1,5 +1,6 @@
 package com.kazinehal.vibra.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,9 +24,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.kazinehal.vibra.data.LyricsSource
 import com.kazinehal.vibra.data.UserLibraryManager
 import com.kazinehal.vibra.player.VibraPlayer
 import com.kazinehal.vibra.ui.theme.RivaRed
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun NowPlayingScreen(
@@ -36,6 +40,21 @@ fun NowPlayingScreen(
     val track = player.currentTrack ?: return
     var isLiked by remember(track.id) { mutableStateOf(UserLibraryManager.isLiked(track.id)) }
     var showQueueSheet by remember { mutableStateOf(false) }
+    var showLyrics by remember(track.id) { mutableStateOf(false) }
+    var lyricsText by remember(track.id) { mutableStateOf(track.lyrics) }
+    var lyricsLoading by remember(track.id) { mutableStateOf(false) }
+    var showSleepDialog by remember { mutableStateOf(false) }
+
+    // Lazy LRCLIB fetch the first time the lyrics panel is opened for this track
+    LaunchedEffect(track.id, showLyrics) {
+        if (showLyrics && lyricsText.isBlank()) {
+            lyricsLoading = true
+            lyricsText = withContext(Dispatchers.IO) {
+                LyricsSource.fetch(track.title, track.artist, player.durationMs / 1000) ?: ""
+            }
+            lyricsLoading = false
+        }
+    }
 
     val scrollState = rememberScrollState()
 
@@ -107,13 +126,27 @@ fun NowPlayingScreen(
                     )
                 }
 
-                IconButton(onClick = { showQueueSheet = !showQueueSheet }) {
-                    Icon(
-                        imageVector = Icons.Filled.QueueMusic,
-                        contentDescription = "Queue",
-                        tint = if (showQueueSheet) RivaRed else Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { showLyrics = !showLyrics }) {
+                        Icon(
+                            imageVector = Icons.Filled.Lyrics,
+                            contentDescription = "Lyrics",
+                            tint = if (showLyrics) RivaRed else Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    IconButton(onClick = { showQueueSheet = !showQueueSheet }) {
+                        Icon(
+                            imageVector = Icons.Filled.QueueMusic,
+                            contentDescription = "Queue",
+                            tint = if (showQueueSheet) RivaRed else Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
 
@@ -280,7 +313,74 @@ fun NowPlayingScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Sleep timer chip
+            OutlinedButton(
+                onClick = { showSleepDialog = true },
+                border = BorderStroke(
+                    1.dp,
+                    if (player.sleepTimerMinutes > 0) RivaRed else Color.White.copy(alpha = 0.25f)
+                ),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Timer,
+                    contentDescription = null,
+                    tint = if (player.sleepTimerMinutes > 0) RivaRed else Color(0xFFB3B3B3),
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (player.sleepTimerMinutes > 0) "Sleep ${player.sleepTimerMinutes}m" else "Sleep timer",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (player.sleepTimerMinutes > 0) RivaRed else Color(0xFFB3B3B3)
+                )
+            }
+
             Spacer(modifier = Modifier.height(28.dp))
+
+            // Lyrics card (LRCLIB — fetched on first open of the lyrics panel)
+            if (showLyrics) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFF141416))
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "LYRICS",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp,
+                        color = RivaRed
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    when {
+                        lyricsLoading -> CircularProgressIndicator(
+                            color = RivaRed,
+                            strokeWidth = 3.dp,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+
+                        lyricsText.isBlank() -> Text(
+                            text = "Lyrics not found for this track.",
+                            fontSize = 14.sp,
+                            color = Color(0xFF9E9E9E)
+                        )
+
+                        else -> Text(
+                            text = lyricsText,
+                            fontSize = 15.sp,
+                            lineHeight = 23.sp,
+                            color = Color.White
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Queue Preview or Track Info Card
             if (showQueueSheet) {
@@ -337,6 +437,41 @@ fun NowPlayingScreen(
             }
 
             Spacer(modifier = Modifier.height(40.dp))
+        }
+
+        // Sleep timer picker
+        if (showSleepDialog) {
+            AlertDialog(
+                onDismissRequest = { showSleepDialog = false },
+                containerColor = Color(0xFF141416),
+                title = { Text("Sleep Timer", color = Color.White, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        listOf(0, 15, 30, 45, 60).forEach { mins ->
+                            val label = if (mins == 0) "Off" else "$mins minutes"
+                            val selected = mins == player.sleepTimerMinutes
+                            Text(
+                                text = label,
+                                fontSize = 16.sp,
+                                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selected) RivaRed else Color.White,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        player.setSleepTimer(mins)
+                                        showSleepDialog = false
+                                    }
+                                    .padding(vertical = 12.dp, horizontal = 4.dp)
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showSleepDialog = false }) {
+                        Text("Close", color = RivaRed)
+                    }
+                }
+            )
         }
     }
 }

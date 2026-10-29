@@ -21,6 +21,7 @@ import com.kazinehal.vibra.data.YtStreamResolver
 import com.kazinehal.vibra.model.Track
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,6 +71,12 @@ class VibraPlayer private constructor(context: Context) {
 
     var queue = mutableListOf<Track>()
     private var currentIndex = 0
+
+    /** Remaining minutes of the sleep timer; 0 = off. */
+    var sleepTimerMinutes by mutableStateOf(0)
+        private set
+
+    private var sleepJob: Job? = null
 
     init {
         exoPlayer.addListener(object : Player.Listener {
@@ -241,6 +248,19 @@ class VibraPlayer private constructor(context: Context) {
 
     fun toggleRepeat() {
         isRepeatOn = !isRepeatOn
+    }
+
+    /** Arm (minutes > 0) or cancel (0) the sleep timer — pauses playback when it fires. */
+    fun setSleepTimer(minutes: Int) {
+        sleepJob?.cancel()
+        sleepJob = null
+        sleepTimerMinutes = minutes.coerceAtLeast(0)
+        if (sleepTimerMinutes == 0) return
+        sleepJob = scope.launch {
+            delay(sleepTimerMinutes * 60_000L)
+            exoPlayer.pause()
+            sleepTimerMinutes = 0
+        }
     }
 
     fun next() {
