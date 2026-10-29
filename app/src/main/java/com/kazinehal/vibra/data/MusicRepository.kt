@@ -3,6 +3,10 @@ package com.kazinehal.vibra.data
 import com.kazinehal.vibra.model.Track
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
 
 object MusicRepository {
 
@@ -239,12 +243,51 @@ object MusicRepository {
         if (q.isEmpty()) return@withContext trendingTracks
 
         try {
-            val results = YtMusicSource.search(q, 25)
+            val results = YtMusicSource.search(q, 30)
             if (results.isNotEmpty()) {
                 return@withContext results
             }
         } catch (e: Exception) {
             // fall through
+        }
+
+        // Fallback: iTunes live search — free 30s previews, no key, no dead instances
+        try {
+            val encoded = URLEncoder.encode(q, "UTF-8")
+            val urlString = "https://itunes.apple.com/search?term=$encoded&media=music&entity=song&limit=25"
+            val conn = (URL(urlString).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 7000
+                readTimeout = 7000
+                setRequestProperty("User-Agent", "Mozilla/5.0 (Android; Vibra)")
+            }
+            if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                val root = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
+                val arr = root.optJSONArray("results")
+                val out = mutableListOf<Track>()
+                if (arr != null) {
+                    for (i in 0 until arr.length()) {
+                        val item = arr.optJSONObject(i) ?: continue
+                        val previewUrl = item.optString("previewUrl")
+                        if (previewUrl.isNullOrBlank()) continue
+                        out.add(
+                            Track(
+                                id = "online-${item.optLong("trackId", System.currentTimeMillis() + i)}",
+                                title = item.optString("trackName", "Unknown Track"),
+                                artist = item.optString("artistName", "Unknown Artist"),
+                                album = item.optString("collectionName", "Single"),
+                                genre = item.optString("primaryGenreName", "Pop"),
+                                duration = item.optLong("trackTimeMillis", 180000L) / 1000,
+                                artUrl = item.optString("artworkUrl100").replace("100x100bb", "600x600bb"),
+                                audioUrl = previewUrl
+                            )
+                        )
+                    }
+                }
+                if (out.isNotEmpty()) return@withContext out
+            }
+        } catch (e: Exception) {
+            // fall through to local
         }
 
         // Fallback filter on local seed tracks if offline

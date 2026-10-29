@@ -25,35 +25,15 @@ object YtMusicSource {
         val q = query.trim()
         if (q.isBlank()) return emptyList()
 
-        // 1. Try Cloudflare Worker (InnerTube search)
-        try {
-            val results = searchWorker(q, limit)
-            if (results.isNotEmpty()) return results
+        // Worker only — the community Piped/Invidious instances below were verified
+        // dead (403/525) and cost 5-12s EACH in timeouts before failing. When the
+        // Worker misses, fail fast so the caller can fall back (iTunes/local)
+        // instead of stalling the search UI for half a minute.
+        return try {
+            searchWorker(q, limit)
         } catch (e: Exception) {
-            // fall through to Piped
+            emptyList()
         }
-
-        // 2. Try Piped search
-        for (instance in listOf("https://pipedapi.adminforge.de", "https://api.piped.private.coffee")) {
-            try {
-                val results = searchPiped(instance, q, limit)
-                if (results.isNotEmpty()) return results
-            } catch (e: Exception) {
-                // next
-            }
-        }
-
-        // 3. Try Invidious search
-        for (instance in listOf("https://inv.tux.pizza", "https://vid.puffyan.us")) {
-            try {
-                val results = searchInvidious(instance, q, limit)
-                if (results.isNotEmpty()) return results
-            } catch (e: Exception) {
-                // next
-            }
-        }
-
-        return emptyList()
     }
 
     /** Find videoId for a given title and artist */

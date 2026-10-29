@@ -1,11 +1,15 @@
 package com.kazinehal.vibra.player
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -21,7 +25,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class VibraPlayer(context: Context) {
+class VibraPlayer private constructor(context: Context) {
 
     private val httpDataSourceFactory = DefaultHttpDataSource.Factory()
         .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
@@ -31,8 +35,17 @@ class VibraPlayer(context: Context) {
 
     private val mediaSourceFactory = DefaultMediaSourceFactory(httpDataSourceFactory)
 
-    private val exoPlayer: ExoPlayer = ExoPlayer.Builder(context)
+    private val audioAttributes = AudioAttributes.Builder()
+        .setUsage(C.USAGE_MEDIA)
+        .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+        .build()
+
+    // handleAudioFocus=true → pause/duck on focus loss (calls, other apps, other players).
+    // setHandleAudioBecomingNoisy(true) → pause when headphones unplug / Bluetooth drops.
+    internal val exoPlayer: ExoPlayer = ExoPlayer.Builder(context)
         .setMediaSourceFactory(mediaSourceFactory)
+        .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
+        .setHandleAudioBecomingNoisy(true)
         .build()
 
     private val scope = CoroutineScope(Dispatchers.Main)
@@ -187,7 +200,20 @@ class VibraPlayer(context: Context) {
     private fun startPlayback(url: String) {
         if (url.isBlank()) return
         try {
-            val mediaItem = MediaItem.fromUri(url)
+            val t = currentTrack
+            // Metadata rides with the MediaItem → the MediaSession notification shows
+            // title/artist/artwork and lockscreen/Android Auto controls get it too.
+            val mediaItem = MediaItem.Builder()
+                .setUri(url)
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(t?.title ?: "Riva")
+                        .setArtist(t?.artist ?: "")
+                        .setAlbumTitle(t?.album?.takeIf { it.isNotBlank() })
+                        .setArtworkUri(t?.artUrl?.takeIf { it.isNotBlank() }?.let { Uri.parse(it) })
+                        .build()
+                )
+                .build()
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.prepare()
             exoPlayer.play()
@@ -239,5 +265,21 @@ class VibraPlayer(context: Context) {
 
     fun release() {
         exoPlayer.release()
+    }
+
+    companion object {
+        @Volatile
+        private var instance: VibraPlayer? = null
+
+        /**
+         * Process-wide singleton. The MediaSessionService and the UI must share the same
+         * ExoPlayer instance — a second player would silently fight the first for audio focus
+         * and the notification would control a player nobody is listening to.
+         */
+        fun get(context: Context): VibraPlayer {
+            return instance ?: synchronized(this) {
+                instance ?: VibraPlayer(context.applicationContext).also { instance = it }
+            }
+        }
     }
 }

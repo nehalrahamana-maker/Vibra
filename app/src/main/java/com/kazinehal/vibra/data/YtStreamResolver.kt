@@ -41,41 +41,59 @@ object YtStreamResolver {
     fun resolve(videoId: String): YtStream? {
         if (videoId.isBlank()) return null
 
-        // 1. Invidious Ladder
-        for (instance in INVIDIOUS_INSTANCES) {
-            try {
-                val stream = resolveInvidious(instance, videoId)
-                if (stream != null && stream.audioUrl.isNotBlank()) {
-                    return stream
-                }
-            } catch (e: Exception) {
-                // try next
-            }
-        }
-
-        // 2. Piped Ladder
-        for (instance in PIPED_INSTANCES) {
-            try {
-                val stream = resolvePiped(instance, videoId)
-                if (stream != null && stream.audioUrl.isNotBlank()) {
-                    return stream
-                }
-            } catch (e: Exception) {
-                // try next
-            }
-        }
-
-        // 3. Worker Relay
+        // 1. Worker FIRST — own backend: ANDROID→IOS→WEB_REMIX client ladder with a
+        //    403 pre-check, ~200ms. This is the proven path; never make it the last rung.
         try {
             val stream = resolveWorker(videoId)
             if (stream != null && stream.audioUrl.isNotBlank()) {
                 return stream
             }
         } catch (e: Exception) {
-            // ignore
+            // next ladder
+        }
+
+        // 2. Invidious Ladder (community instances — mostly dead/403, URL must be verified live)
+        for (instance in INVIDIOUS_INSTANCES) {
+            try {
+                val stream = resolveInvidious(instance, videoId)
+                if (stream != null && stream.audioUrl.isNotBlank() && isAlive(stream.audioUrl)) {
+                    return stream
+                }
+            } catch (e: Exception) {
+                // try next
+            }
+        }
+
+        // 3. Piped Ladder (same — verify before trusting)
+        for (instance in PIPED_INSTANCES) {
+            try {
+                val stream = resolvePiped(instance, videoId)
+                if (stream != null && stream.audioUrl.isNotBlank() && isAlive(stream.audioUrl)) {
+                    return stream
+                }
+            } catch (e: Exception) {
+                // try next
+            }
         }
 
         return null
+    }
+
+    /** YouTube URLs are session-bound — a 2-byte Range GET proves the URL actually serves. */
+    private fun isAlive(url: String): Boolean {
+        return try {
+            val conn = (URL(url).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 3000
+                readTimeout = 3000
+                setRequestProperty("Range", "bytes=0-2")
+            }
+            val code = conn.responseCode
+            conn.disconnect()
+            code == 200 || code == 206
+        } catch (e: Exception) {
+            false
+        }
     }
 
     private fun resolveInvidious(instance: String, videoId: String): YtStream? {
@@ -180,3 +198,4 @@ object YtStreamResolver {
         }
     }
 }
+

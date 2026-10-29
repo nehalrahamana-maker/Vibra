@@ -1,8 +1,12 @@
 package com.kazinehal.vibra
 
+import android.Manifest
+import android.content.ComponentName
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -14,9 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import coil.compose.AsyncImage
+import com.google.common.util.concurrent.ListenableFuture
 import com.kazinehal.vibra.data.MusicRepository
 import com.kazinehal.vibra.data.UserLibraryManager
+import com.kazinehal.vibra.player.VibraMediaService
 import com.kazinehal.vibra.player.VibraPlayer
 import com.kazinehal.vibra.ui.components.BottomNavBar
 import com.kazinehal.vibra.ui.components.BottomPlayerBar
@@ -31,14 +39,34 @@ class MainActivity : ComponentActivity() {
     private lateinit var player: VibraPlayer
     private val seedTracks = MusicRepository.trendingTracks
 
+    // Keeps VibraMediaService bound while the UI is alive, so the MediaSession (and its
+    // notification) exists before the first track is even played.
+    private var controllerFuture: ListenableFuture<MediaController>? = null
+
+    // Android 13+: media notification (lockscreen/quick-settings controls) needs this
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (!granted) android.util.Log.w("MainActivity", "POST_NOTIFICATIONS denied — media controls won't show on the lockscreen")
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // Initialize persistent user library
         UserLibraryManager.init(applicationContext)
 
-        player = VibraPlayer(applicationContext)
-        player.queue = seedTracks.toMutableList()
+        if (Build.VERSION.SDK_INT >= 33) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        player = VibraPlayer.get(this)
+        if (player.queue.isEmpty()) {
+            player.queue = seedTracks.toMutableList()
+        }
+
+        // Bind to the media service (auto-creates it and its MediaSession)
+        val sessionToken = SessionToken(applicationContext, ComponentName(this, VibraMediaService::class.java))
+        controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
 
         setContent {
             VibraTheme {
@@ -177,8 +205,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (::player.isInitialized) {
-            player.release()
-        }
+        // Unbind from the media service but NEVER release the singleton player here —
+        // playback (and the notification) must survive Activity recreation. media3
+        // releases the service itself once nothing is bound and playback has stopped.
+        controllerFuture?.let { MediaController.releaseFuture(it) }
+        controllerFuture = null
     }
 }

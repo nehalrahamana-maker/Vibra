@@ -2037,22 +2037,28 @@ async function resolveStream(track) {
       if (Date.now() < cached.expiresAt) return viaRelay(cached.url);
     }
 
-    try {
-      const res = await fetch(`${settings.apiBase}/api/stream?id=${encodeURIComponent(track.videoId)}&q=${settings.quality}`, {
-        signal: AbortSignal.timeout(settings.timeoutMs)
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.url) {
-          resolvedStreamCache.set(track.videoId, {
-            url: data.url,
-            expiresAt: data.expiresAt || (Date.now() + 3.8 * 3600 * 1000)
-          });
-          return viaRelay(data.url);
+    // Worker retries internally too (3 ladder rounds with backoff), so give it room
+    // to finish — the generic 8s UI timeout would abort mid-retry and look like a
+    // failure. One extra client-side attempt covers a burst that outlasts both.
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const res = await fetch(`${settings.apiBase}/api/stream?id=${encodeURIComponent(track.videoId)}&q=${settings.quality}`, {
+          signal: AbortSignal.timeout(Math.max(settings.timeoutMs || 8000, 16000))
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.url) {
+            resolvedStreamCache.set(track.videoId, {
+              url: data.url,
+              expiresAt: data.expiresAt || (Date.now() + 3.8 * 3600 * 1000)
+            });
+            return viaRelay(data.url);
+          }
         }
+      } catch (e) {
+        console.warn('Worker stream resolve failed for videoId:', track.videoId, e);
       }
-    } catch (e) {
-      console.warn('Worker stream resolve failed for videoId:', track.videoId, e);
+      if (attempt < 2) await new Promise(r => setTimeout(r, 900));
     }
   }
 
@@ -2073,7 +2079,7 @@ async function resolveStream(track) {
           track.isPreview = false;
           // Now fetch stream for this newly resolved videoId
           const streamRes = await fetch(`${settings.apiBase}/api/stream?id=${encodeURIComponent(track.videoId)}&q=${settings.quality}`, {
-            signal: AbortSignal.timeout(settings.timeoutMs)
+            signal: AbortSignal.timeout(Math.max(settings.timeoutMs || 8000, 16000))
           });
           if (streamRes.ok) {
             const streamJson = await streamRes.json();
@@ -3952,6 +3958,7 @@ function setupPlayerEventListeners() {
   const handleTimeUpdate = (el, slot) => {
     if (audio.activeSlot !== slot) return;
     const cur = el.currentTime;
+    if (cur > 1 && streamErrorStreak > 0) streamErrorStreak = 0; // healthy again — reset breaker
     const dur = el.duration || state.getCurrentTrack().duration;
 
     const curLabel = document.getElementById('currentTimeLabel');
@@ -4051,9 +4058,19 @@ function setupPlayerEventListeners() {
     nextTrack();
   };
 
+  // Circuit breaker: when every stream fails (Worker down / YouTube blocking),
+  // auto-skip would chew through the whole queue with endless toasts. Stop after 3.
+  let streamErrorStreak = 0;
+
   const handleError = (e, slot) => {
     if (audio.activeSlot !== slot) return;
     console.warn('Playback audio stream error on slot ' + slot + ':', e);
+    streamErrorStreak++;
+    if (streamErrorStreak >= 3) {
+      streamErrorStreak = 0;
+      showToast('Streams unavailable right now — playback stopped. Try again in a moment.', 'error');
+      return;
+    }
     showToast('Stream error encountered. Skipping to next track...', 'error');
     setTimeout(() => nextTrack(), 1200);
   };

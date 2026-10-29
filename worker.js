@@ -21,33 +21,40 @@ const CORS_HEADERS = {
 
 /**
  * InnerTube client ladder.
- * Verified live 2026-10-27: ANDROID player returns direct (no signatureCipher) URLs,
- * playabilityStatus OK, itags 139/140/249/251/599/600.
+ * Versions verified live against youtubei/v1/player on 2026-10-29 (yt-dlp current set):
+ *   ANDROID 21.26.364 → status OK, direct cipher-free URL   ✅
+ *   IOS     21.26.4   → status OK, direct cipher-free URL   ✅
+ *   TVHTML5             → LOGIN_REQUIRED (bot check) — rejected, not used
+ * YouTube rejects aged-out client versions with LOGIN_REQUIRED, so keep these current.
  */
 const IT_CLIENTS = {
   web_remix: {
     name: 'WEB_REMIX',
-    version: '1.20250101.01.00',
+    version: '1.20260707.12.00',
     host: 'https://music.youtube.com',
     key: YTM_CLIENT_KEY,
     ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
   },
   android: {
     name: 'ANDROID',
-    version: '20.10.38',
+    version: '21.26.364',
     host: 'https://www.youtube.com',
     key: null,
-    androidSdkVersion: 34,
-    ua: 'com.google.android.youtube/20.10.38 (Linux; U; Android 14) gzip',
+    androidSdkVersion: 30,
+    osName: 'Android',
+    osVersion: '11',
+    ua: 'com.google.android.youtube/21.26.364 (Linux; U; Android 11) gzip',
   },
   ios: {
     name: 'IOS',
-    version: '20.10.4',
+    version: '21.26.4',
     host: 'https://www.youtube.com',
     key: null,
     deviceMake: 'Apple',
     deviceModel: 'iPhone16,2',
-    ua: 'com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_1 like Mac OS X;)',
+    osName: 'iPhone',
+    osVersion: '18.3.2.22D82',
+    ua: 'com.google.ios.youtube/21.26.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)',
   },
 };
 
@@ -73,7 +80,7 @@ export default {
         return jsonResponse({
           ok: true,
           service: 'Vibra Gateway',
-          version: '2.1.0',
+          version: '2.2.0',
           pipeline: 'riva-style',
           searchLadder: SEARCH_LADDER,
           playerLadder: PLAYER_LADDER,
@@ -228,6 +235,8 @@ async function innerTubePost(endpoint, clientKey, body) {
   if (client.androidSdkVersion) clientCtx.androidSdkVersion = client.androidSdkVersion;
   if (client.deviceMake) clientCtx.deviceMake = client.deviceMake;
   if (client.deviceModel) clientCtx.deviceModel = client.deviceModel;
+  if (client.osName) clientCtx.osName = client.osName;
+  if (client.osVersion) clientCtx.osVersion = client.osVersion;
 
   const payload = { context: { client: clientCtx }, ...body };
 
@@ -311,16 +320,35 @@ function rendererToTrack(renderer, kind) {
     const titleRun = col0?.text?.runs?.[0] || col0?.title?.runs?.[0];
     title = titleRun?.text || '';
     videoId = renderer.playlistItemData?.videoId ||
-              renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId ||
-              titleRun?.navigationEndpoint?.watchEndpoint?.videoId ||
-              '';
+      renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId ||
+      titleRun?.navigationEndpoint?.watchEndpoint?.videoId ||
+      '';
     const col1 = flexCols[1]?.musicResponsiveListItemFlexColumnRenderer;
     const subRuns = col1?.text?.runs || col1?.title?.runs || [];
-    artist = subRuns[0]?.text || 'YouTube Artist';
-    album = subRuns[2]?.text || subRuns[subRuns.length - 1]?.text || 'YouTube Stream';
-    for (let i = subRuns.length - 1; i >= 0; i--) {
-      const d = parseDurationText(subRuns[i]?.text);
-      if (d !== null) { duration = d; break; }
+
+    // WEB_REMIX runs look like: ["Song", " • ", "Artist", " • ", "Album", " • ", "4:45"]
+    // — strip the type label, separators and duration so artist/album come out right
+    const TYPE_LABELS = ['Song', 'Video', 'Album', 'Single', 'EP', 'Episode', 'Playlist', 'Podcast', 'Artist', 'Community playlist', 'Uploaded'];
+    const cleanRuns = subRuns.filter(r => {
+      const t = (r?.text || '').trim();
+      if (!t || t === '•' || t === '·' || t === '|') return false;
+      if (TYPE_LABELS.includes(t)) return false;
+      if (parseDurationText(t) !== null) return false;
+      return true;
+    });
+    artist = cleanRuns[0]?.text || 'YouTube Artist';
+    album = cleanRuns[1]?.text || 'YouTube Stream';
+
+    // Duration can sit in this column or a later flex column — scan them all
+    if (duration === null) {
+      for (const col of flexCols) {
+        const runs = col?.musicResponsiveListItemFlexColumnRenderer?.text?.runs || [];
+        for (const r of runs) {
+          const d = parseDurationText(r?.text);
+          if (d !== null) { duration = d; break; }
+        }
+        if (duration !== null) break;
+      }
     }
     const thumbs = renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
     art = thumbs[thumbs.length - 1]?.url || '';
@@ -434,8 +462,8 @@ function pickAudioFormat(formats, quality) {
   }
   // bestaudio: Opus 251 > AAC 140 > highest bitrate
   return audio.find(f => f.itag === 251)
-      || audio.find(f => f.itag === 140)
-      || pickBestBitrate(audio);
+    || audio.find(f => f.itag === 140)
+    || pickBestBitrate(audio);
 }
 
 function pickBestBitrate(formats) {
@@ -459,47 +487,56 @@ async function checkStreamUrl(url) {
 
 async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
   const attempts = [];
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-  for (const clientKey of PLAYER_LADDER) {
-    try {
-      const json = await innerTubePost('player', clientKey, {
-        videoId,
-        contentCheckOk: true,
-        racyCheckOk: true,
-      });
+  // YouTube's LOGIN_REQUIRED bot-check hits our egress IP in correlated bursts —
+  // live measurement 2026-10-29: single ladder round passed only 4/6 requests, and
+  // when ANDROID missed, IOS/WEB_REMIX missed too (same burst). Retry the whole
+  // ladder with growing spacing; a round that starts clean succeeds immediately.
+  for (let round = 1; round <= 3; round++) {
+    if (round > 1) await sleep(700 * (round - 1));
+    for (const clientKey of PLAYER_LADDER) {
+      try {
+        const json = await innerTubePost('player', clientKey, {
+          videoId,
+          contentCheckOk: true,
+          racyCheckOk: true,
+        });
 
-      const status = json.playabilityStatus?.status;
-      if (status && status !== 'OK') {
-        attempts.push(`${clientKey}: ${status}`);
-        continue;
+        const status = json.playabilityStatus?.status;
+        if (status && status !== 'OK') {
+          attempts.push(`${clientKey}: ${status}`);
+          continue;
+        }
+
+        const formats = json.streamingData?.adaptiveFormats || [];
+        const selected = pickAudioFormat(formats, quality);
+
+        if (!selected) {
+          // Cipher-protected only (signatureCipher, no direct url) — try next client
+          const hasCipher = (formats || []).some(f => f.signatureCipher || f.cipher);
+          attempts.push(`${clientKey}: ${hasCipher ? 'cipher-only' : 'no-audio'}`);
+          continue;
+        }
+
+        const alive = await checkStreamUrl(selected.url);
+        if (!alive) {
+          attempts.push(`${clientKey}: 403/expired itag ${selected.itag}`);
+          continue;
+        }
+
+        return {
+          url: selected.url,
+          itag: selected.itag,
+          mimeType: (selected.mimeType || '').split(';')[0],
+          source: clientKey,
+          attempts,
+          round,
+          expiresAt: Date.now() + 3.8 * 3600 * 1000 // ~4 hours
+        };
+      } catch (err) {
+        attempts.push(`${clientKey}: ${err.message}`);
       }
-
-      const formats = json.streamingData?.adaptiveFormats || [];
-      const selected = pickAudioFormat(formats, quality);
-
-      if (!selected) {
-        // Cipher-protected only (signatureCipher, no direct url) — try next client
-        const hasCipher = (formats || []).some(f => f.signatureCipher || f.cipher);
-        attempts.push(`${clientKey}: ${hasCipher ? 'cipher-only' : 'no-audio'}`);
-        continue;
-      }
-
-      const alive = await checkStreamUrl(selected.url);
-      if (!alive) {
-        attempts.push(`${clientKey}: 403/expired itag ${selected.itag}`);
-        continue;
-      }
-
-      return {
-        url: selected.url,
-        itag: selected.itag,
-        mimeType: (selected.mimeType || '').split(';')[0],
-        source: clientKey,
-        attempts,
-        expiresAt: Date.now() + 3.8 * 3600 * 1000 // ~4 hours
-      };
-    } catch (err) {
-      attempts.push(`${clientKey}: ${err.message}`);
     }
   }
 
