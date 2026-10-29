@@ -80,7 +80,7 @@ export default {
         return jsonResponse({
           ok: true,
           service: 'Vibra Gateway',
-          version: '2.2.0',
+          version: '2.3.0',
           pipeline: 'riva-style',
           searchLadder: SEARCH_LADDER,
           playerLadder: PLAYER_LADDER,
@@ -146,9 +146,12 @@ export default {
           return jsonResponse({ error: 'Host not allowed' }, 403);
         }
 
-        const fwdHeaders = {};
-        const range = request.headers.get('Range');
-        if (range) fwdHeaders['Range'] = range;
+        // googlevideo REQUIRES a Range header from our egress IP: verified live
+        // 2026-10-29 — same signed URL, no Range → 403, Range → 206. A browser
+        // <audio> element often issues its first request without one, so default it.
+        const fwdHeaders = {
+          Range: request.headers.get('Range') || 'bytes=0-'
+        };
 
         const upstreamRes = await fetch(upstream.toString(), { headers: fwdHeaders });
         const outHeaders = {
