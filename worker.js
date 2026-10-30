@@ -101,11 +101,28 @@ export default {
         return jsonResponse({
           ok: true,
           service: 'Vibra Gateway',
-          version: '2.5.0',
+          version: '2.6.0',
           pipeline: 'riva-style',
           searchLadder: SEARCH_LADDER,
           playerLadder: PLAYER_LADDER,
           timestamp: Date.now()
+        });
+      }
+
+      // Friendly index so opening the bare worker URL in a browser isn't a 404
+      if (path === '/') {
+        return jsonResponse({
+          ok: true,
+          service: 'Vibra Gateway',
+          note: 'API-only worker — use a path below',
+          endpoints: [
+            '/api/health',
+            '/api/search?q=<query>',
+            '/api/stream?id=<videoId>&q=bestaudio',
+            '/api/audio?url=<googlevideo url>',
+            '/api/thumb?id=<videoId>',
+            '/api/deezer?q=<query>'
+          ]
         });
       }
 
@@ -360,7 +377,11 @@ async function innerTubePost(endpoint, clientKey, body) {
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) throw new Error(`YouTubei ${endpoint} ${client.name} HTTP ${res.status}`);
+  if (!res.ok) {
+    const err = new Error(`YouTubei ${endpoint} ${client.name} HTTP ${res.status}`);
+    err.status = res.status; // lets the ladder distinguish "bad video" from "rate limited"
+    throw err;
+  }
   return res.json();
 }
 
@@ -603,6 +624,7 @@ async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
   // rate-limit budget (429 → 'HTTP ...' errors for everyone). Only burst-style
   // failures (LOGIN_REQUIRED, HTTP 4xx/5xx, network) get retried.
   const structural = new Set();
+  let hardFail = false;
 
   // YouTube's LOGIN_REQUIRED bot-check hits our egress IP in correlated bursts —
   // live measurement 2026-10-29: single ladder round passed only 4/6 requests, and
@@ -658,11 +680,24 @@ async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
         };
       } catch (err) {
         attempts.push(`${clientKey}: ${err.message}`);
+        // 400/404/410 = YouTube rejects this VIDEO (deleted, invalid id), not our
+        // session — retrying every rung × every round only stalls the response
+        // (measured: 12 identical ERRORs over 29s). Stop and let mirrors decide.
+        if (err.status && err.status >= 400 && err.status < 500
+            && err.status !== 403 && err.status !== 429) {
+          hardFail = true;
+          break;
+        }
       }
     }
+    if (hardFail) break;
   }
 
-  // Fallback to Invidious & Piped mirrors if direct InnerTube player was blocked
+  // Fallback to Invidious & Piped mirrors if direct InnerTube player was blocked.
+  // Strict budget: dead mirrors used to hang with no timeout, turning one failed
+  // resolve into a 45s response (measured 2026-10-30) — far past the clients'
+  // 16s stream timeout. 6s total, 3s per mirror.
+  const deadline = Date.now() + 6000;
   const mirrors = [
     `https://inv.tux.pizza/api/v1/videos/${videoId}`,
     `https://vid.puffyan.us/api/v1/videos/${videoId}`,
@@ -672,8 +707,15 @@ async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
   ];
 
   for (const mirror of mirrors) {
+    if (Date.now() > deadline) {
+      attempts.push('mirror: time budget exhausted');
+      break;
+    }
     try {
-      const res = await fetch(mirror, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      const res = await fetch(mirror, {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(Math.max(250, Math.min(3000, deadline - Date.now()))),
+      });
       if (res.ok) {
         const data = await res.json();
         let streamUrl = null;
