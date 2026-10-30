@@ -107,7 +107,7 @@ const CURATED_TRACKS = [
     album: 'Aashiqui 2',
     genre: 'Bollywood',
     duration: 262,
-    videoId: 'IJq0cmW6438',
+    videoId: 'fsiPzT50ZiM',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/2d/11/b9/2d11b994-b4fa-19eb-953d-70b472165e95/8903431566911_cover.jpg/600x600bb.jpg',
     audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/77/59/c5/7759c5b2-b044-0e68-fea5-1fc4b84f312a/mzaf_3185920023072222766.plus.aac.p.m4a',
     lyrics: `[00:00.00] (Piano chords initiation)
@@ -3285,6 +3285,14 @@ function switchView(targetView) {
   if (targetView === 'visualizer' && visualizer) visualizer.resizeCanvas();
   if (targetView === 'playlists') renderPlaylistsGrid();
   if (targetView === 'downloads') updateOfflineUI();
+
+  // Keep the active sidebar item reachable: on short windows the nav list
+  // scrolls (Library/Settings sit below the fold), so a programmatic or
+  // keyboard-driven switch must follow the item into view.
+  const activeBtn = document.querySelector('.nav-item.active[data-view]');
+  if (activeBtn && activeBtn.scrollIntoView) {
+    activeBtn.scrollIntoView({ block: 'nearest' });
+  }
 }
 
 function setupNavigation() {
@@ -4302,21 +4310,27 @@ function setupSearchAndFilters() {
   const clearBtn = document.getElementById('simpClearSearchBtn') || document.getElementById('clearSearchBtn');
 
   if (searchInput && clearBtn) {
-    let debounceTimer = null;
-    searchInput.addEventListener('input', (e) => {
-      const q = e.target.value.trim();
-      clearBtn.style.display = q ? 'block' : 'none';
+    // initSearchView() already wires a debounced input handler on
+    // #simpSearchInput — a second one here made EVERY keystroke fire
+    // /api/search TWICE (measured live: duplicate fetches 48ms apart).
+    // Only wire the legacy #trackSearchInput from here.
+    if (searchInput.id !== 'simpSearchInput') {
+      let debounceTimer = null;
+      searchInput.addEventListener('input', (e) => {
+        const q = e.target.value.trim();
+        clearBtn.style.display = q ? 'block' : 'none';
 
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        if (q) {
-          searchOnlineMusic(q);
-        } else {
-          state.searchResults = [];
-          renderTrackGrid(state.playlist);
-        }
-      }, 400);
-    });
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          if (q) {
+            searchOnlineMusic(q);
+          } else {
+            state.searchResults = [];
+            renderTrackGrid(state.playlist);
+          }
+        }, 400);
+      });
+    }
 
     clearBtn.addEventListener('click', () => {
       searchInput.value = '';
@@ -4740,7 +4754,7 @@ function setupSettingsControls() {
         favorites: state.favorites,
         stats: state.stats,
         queue: state.queue,
-        playlists: loadJson('vibra_playlists', [])
+        playlists: playlistManager.playlists
       };
 
       const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
@@ -4779,7 +4793,10 @@ function setupSettingsControls() {
             state.saveStats();
           }
           if (Array.isArray(imported.playlists)) {
-            localStorage.setItem('vibra_playlists', JSON.stringify(imported.playlists));
+            // Must go through playlistManager (key vibra_playlists_v1) — writing
+            // the legacy 'vibra_playlists' key left restored playlists invisible.
+            playlistManager.playlists = imported.playlists;
+            playlistManager.save();
           }
           if (Array.isArray(imported.queue)) {
             state.queue = imported.queue;
@@ -4845,18 +4862,19 @@ function setupSettingsControls() {
 
         tracks.forEach(t => state.registerTrack(t));
 
-        // Create new library playlist
-        const existingPlaylists = loadJson('vibra_playlists', []);
+        // Create new library playlist (via playlistManager so it lands in
+        // vibra_playlists_v1 — the old raw write went to a key nothing reads)
         const newPl = {
           id: 'yt-pl-' + Date.now(),
           name: val.includes('list=') ? 'YouTube Imported Playlist' : `YT: ${val.slice(0, 24)}`,
+          desc: `Imported from YouTube Music (${tracks.length} tracks)`,
           description: `Imported from YouTube Music (${tracks.length} tracks)`,
           cover: tracks[0]?.art || 'assets/covers/cyberpunk.jpg',
           createdAt: Date.now(),
           trackIds: tracks.map(t => t.id)
         };
-        existingPlaylists.unshift(newPl);
-        localStorage.setItem('vibra_playlists', JSON.stringify(existingPlaylists));
+        playlistManager.playlists.unshift(newPl);
+        playlistManager.save();
 
         // Refresh UI
         renderPlaylistsGrid();
@@ -4913,17 +4931,17 @@ function setupSettingsControls() {
 
         tracks.forEach(t => state.registerTrack(t));
 
-        const existingPlaylists = loadJson('vibra_playlists', []);
         const newPl = {
           id: 'sp-pl-' + Date.now(),
           name: 'Spotify Synced Playlist',
+          desc: `Imported Spotify playlist (${tracks.length} tracks)`,
           description: `Imported Spotify playlist (${tracks.length} tracks)`,
           cover: tracks[0]?.art || 'assets/covers/lofi.jpg',
           createdAt: Date.now(),
           trackIds: tracks.map(t => t.id)
         };
-        existingPlaylists.unshift(newPl);
-        localStorage.setItem('vibra_playlists', JSON.stringify(existingPlaylists));
+        playlistManager.playlists.unshift(newPl);
+        playlistManager.save();
 
         renderPlaylistsGrid();
         renderRivaLibrary();
@@ -4968,18 +4986,18 @@ function setupSettingsControls() {
 
       if (isSpotifySynced) {
         // Automatically inject curated Spotify Liked Hits into library playlists
-        const existingPlaylists = loadJson('vibra_playlists', []);
-        if (!existingPlaylists.some(p => p.id === 'sp-liked-auto')) {
+        if (!playlistManager.playlists.some(p => p.id === 'sp-liked-auto')) {
           const likedPl = {
             id: 'sp-liked-auto',
             name: 'Spotify: Liked Songs',
+            desc: 'Your synced Spotify favorites streamable via Vibra Engine',
             description: 'Your synced Spotify favorites streamable via Vibra Engine',
             cover: 'assets/covers/synthwave.jpg',
             createdAt: Date.now(),
             trackIds: state.playlist.slice(0, 15).map(t => t.id)
           };
-          existingPlaylists.unshift(likedPl);
-          localStorage.setItem('vibra_playlists', JSON.stringify(existingPlaylists));
+          playlistManager.playlists.unshift(likedPl);
+          playlistManager.save();
           renderPlaylistsGrid();
           renderRivaLibrary();
         }
