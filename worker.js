@@ -101,7 +101,7 @@ export default {
         return jsonResponse({
           ok: true,
           service: 'Vibra Gateway',
-          version: '2.4.0',
+          version: '2.5.0',
           pipeline: 'riva-style',
           searchLadder: SEARCH_LADDER,
           playerLadder: PLAYER_LADDER,
@@ -141,7 +141,34 @@ export default {
           return jsonResponse({ error: 'Missing id param' }, 400);
         }
 
+        // Serve previously-resolved URLs straight from cache: a repeat play must
+        // not depend on surviving YouTube's bot-check burst a second time, and
+        // every extra player POST raises the 429 risk for the NEXT request too.
+        const cacheKey = new Request(
+          `https://vibra.internal/stream/${encodeURIComponent(videoId)}?q=${encodeURIComponent(quality)}`
+        );
+        try {
+          const hit = await caches.default.match(cacheKey);
+          if (hit) {
+            const data = await hit.json();
+            if (data && data.url && data.expiresAt > Date.now() + 120000) {
+              return jsonResponse({ ...data, cached: true }, 200, {
+                'Cache-Control': 'public, max-age=13800'
+              });
+            }
+          }
+        } catch { /* cache miss — resolve fresh */ }
+
         const streamData = await resolveYouTubeStream(videoId, quality);
+        if (streamData && streamData.url) {
+          const ttlSec = Math.max(60, Math.floor((streamData.expiresAt - Date.now()) / 1000) - 60);
+          ctx.waitUntil(caches.default.put(
+            cacheKey,
+            new Response(JSON.stringify(streamData), {
+              headers: { 'Content-Type': 'application/json', 'Cache-Control': `max-age=${ttlSec}` }
+            })
+          ).catch(() => {}));
+        }
         return jsonResponse(streamData, 200, {
           'Cache-Control': 'public, max-age=13800' // ~3.8 hours
         });
@@ -571,14 +598,24 @@ async function checkStreamUrl(url) {
 async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
   const attempts = [];
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  // Structural failures (SABR-only / cipher-only responses) are properties of the
+  // client, not of the burst — re-asking the same client next round only burns
+  // rate-limit budget (429 → 'HTTP ...' errors for everyone). Only burst-style
+  // failures (LOGIN_REQUIRED, HTTP 4xx/5xx, network) get retried.
+  const structural = new Set();
 
   // YouTube's LOGIN_REQUIRED bot-check hits our egress IP in correlated bursts —
   // live measurement 2026-10-29: single ladder round passed only 4/6 requests, and
   // when ANDROID missed, IOS/WEB_REMIX missed too (same burst). Retry the whole
-  // ladder with growing spacing; a round that starts clean succeeds immediately.
-  for (let round = 1; round <= 3; round++) {
-    if (round > 1) await sleep(700 * (round - 1));
+  // ladder with growing (and jittered, so we don't re-sync with the burst)
+  // spacing; a round that starts clean succeeds immediately. 4 rounds with
+  // 0.7s/1.4s/2.1s gaps keeps the worst case ≈10s — inside the 16s client timeout.
+  for (let round = 1; round <= 4; round++) {
+    if (round > 1) {
+      await sleep(700 * (round - 1) + Math.floor(Math.random() * 400));
+    }
     for (const clientKey of PLAYER_LADDER) {
+      if (structural.has(clientKey)) continue;
       try {
         const json = await innerTubePost('player', clientKey, {
           videoId,
@@ -596,9 +633,11 @@ async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
         const selected = pickAudioFormat(formats, quality);
 
         if (!selected) {
-          // Cipher-protected only (signatureCipher, no direct url) — try next client
+          // Cipher-protected only (signatureCipher, no direct url) → SABR/no-url
+          // response: structural for this client, stop retrying it this round set.
           const hasCipher = (formats || []).some(f => f.signatureCipher || f.cipher);
           attempts.push(`${clientKey}: ${hasCipher ? 'cipher-only' : 'no-audio'}`);
+          structural.add(clientKey);
           continue;
         }
 
