@@ -22,10 +22,15 @@ const CORS_HEADERS = {
 /**
  * InnerTube client ladder.
  * Versions verified live against youtubei/v1/player on 2026-10-29 (yt-dlp current set):
- *   ANDROID 21.26.364 → status OK, direct cipher-free URL   ✅
- *   IOS     21.26.4   → status OK, direct cipher-free URL   ✅
- *   TVHTML5             → LOGIN_REQUIRED (bot check) — rejected, not used
- * YouTube rejects aged-out client versions with LOGIN_REQUIRED, so keep these current.
+ *   VISIONOS 1.02 + visitorData → status OK, DIRECT per-format URLs  ✅ (primary rung)
+ *   ANDROID 21.26.364           → status OK, SABR-only (no per-format url)
+ *   IOS     21.26.4             → status OK, SABR-only (no per-format url)
+ *   TVHTML5 / VISIONOS w/o visitorData → LOGIN_REQUIRED (bot check)
+ * 2026-10-29: YouTube force-migrated ANDROID/IOS/WEB to server-ABR (yt-dlp #12482),
+ * which returns formats with NO url field (only serverAbrStreamingUrl — a UMP/SABR
+ * endpoint, not playable as progressive HTTP). VISIONOS still hands back fetchable
+ * URLs, but ONLY when the request carries a valid visitorData (client.visitorData +
+ * X-Goog-Visitor-Id header) — verified: same request without it → LOGIN_REQUIRED.
  */
 const IT_CLIENTS = {
   web_remix: {
@@ -56,12 +61,28 @@ const IT_CLIENTS = {
     osVersion: '18.3.2.22D82',
     ua: 'com.google.ios.youtube/21.26.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)',
   },
+  // yt-dlp's default JS-less client — the one rung that still returns per-format
+  // stream URLs (live-verified 2026-10-29: 5/5 videos → status OK + url + Range 206).
+  visionos: {
+    name: 'VISIONOS',
+    version: '1.02',
+    host: 'https://www.youtube.com',
+    key: null,
+    deviceMake: 'Apple',
+    deviceModel: 'RealityDevice17,1',
+    osName: 'visionOS',
+    osVersion: '26.5.23O471',
+    ua: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15',
+  },
 };
 
 // Search ladder: WEB_REMIX gives YT Music shelves, ANDROID gives YouTube-wide results
 const SEARCH_LADDER = ['web_remix', 'android'];
-// Stream ladder: ANDROID proven to return unciphered URLs; others as rungs
-const PLAYER_LADDER = ['android', 'ios', 'web_remix'];
+// Stream ladder: VISIONOS is the only client still returning fetchable URLs
+// (ANDROID/IOS are SABR-only as of 2026-10-29) — keep them as rungs in case
+// YouTube rotates the experiment back per-IP or per-session.
+const PLAYER_LADDER = ['visionos', 'android', 'ios'];
+const WEB_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
 // Hosts allowed through the audio relay (open-proxy protection)
 const RELAY_HOST_SUFFIXES = ['.googlevideo.com', '.youtube.com', '.ytimg.com'];
@@ -80,7 +101,7 @@ export default {
         return jsonResponse({
           ok: true,
           service: 'Vibra Gateway',
-          version: '2.3.0',
+          version: '2.4.0',
           pipeline: 'riva-style',
           searchLadder: SEARCH_LADDER,
           playerLadder: PLAYER_LADDER,
@@ -224,6 +245,59 @@ function jsonResponse(data, status = 200, extraHeaders = {}) {
 // InnerTube plumbing
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// visitorData — mandatory for stream URLs
+// ---------------------------------------------------------------------------
+
+const VISITOR_CACHE_KEY = 'https://vibra.internal/visitor-data';
+const VISITOR_TTL_MS = 30 * 60 * 1000;
+let visitorMemory = null; // { value, fetchedAt }
+
+/**
+ * YouTube hands out a per-session visitorData from the youtube.com bootstrap.
+ * Live-verified 2026-10-29: the SAME VISIONOS player request answers
+ * LOGIN_REQUIRED without it and status OK + playable per-format URLs with it.
+ * Cached in-memory (isolate lifetime) and in the Cache API (survives isolates)
+ * so the ~800KB homepage fetch happens at most twice per 30 minutes.
+ */
+async function getVisitorData() {
+  if (visitorMemory && Date.now() - visitorMemory.fetchedAt < VISITOR_TTL_MS) {
+    return visitorMemory.value;
+  }
+  try {
+    const cached = await caches.default.match(VISITOR_CACHE_KEY);
+    if (cached) {
+      const rec = await cached.json();
+      if (rec && rec.value && Date.now() - rec.fetchedAt < VISITOR_TTL_MS) {
+        visitorMemory = rec;
+        return rec.value;
+      }
+    }
+  } catch { /* Cache API unavailable — fall through to network */ }
+
+  try {
+    const res = await fetch('https://www.youtube.com/', { headers: { 'User-Agent': WEB_UA } });
+    const html = await res.text();
+    const m = html.match(/"VISITOR_DATA"\s*:\s*"([^"]+)"/);
+    if (m && m[1]) {
+      visitorMemory = { value: m[1], fetchedAt: Date.now() };
+      try {
+        await caches.default.put(
+          VISITOR_CACHE_KEY,
+          new Response(JSON.stringify(visitorMemory), {
+            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=1800' },
+          })
+        );
+      } catch { /* cache write is best-effort */ }
+      return m[1];
+    }
+  } catch { /* network failure — below */ }
+
+  // Keep serving a stale value rather than none at all (stale visitorData still
+  // unlocks URLs; a missing one guarantees LOGIN_REQUIRED).
+  return visitorMemory ? visitorMemory.value : null;
+}
+
 async function innerTubePost(endpoint, clientKey, body) {
   const client = IT_CLIENTS[clientKey];
   if (!client) throw new Error(`Unknown InnerTube client: ${clientKey}`);
@@ -241,15 +315,21 @@ async function innerTubePost(endpoint, clientKey, body) {
   if (client.osName) clientCtx.osName = client.osName;
   if (client.osVersion) clientCtx.osVersion = client.osVersion;
 
+  const visitor = await getVisitorData();
+  if (visitor) clientCtx.visitorData = visitor;
+
   const payload = { context: { client: clientCtx }, ...body };
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'User-Agent': client.ua,
+    'X-Goog-Api-Format-Version': '2',
+  };
+  if (visitor) headers['X-Goog-Visitor-Id'] = visitor;
 
   const res = await fetch(`${client.host}/youtubei/v1/${endpoint}${query}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'User-Agent': client.ua,
-      'X-Goog-Api-Format-Version': '2',
-    },
+    headers,
     body: JSON.stringify(payload),
   });
 
