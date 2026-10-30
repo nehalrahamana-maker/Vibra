@@ -625,6 +625,14 @@ async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
   // failures (LOGIN_REQUIRED, HTTP 4xx/5xx, network) get retried.
   const structural = new Set();
   let hardFail = false;
+  // Hard budget: when YouTube's bot-check burst is active, each player POST runs
+  // 2–4s and 4 rounds + mirrors stretched one resolve to 36–45s — far past the
+  // clients' 16s stream timeout, so the app saw a failure ANYWAY but only after
+  // waiting. Fail FAST instead: the client's own retry then lands after the
+  // burst clears, and a later success gets cached for everyone.
+  const started = Date.now();
+  const PLAYER_BUDGET_MS = 9000;
+  const MIRROR_BUDGET_MS = 4000;
 
   // YouTube's LOGIN_REQUIRED bot-check hits our egress IP in correlated bursts —
   // live measurement 2026-10-29: single ladder round passed only 4/6 requests, and
@@ -633,11 +641,22 @@ async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
   // spacing; a round that starts clean succeeds immediately. 4 rounds with
   // 0.7s/1.4s/2.1s gaps keeps the worst case ≈10s — inside the 16s client timeout.
   for (let round = 1; round <= 4; round++) {
+    if (Date.now() - started > PLAYER_BUDGET_MS) {
+      attempts.push('deadline: player budget exhausted');
+      break;
+    }
     if (round > 1) {
-      await sleep(700 * (round - 1) + Math.floor(Math.random() * 400));
+      await sleep(Math.min(
+        700 * (round - 1) + Math.floor(Math.random() * 400),
+        Math.max(0, started + PLAYER_BUDGET_MS - Date.now())
+      ));
     }
     for (const clientKey of PLAYER_LADDER) {
       if (structural.has(clientKey)) continue;
+      if (Date.now() - started > PLAYER_BUDGET_MS) {
+        attempts.push('deadline: player budget exhausted');
+        break;
+      }
       try {
         const json = await innerTubePost('player', clientKey, {
           videoId,
@@ -697,7 +716,7 @@ async function resolveYouTubeStream(videoId, quality = 'bestaudio') {
   // Strict budget: dead mirrors used to hang with no timeout, turning one failed
   // resolve into a 45s response (measured 2026-10-30) — far past the clients'
   // 16s stream timeout. 6s total, 3s per mirror.
-  const deadline = Date.now() + 6000;
+  const deadline = started + PLAYER_BUDGET_MS + MIRROR_BUDGET_MS;
   const mirrors = [
     `https://inv.tux.pizza/api/v1/videos/${videoId}`,
     `https://vid.puffyan.us/api/v1/videos/${videoId}`,
