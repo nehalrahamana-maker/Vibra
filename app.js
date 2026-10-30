@@ -1676,6 +1676,10 @@ const lyricsEngine = new LyricsEngine();
 // 6. PLAYER CONTROLLER & MEDIA SESSION
 // =============================================================================
 
+// Consecutive stream failures — after 3 in a row the network/YouTube side is
+// clearly unhealthy, so stop grinding through the queue (death-spiral guard).
+let consecutiveStreamFails = 0;
+
 async function loadTrack(index, autoPlay = true) {
   if (index < 0 || index >= state.queue.length) return;
 
@@ -1705,6 +1709,7 @@ async function loadTrack(index, autoPlay = true) {
   if (playBtnIcon) playBtnIcon.style.opacity = '1';
 
   if (streamUrl) {
+    consecutiveStreamFails = 0;
     audio.audioElement.src = streamUrl;
     audio.audioElement.load();
     if (autoPlay) {
@@ -1712,8 +1717,17 @@ async function loadTrack(index, autoPlay = true) {
     }
   } else {
     console.warn('Stream resolution returned null for track:', track.title);
+    consecutiveStreamFails++;
     if (typeof showToast === 'function') {
       showToast(`Stream for "${track.title}" unavailable. Trying next song...`, 'error');
+    }
+    if (consecutiveStreamFails >= 3) {
+      if (typeof showToast === 'function') {
+        showToast('3 songs in a row failed to load — connection or YouTube seems blocked. Auto-skip stopped.', 'error');
+      }
+      state.isPlaying = false;
+      updatePlaybackUI();
+      return;
     }
     setTimeout(() => nextTrack(), 1200);
     return;
@@ -1994,6 +2008,23 @@ function formatTime(seconds) {
 
 const resolvedStreamCache = new Map();
 
+// VideoIds whose worker stream resolve definitively failed. TTL 5 min so a dead/
+// throttled ID fails fast on click & auto-skip instead of burning 2×16s each time.
+const failedStreamIds = new Map();
+function rememberStreamFailure(videoId, ttlMs = 5 * 60 * 1000) {
+  if (!videoId) return;
+  failedStreamIds.set(videoId, Date.now() + ttlMs);
+  if (failedStreamIds.size > 60) {
+    for (const [id, exp] of failedStreamIds) if (Date.now() > exp) failedStreamIds.delete(id);
+  }
+}
+function isKnownStreamFailure(videoId) {
+  const exp = failedStreamIds.get(videoId);
+  if (!exp) return false;
+  if (Date.now() > exp) { failedStreamIds.delete(videoId); return false; }
+  return true;
+}
+
 /**
  * Route googlevideo URLs through the Worker relay.
  * Direct URLs have no CORS headers → MediaElementSource (app.js:~875) would be
@@ -2037,28 +2068,48 @@ async function resolveStream(track) {
       if (Date.now() < cached.expiresAt) return viaRelay(cached.url);
     }
 
-    // Worker retries internally too (3 ladder rounds with backoff), so give it room
-    // to finish — the generic 8s UI timeout would abort mid-retry and look like a
-    // failure. One extra client-side attempt covers a burst that outlasts both.
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
-        const res = await fetch(`${settings.apiBase}/api/stream?id=${encodeURIComponent(track.videoId)}&q=${settings.quality}`, {
-          signal: AbortSignal.timeout(Math.max(settings.timeoutMs || 8000, 16000))
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.url) {
-            resolvedStreamCache.set(track.videoId, {
-              url: data.url,
-              expiresAt: data.expiresAt || (Date.now() + 3.8 * 3600 * 1000)
-            });
-            return viaRelay(data.url);
+    if (isKnownStreamFailure(track.videoId)) {
+      // Recently failed hard — skip the 2×16s wait and fall through to fallbacks.
+      console.warn('Skipping known-failing videoId:', track.videoId);
+    } else {
+      // Worker retries internally too (4 jittered rounds with budgets), so give it
+      // room to finish — the generic 8s UI timeout would abort mid-retry. One extra
+      // client attempt covers a burst; a DEFINITIVE worker error (fast-fail JSON)
+      // means retrying is pointless → remember the ID and stop.
+      let hardFailed = false;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const res = await fetch(`${settings.apiBase}/api/stream?id=${encodeURIComponent(track.videoId)}&q=${settings.quality}`, {
+            signal: AbortSignal.timeout(Math.max(settings.timeoutMs || 8000, 16000))
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.url) {
+              resolvedStreamCache.set(track.videoId, {
+                url: data.url,
+                expiresAt: data.expiresAt || (Date.now() + 3.8 * 3600 * 1000)
+              });
+              return viaRelay(data.url);
+            }
+            if (data.error) {
+              // Worker answered quickly with a real failure (all clients failed /
+              // budget exhausted) → don't burn another 16s retrying this ID.
+              rememberStreamFailure(track.videoId);
+              hardFailed = true;
+              console.warn('Worker fast-failed videoId:', track.videoId, data.error);
+              break;
+            }
           }
+        } catch (e) {
+          console.warn('Worker stream resolve failed for videoId:', track.videoId, e);
+          // TimeoutError: worker was silent — retry once (could be a transient burst).
         }
-      } catch (e) {
-        console.warn('Worker stream resolve failed for videoId:', track.videoId, e);
+        if (attempt < 2) await new Promise(r => setTimeout(r, 900));
       }
-      if (attempt < 2) await new Promise(r => setTimeout(r, 900));
+      // Both attempts died without an answer → treat as a soft failure so the
+      // next click/skip on this ID fails fast instead of waiting 2×16s again.
+      // (Definitive worker errors were already marked with a longer TTL above.)
+      if (!hardFailed && !resolvedStreamCache.has(track.videoId)) rememberStreamFailure(track.videoId, 2 * 60 * 1000);
     }
   }
 
@@ -2077,6 +2128,10 @@ async function resolveStream(track) {
         if (foundList.length > 0 && foundList[0].videoId) {
           track.videoId = foundList[0].videoId;
           track.isPreview = false;
+          if (isKnownStreamFailure(track.videoId)) {
+            // The re-search rediscovered the same dead videoId → skip the 16s fetch.
+            console.warn('Dynamic resolve hit known-failing videoId:', track.videoId);
+          } else {
           // Now fetch stream for this newly resolved videoId
           const streamRes = await fetch(`${settings.apiBase}/api/stream?id=${encodeURIComponent(track.videoId)}&q=${settings.quality}`, {
             signal: AbortSignal.timeout(Math.max(settings.timeoutMs || 8000, 16000))
@@ -2090,6 +2145,8 @@ async function resolveStream(track) {
               });
               return viaRelay(streamJson.url);
             }
+            if (streamJson.error) rememberStreamFailure(track.videoId);
+          }
           }
         }
       }
@@ -2136,9 +2193,9 @@ const ADAPTERS = {
   },
 
   // 2. Audius API (Free, CORS-open, full streaming tracks, no key required)
-  audius: async (q, cfg) => {
+  audius: async (q, cfg, outer) => {
     const res = await fetch(`https://discoveryprovider.audius.co/v1/tracks/search?query=${encodeURIComponent(q)}&app_name=Vibra`, {
-      signal: AbortSignal.timeout(cfg.timeoutMs)
+      signal: searchSignal(cfg.timeoutMs, outer)
     });
     if (!res.ok) throw new Error(`Audius HTTP ${res.status}`);
     const data = await res.json();
@@ -2163,10 +2220,10 @@ const ADAPTERS = {
   },
 
   // 3. Jamendo API (Free public client ID, CC full audio streams)
-  jamendo: async (q, cfg) => {
+  jamendo: async (q, cfg, outer) => {
     const limit = cfg.resultLimit || 25;
     const res = await fetch(`https://api.jamendo.com/v3.0/tracks/?client_id=56d30c95&format=jsonpretty&limit=${limit}&search=${encodeURIComponent(q)}&audioformat=mp32`, {
-      signal: AbortSignal.timeout(cfg.timeoutMs)
+      signal: searchSignal(cfg.timeoutMs, outer)
     });
     if (!res.ok) throw new Error(`Jamendo HTTP ${res.status}`);
     const data = await res.json();
@@ -2191,13 +2248,13 @@ const ADAPTERS = {
   },
 
   // 4. YouTube Music (InnerTube via Cloudflare Worker)
-  ytmusic: async (q, cfg) => {
+  ytmusic: async (q, cfg, outer) => {
     if (!cfg.apiBase) {
       throw new Error('Worker API Base URL not configured. Switch source or enter URL in Settings.');
     }
     const limit = cfg.resultLimit || 25;
     const res = await fetch(`${cfg.apiBase}/api/search?q=${encodeURIComponent(q)}&limit=${limit}`, {
-      signal: AbortSignal.timeout(cfg.timeoutMs)
+      signal: searchSignal(cfg.timeoutMs, outer)
     });
     if (!res.ok) throw new Error(`Worker HTTP ${res.status}`);
     const json = await res.json();
@@ -2225,12 +2282,12 @@ const ADAPTERS = {
   },
 
   // 5. Deezer (via Worker proxy)
-  deezer: async (q, cfg) => {
+  deezer: async (q, cfg, outer) => {
     if (!cfg.apiBase) {
       throw new Error('Worker API Base URL required for Deezer CORS proxy.');
     }
     const res = await fetch(`${cfg.apiBase}/api/deezer?q=${encodeURIComponent(q)}&limit=${cfg.resultLimit || 25}`, {
-      signal: AbortSignal.timeout(cfg.timeoutMs)
+      signal: searchSignal(cfg.timeoutMs, outer)
     });
     if (!res.ok) throw new Error(`Deezer Proxy HTTP ${res.status}`);
     const data = await res.json();
@@ -2261,38 +2318,73 @@ const ADAPTERS = {
 };
 
 const Sources = {
+  // Merge the per-adapter timeout with the outer "superseded" signal so a newer
+  // keystroke can kill an in-flight fetch immediately (no pile-up while typing).
+  _outer: null,
+
+  cancelSearch() {
+    if (Sources._outer) Sources._outer.abort();
+  },
+
   async search(query) {
+    // Abort the previous search first — only the latest query matters.
+    if (Sources._outer) Sources._outer.abort();
+    const controller = new AbortController();
+    Sources._outer = controller;
+    const outer = controller.signal;
+
     const s = settings;
     const active = s.activeSource || 'itunes';
     const fallback = s.fallbackSource || 'audius';
 
     if (ADAPTERS[active]) {
       try {
-        const results = await ADAPTERS[active](query, s);
+        const results = await ADAPTERS[active](query, s, outer);
         if (Array.isArray(results) && results.length > 0) return results;
       } catch (err) {
+        // Superseded by a newer search → bail, don't waste time on fallbacks.
+        if (outer.aborted) throw err;
         console.warn(`Source "${active}" failed, seamlessly failing over to "${fallback}":`, err);
       }
     }
 
+    if (outer.aborted) throw new DOMException('Search superseded', 'AbortError');
     if (ADAPTERS[fallback] && fallback !== active) {
       try {
-        const fallbackResults = await ADAPTERS[fallback](query, s);
+        const fallbackResults = await ADAPTERS[fallback](query, s, outer);
         if (Array.isArray(fallbackResults) && fallbackResults.length > 0) return fallbackResults;
       } catch (fErr) {
+        if (outer.aborted) throw fErr;
         console.warn(`Fallback source "${fallback}" also failed:`, fErr);
       }
     }
 
+    if (outer.aborted) throw new DOMException('Search superseded', 'AbortError');
     return ADAPTERS.local(query, s);
   }
 };
 
+// Combine an adapter timeout with the outer abort signal (AbortSignal.any when
+// available, manual bridge otherwise for older WebViews).
+function searchSignal(timeoutMs, outer) {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  if (!outer) return timeout;
+  if (typeof AbortSignal.any === 'function') return AbortSignal.any([timeout, outer]);
+  const c = new AbortController();
+  const abortNow = () => c.abort();
+  if (outer.aborted) c.abort();
+  else outer.addEventListener('abort', abortNow, { once: true });
+  timeout.addEventListener('abort', abortNow, { once: true });
+  return c.signal;
+}
+
 let currentSearchToken = 0;
+let lastSearchError = null;
 
 async function searchOnlineMusic(query) {
   if (!query || !query.trim()) {
     state.searchResults = [];
+    Sources.cancelSearch();
     const tg = document.getElementById('trackGrid');
     if (tg) renderTrackGrid(state.playlist, tg);
     return [];
@@ -2301,17 +2393,24 @@ async function searchOnlineMusic(query) {
   const token = ++currentSearchToken;
   state.ytContinuation = null;
   state.ytContinuationClient = null;
-  const trackGrid = document.getElementById('trackGrid');
+  lastSearchError = null;
   const sourceLabel = (settings.activeSource || 'iTunes').toUpperCase();
 
-  if (trackGrid) {
-    trackGrid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 48px;">
-        <div class="search-shimmer-loader">
-          <div class="spinner-ring"></div>
-          <div style="font-size: 15px; color: var(--accent-primary); margin-top: 14px;">Searching ${esc(sourceLabel)} for "${esc(query)}"...</div>
-        </div>
+  // Loading feedback goes into the SEARCH view's grid (not the home grid).
+  // Prepend so any local matches already rendered stay visible while we wait.
+  const resultGrid = document.getElementById('searchResultGrid');
+  if (resultGrid) {
+    const existing = document.getElementById('searchLoadingRow');
+    if (existing) existing.remove();
+    const row = document.createElement('div');
+    row.id = 'searchLoadingRow';
+    row.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 34px 12px;';
+    row.innerHTML = `
+      <div class="search-shimmer-loader">
+        <div class="spinner-ring"></div>
+        <div style="font-size: 15px; color: var(--accent-primary); margin-top: 14px;">Searching ${esc(sourceLabel)} for "${esc(query)}"...</div>
       </div>`;
+    resultGrid.insertAdjacentElement('afterbegin', row);
   }
 
   try {
@@ -2320,28 +2419,11 @@ async function searchOnlineMusic(query) {
 
     state.searchResults = results || [];
     state.searchResults.forEach(t => state.registerTrack(t));
-    if (trackGrid) {
-      if (state.searchResults.length > 0) {
-        renderTrackGrid(state.searchResults, trackGrid);
-        maybeAppendLoadMore(trackGrid);
-      } else {
-        trackGrid.innerHTML = `
-          <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--text-dim);">
-            <p style="font-size: 16px;">No tracks found on ${esc(sourceLabel)} for "${esc(query)}".</p>
-            <span style="font-size: 13px; margin-top: 6px; display: block;">Try another search term or switch source in Settings.</span>
-          </div>`;
-      }
-    }
     return state.searchResults;
   } catch (e) {
     if (token !== currentSearchToken) return [];
-    if (trackGrid) {
-      trackGrid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--accent-primary);">
-          <p style="font-size: 16px;">Search error on ${esc(sourceLabel)}</p>
-          <span style="font-size: 13px; margin-top: 6px; display: block; color: var(--text-dim);">${esc(e.message || 'Please check your connection')}</span>
-        </div>`;
-    }
+    lastSearchError = e.message || 'Please check your connection';
+    state.searchResults = [];
     return [];
   }
 }
@@ -2377,14 +2459,16 @@ async function loadMoreResults() {
 
   try {
     const more = await ADAPTERS.ytmusicMore(settings);
-    const trackGrid = document.getElementById('trackGrid');
-    if (more && more.length && trackGrid) {
+    // Render into the grid the button actually lives in (search grid OR home grid)
+    const grid = btn.parentElement ? btn.parentElement.parentElement : document.getElementById('trackGrid');
+    if (more && more.length && grid) {
       more.forEach(t => state.registerTrack(t));
       state.searchResults = state.searchResults.concat(more);
       // Remove stale button, re-render full grid, re-append if a token remains
       if (btn.parentElement) btn.parentElement.remove();
-      renderTrackGrid(state.searchResults, trackGrid);
-      maybeAppendLoadMore(trackGrid);
+      const locals = state.searchLocalMatches || [];
+      renderTrackGrid([...locals, ...state.searchResults], grid);
+      maybeAppendLoadMore(grid);
     } else if (btn.parentElement) {
       btn.parentElement.remove();
     }
@@ -3743,6 +3827,8 @@ function initSearchView() {
   const triggerSearch = (query) => {
     const q = query.trim();
     if (!q) {
+      Sources.cancelSearch(); // kill any in-flight search when cleared
+      currentSearchToken++;   // and invalidate its pending render
       if (clearBtn) clearBtn.style.display = 'none';
       if (landing) landing.style.display = 'block';
       if (resultsBox) resultsBox.style.display = 'none';
@@ -3762,16 +3848,34 @@ function initSearchView() {
       t.artist.toLowerCase().includes(qLower) ||
       (t.genre && t.genre.toLowerCase().includes(qLower))
     );
+    state.searchLocalMatches = localMatches;
 
     if (resultGrid) {
       renderTrackGrid(localMatches, resultGrid);
     }
 
-    // Call online multi-source search
+    // Call online multi-source search — ALWAYS re-render so the loading row
+    // can't get stuck, and so empty/error states are shown in the search grid.
     searchOnlineMusic(q).then(onlineResults => {
-      if (onlineResults && onlineResults.length > 0 && resultGrid) {
-        const combined = [...localMatches, ...onlineResults];
+      if (!resultGrid) return;
+      const combined = [...localMatches, ...(onlineResults || [])];
+      if (combined.length > 0) {
         renderTrackGrid(combined, resultGrid);
+        maybeAppendLoadMore(resultGrid);
+      } else if (lastSearchError) {
+        const sourceLabel = (settings.activeSource || 'iTunes').toUpperCase();
+        resultGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--accent-primary);">
+            <p style="font-size: 16px;">Search error on ${esc(sourceLabel)}</p>
+            <span style="font-size: 13px; margin-top: 6px; display: block; color: var(--text-dim);">${esc(lastSearchError)}</span>
+          </div>`;
+      } else {
+        const sourceLabel = (settings.activeSource || 'iTunes').toUpperCase();
+        resultGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 48px; color: var(--text-dim);">
+            <p style="font-size: 16px;">No tracks found on ${esc(sourceLabel)} for "${esc(q)}".</p>
+            <span style="font-size: 13px; margin-top: 6px; display: block;">Try another search term or switch source in Settings.</span>
+          </div>`;
       }
     }).catch(() => {});
   };
@@ -3782,7 +3886,7 @@ function initSearchView() {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         triggerSearch(e.target.value);
-      }, 350);
+      }, 300);
     };
   }
 
