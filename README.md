@@ -1,6 +1,5 @@
 # Riva 🎵 — Audiophile YouTube Music Player
 
-[![Build Android APK](https://github.com/nehalrahamana-maker/Vibra/actions/workflows/build-apk.yml/badge.svg)](https://github.com/nehalrahamana-maker/Vibra/actions/workflows/build-apk.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/nehalrahamana-maker/Vibra?color=E50914&label=Latest%20Android%20APK)](https://github.com/nehalrahamana-maker/Vibra/releases)
 [![iOS Compatible](https://img.shields.io/badge/iPhone-iOS%20PWA%20Ready-black?logo=apple&color=000000)](https://nehalrahamana-maker.github.io/Vibra/)
 [![Branding: Riva Red](https://img.shields.io/badge/Brand-Riva%20Red-E50914)](https://github.com/nehalrahamana-maker/Vibra)
@@ -37,7 +36,7 @@ Apple restricts sideloading `.apk` files, so Riva has been optimized as a native
 ```mermaid
 flowchart TD
     A["User Search or Track Play"] --> B{"Riva Engine"}
-    B -->|"Native Stream"| C["Cloudflare Edge Stream Resolver"]
+    B -->|"Native Stream"| C["High-Fidelity Edge Stream Resolver"]
     B -->|"Instant Fallback < 2.5s"| D["Universal YouTube Music Engine"]
     C --> E["5-Band Web Audio DSP Pipeline"]
     D --> E
@@ -71,7 +70,6 @@ flowchart TD
 
 - **Web / iOS PWA**: Vanilla ES2022, Modern CSS3 with Safe-Area Insets & Dynamic Viewport (`100dvh`), Web Audio API, Service Worker.
 - **Android Native**: Kotlin, Jetpack Compose, AndroidX Media3 / ExoPlayer, Material 3 Expressive.
-- **CI/CD**: GitHub Actions for automated Kotlin APK compilation and GitHub Pages distribution.
 
 ---
 
