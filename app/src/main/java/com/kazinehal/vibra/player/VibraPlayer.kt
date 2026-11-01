@@ -78,8 +78,30 @@ class VibraPlayer private constructor(context: Context) {
 
     private var sleepJob: Job? = null
 
+    var shouldPlayWhenReady by mutableStateOf(true)
+        private set
+
     init {
         exoPlayer.addListener(object : Player.Listener {
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                shouldPlayWhenReady = playWhenReady
+                if (!playWhenReady) {
+                    isPlaying = false
+                    isLoading = false
+                } else if (exoPlayer.playbackState == Player.STATE_READY) {
+                    isPlaying = true
+                }
+            }
+
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (!playWhenReady) {
+                    isPlaying = false
+                    isLoading = false
+                } else if (exoPlayer.playbackState == Player.STATE_READY) {
+                    isPlaying = true
+                }
+            }
+
             override fun onIsPlayingChanged(playing: Boolean) {
                 isPlaying = playing
                 if (playing) {
@@ -157,6 +179,7 @@ class VibraPlayer private constructor(context: Context) {
         currentTrack = track
         durationMs = track.duration * 1000L
         isLoading = true
+        shouldPlayWhenReady = true
 
         // Add to persistent user history
         UserLibraryManager.addToHistory(track)
@@ -223,18 +246,44 @@ class VibraPlayer private constructor(context: Context) {
                 .build()
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.prepare()
-            exoPlayer.play()
+            if (shouldPlayWhenReady) {
+                exoPlayer.playWhenReady = true
+                exoPlayer.play()
+                isPlaying = true
+            } else {
+                exoPlayer.playWhenReady = false
+                exoPlayer.pause()
+                isPlaying = false
+            }
         } catch (e: Exception) {
             android.util.Log.e("VibraPlayer", "startPlayback failed: ${e.message}", e)
         }
     }
 
     fun togglePlayPause() {
-        if (isPlaying) {
-            exoPlayer.pause()
+        if (isPlaying || (exoPlayer.playWhenReady && exoPlayer.playbackState != Player.STATE_ENDED)) {
+            pause()
         } else {
-            exoPlayer.play()
+            play()
         }
+    }
+
+    fun pause() {
+        shouldPlayWhenReady = false
+        exoPlayer.playWhenReady = false
+        exoPlayer.pause()
+        isPlaying = false
+        isLoading = false
+    }
+
+    fun play() {
+        shouldPlayWhenReady = true
+        if (exoPlayer.playbackState == Player.STATE_ENDED) {
+            exoPlayer.seekTo(0)
+        }
+        exoPlayer.playWhenReady = true
+        exoPlayer.play()
+        isPlaying = true
     }
 
     fun seekTo(positionMs: Long) {

@@ -269,7 +269,8 @@ fun NowPlayingScreen(
                     )
                 }
 
-                // Large Circle Play/Pause Button with Loading state
+                // Large Circle Play/Pause Button with instant-responsive state
+                val isPauseState = player.isPlaying || (player.isLoading && player.shouldPlayWhenReady)
                 Box(
                     modifier = Modifier
                         .size(70.dp)
@@ -280,18 +281,17 @@ fun NowPlayingScreen(
                 ) {
                     if (player.isLoading) {
                         CircularProgressIndicator(
-                            color = Color.Black,
+                            color = RivaRed,
                             strokeWidth = 3.dp,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    } else {
-                        Icon(
-                            imageVector = if (player.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                            contentDescription = "Play/Pause",
-                            tint = Color.Black,
-                            modifier = Modifier.size(36.dp)
+                            modifier = Modifier.size(62.dp)
                         )
                     }
+                    Icon(
+                        imageVector = if (isPauseState) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (isPauseState) "Pause" else "Play",
+                        tint = Color.Black,
+                        modifier = Modifier.size(36.dp)
+                    )
                 }
 
                 IconButton(onClick = { player.next() }) {

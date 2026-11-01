@@ -101,7 +101,8 @@ fun BottomPlayerBar(
                     )
                 }
 
-                // Play / Pause Circle Button with Loading state
+                // Play / Pause Circle Button with instant-responsive state
+                val isPauseState = player.isPlaying || (player.isLoading && player.shouldPlayWhenReady)
                 Box(
                     modifier = Modifier
                         .size(38.dp)
@@ -112,18 +113,17 @@ fun BottomPlayerBar(
                 ) {
                     if (player.isLoading) {
                         CircularProgressIndicator(
-                            color = Color.Black,
+                            color = RivaRed,
                             strokeWidth = 2.dp,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    } else {
-                        Icon(
-                            imageVector = if (player.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                            contentDescription = "Play/Pause",
-                            tint = Color.Black,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(34.dp)
                         )
                     }
+                    Icon(
+                        imageVector = if (isPauseState) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (isPauseState) "Pause" else "Play",
+                        tint = Color.Black,
+                        modifier = Modifier.size(22.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.width(4.dp))

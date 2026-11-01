@@ -2109,6 +2109,18 @@ function playTrack() {
   audio.initAudioContext();
   audio.resume();
 
+  if (currentPlaybackEngine === 'youtube' && ytPlayer && isYtReady) {
+    try {
+      ytPlayer.playVideo();
+      state.isPlaying = true;
+      updatePlaybackUI();
+      startYtProgressTracker();
+      return;
+    } catch (e) {
+      console.warn('[Riva] Error resuming YouTube player:', e);
+    }
+  }
+
   audio.getActiveElement().play().then(() => {
     state.isPlaying = true;
     updatePlaybackUI();
@@ -2121,6 +2133,12 @@ function playTrack() {
 }
 
 function pauseTrack() {
+  if (currentPlaybackEngine === 'youtube' && ytPlayer && isYtReady) {
+    try {
+      ytPlayer.pauseVideo();
+    } catch (e) {}
+    stopYtProgressTracker();
+  }
   audio.getActiveElement().pause();
   if (audio.isCrossfading) {
     audio.getInactiveElement().pause();
@@ -5565,7 +5583,7 @@ function setupSettingsControls() {
   }
 }
 
-// Windows Media Session Action Handlers
+// Media Session Action Handlers (iOS Lock Screen / Dynamic Island / Desktop)
 function setupMediaSessionHandlers() {
   if (!('mediaSession' in navigator)) return;
 
@@ -5574,17 +5592,34 @@ function setupMediaSessionHandlers() {
   navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
   navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
   navigator.mediaSession.setActionHandler('seekto', (details) => {
-    if (details.seekTime && audio.audioElement) {
-      audio.audioElement.currentTime = details.seekTime;
+    if (details.seekTime != null) {
+      if (currentPlaybackEngine === 'youtube' && ytPlayer && isYtReady) {
+        try { ytPlayer.seekTo(details.seekTime, true); } catch (e) {}
+      } else if (audio.audioElement) {
+        audio.audioElement.currentTime = details.seekTime;
+      }
     }
   });
   navigator.mediaSession.setActionHandler('seekforward', (details) => {
     const skip = details.seekOffset || 10;
-    audio.audioElement.currentTime = Math.min(audio.audioElement.duration || 0, audio.audioElement.currentTime + skip);
+    const cur = currentPlaybackEngine === 'youtube' && ytPlayer ? (ytPlayer.getCurrentTime() || 0) : (audio.audioElement?.currentTime || 0);
+    const dur = currentPlaybackEngine === 'youtube' && ytPlayer ? (ytPlayer.getDuration() || 0) : (audio.audioElement?.duration || 0);
+    const target = Math.min(dur, cur + skip);
+    if (currentPlaybackEngine === 'youtube' && ytPlayer && isYtReady) {
+      try { ytPlayer.seekTo(target, true); } catch (e) {}
+    } else if (audio.audioElement) {
+      audio.audioElement.currentTime = target;
+    }
   });
   navigator.mediaSession.setActionHandler('seekbackward', (details) => {
     const skip = details.seekOffset || 10;
-    audio.audioElement.currentTime = Math.max(0, audio.audioElement.currentTime - skip);
+    const cur = currentPlaybackEngine === 'youtube' && ytPlayer ? (ytPlayer.getCurrentTime() || 0) : (audio.audioElement?.currentTime || 0);
+    const target = Math.max(0, cur - skip);
+    if (currentPlaybackEngine === 'youtube' && ytPlayer && isYtReady) {
+      try { ytPlayer.seekTo(target, true); } catch (e) {}
+    } else if (audio.audioElement) {
+      audio.audioElement.currentTime = target;
+    }
   });
 }
 
@@ -5834,3 +5869,28 @@ function applyHomeData(data) {
     }
   }
 }
+
+// =============================================================================
+// IOS SAFARI & WEBKIT AUDIO UNLOCKER
+// =============================================================================
+function unlockIOSAudio() {
+  try {
+    if (audio && audio.ctx && audio.ctx.state === 'suspended') {
+      audio.ctx.resume();
+    }
+    const a1 = document.getElementById('nativeAudio');
+    const a2 = document.getElementById('nativeAudioB');
+    if (a1 && a1.paused && !a1.src) {
+      a1.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+      a1.play().then(() => { a1.pause(); a1.removeAttribute('src'); }).catch(() => {});
+    }
+    if (a2 && a2.paused && !a2.src) {
+      a2.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+      a2.play().then(() => { a2.pause(); a2.removeAttribute('src'); }).catch(() => {});
+    }
+  } catch (e) {}
+}
+
+window.addEventListener('touchstart', unlockIOSAudio, { once: true, passive: true });
+window.addEventListener('touchend', unlockIOSAudio, { once: true, passive: true });
+window.addEventListener('click', unlockIOSAudio, { once: true });

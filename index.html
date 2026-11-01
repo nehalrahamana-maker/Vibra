@@ -2,7 +2,17 @@
 <html lang="en" data-theme="apple-glass">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- Apple iPhone & iOS WebKit Optimization -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Riva">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=180&h=180&fit=crop">
+  <link rel="apple-touch-icon" sizes="152x152" href="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=152&h=152&fit=crop">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=180&h=180&fit=crop">
+  <link rel="apple-touch-icon" sizes="167x167" href="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=167&h=167&fit=crop">
   <title>Riva — Audiophile Music Player</title>
   <meta name="description" content="Riva is a modern, high-fidelity music streaming player and audio visualizer featuring synced lyrics, 5-band equalizer, and curated soundscapes.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1537,8 +1547,8 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Hidden Native Audio Engine (Dual Slot for Crossfade) -->
-  <audio id="nativeAudio" crossorigin="anonymous" preload="auto"></audio>
-  <audio id="nativeAudioB" crossorigin="anonymous" preload="auto"></audio>
+  <audio id="nativeAudio" crossorigin="anonymous" preload="auto" playsinline webkit-playsinline></audio>
+  <audio id="nativeAudioB" crossorigin="anonymous" preload="auto" playsinline webkit-playsinline></audio>
 
   <!-- YouTube Music Embedded Playback Engine -->
   <div id="ytHiddenPlayer" style="position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0.01;pointer-events:none;z-index:-999;"></div>
