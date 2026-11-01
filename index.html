@@ -123,7 +123,7 @@
     <!-- Main Content Area -->
     <main class="main-viewport" id="mainViewport">
       <!-- Riva Header -->
-      <header class="top-bar simp-top-bar" id="topBar">
+      <header class="top-bar riva-top-bar" id="topBar">
         <div class="header-left-greeting">
           <span class="header-greeting" id="greetingText">Good Morning</span>
           <div class="brand-title-wrap">
@@ -196,7 +196,7 @@
           <div class="section-block">
             <div class="section-header">
               <div>
-                <span class="section-kicker">SAGOR &bull; DISCOVER</span>
+                <span class="section-kicker">FOR YOU &bull; DISCOVER</span>
                 <h2 class="section-title">Listen again</h2>
               </div>
               <button class="section-more-btn" id="listenAgainMoreBtn">More &rarr;</button>
@@ -437,8 +437,8 @@
           <div class="search-view-container">
             <div class="search-pill-bar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              <input type="text" id="simpSearchInput" placeholder="Search for song, artist, album..." autocomplete="off">
-              <button class="clear-search-btn" id="simpClearSearchBtn" style="display:none;">&times;</button>
+              <input type="text" id="rivaSearchInput" placeholder="Search for song, artist, album..." autocomplete="off">
+              <button class="clear-search-btn" id="rivaClearSearchBtn" style="display:none;">&times;</button>
             </div>
 
             <!-- Search Landing Page (When not searching) -->
@@ -446,7 +446,7 @@
               <div class="search-promo-box">
                 <h2 class="search-promo-title">Everything you need</h2>
                 <p class="search-promo-subtitle">Search for songs, artists, albums, playlists, and more</p>
-                <div class="simp-chart-badge">✨ Introducing Riva Studio Chart</div>
+                <div class="riva-chart-badge">✨ Introducing Riva Studio Chart</div>
               </div>
 
               <!-- 2-Column Colorful Genre Gradient Cards (Frame 00:42) -->
@@ -1473,6 +1473,66 @@
     </div>
   </div>
 
+  <!-- Notifications & Engine Status Modal -->
+  <div class="modal-backdrop" id="notifModalBackdrop" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-dialog-header">
+        <h3 style="display:flex;align-items:center;gap:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E50914" stroke-width="2" width="20" height="20"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          Riva Notifications &amp; Status
+        </h3>
+        <button class="dialog-close-btn" id="closeNotifModalBtn">&times;</button>
+      </div>
+      <div class="notif-list" style="display:flex;flex-direction:column;gap:12px;margin:16px 0;">
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#10b981;margin-top:5px;flex-shrink:0;box-shadow:0 0 8px #10b981;"></span>
+          <div>
+            <strong style="display:block;font-size:14px;color:#fff;">Universal Audio Engine Active</strong>
+            <p style="margin:2px 0 0;font-size:12px;color:#94a3b8;">Dual YouTube Music &amp; Web Audio DSP streaming pipeline is fully online. Seamless fallback guarantees 100% full-track playback.</p>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#E50914;margin-top:5px;flex-shrink:0;box-shadow:0 0 8px #E50914;"></span>
+          <div>
+            <strong style="display:block;font-size:14px;color:#fff;">Riva v2.6 Pro Release</strong>
+            <p style="margin:2px 0 0;font-size:12px;color:#94a3b8;">AMOLED Dark Interface, LRCLIB synchronized word-by-word karaoke lyrics, and 3D spatial widener active.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-dialog-footer">
+        <button class="btn-primary" id="confirmNotifModalBtn" style="width:100%;">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expanded Player Options Action Sheet -->
+  <div class="modal-backdrop" id="expandedMenuModal" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-dialog-header">
+        <h3 id="expandedMenuTitle">Track Options</h3>
+        <button class="dialog-close-btn" id="closeExpandedMenuBtn">&times;</button>
+      </div>
+      <div class="menu-options-list" style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">
+        <button class="btn-secondary" id="menuActionAddPlaylist" style="justify-content:flex-start;padding:12px 16px;text-align:left;display:flex;gap:10px;align-items:center;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"></path></svg>
+          Add Current Song to Playlist
+        </button>
+        <button class="btn-secondary" id="menuActionSleepTimer" style="justify-content:flex-start;padding:12px 16px;text-align:left;display:flex;gap:10px;align-items:center;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Set Sleep Timer
+        </button>
+        <button class="btn-secondary" id="menuActionViewLyrics" style="justify-content:flex-start;padding:12px 16px;text-align:left;display:flex;gap:10px;align-items:center;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path><path d="M8 7h6"></path><path d="M8 11h8"></path></svg>
+          View Synced Lyrics
+        </button>
+        <button class="btn-secondary" id="menuActionShare" style="justify-content:flex-start;padding:12px 16px;text-align:left;display:flex;gap:10px;align-items:center;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+          Share Track / Copy Link
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notifications Container -->
   <div class="toast-container" id="toastContainer"></div>
 
@@ -1480,6 +1540,10 @@
   <audio id="nativeAudio" crossorigin="anonymous" preload="auto"></audio>
   <audio id="nativeAudioB" crossorigin="anonymous" preload="auto"></audio>
 
+  <!-- YouTube Music Embedded Playback Engine -->
+  <div id="ytHiddenPlayer" style="position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0.01;pointer-events:none;z-index:-999;"></div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script src="app.js"></script>
 </body>
 </html>

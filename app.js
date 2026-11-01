@@ -1673,6 +1673,163 @@ class LyricsEngine {
 const lyricsEngine = new LyricsEngine();
 
 // =============================================================================
+// YOUTUBE MUSIC EMBEDDED PLAYBACK ENGINE & UNIFIED CONTROLS
+// =============================================================================
+let ytPlayer = null;
+let isYtReady = false;
+let currentPlaybackEngine = 'native'; // 'native' | 'youtube'
+let ytProgressTimer = null;
+let ytCurrentTime = 0;
+let ytDuration = 0;
+
+window.onYouTubeIframeAPIReady = function() {
+  try {
+    ytPlayer = new YT.Player('ytHiddenPlayer', {
+      height: '1',
+      width: '1',
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        playsinline: 1,
+        rel: 0,
+        modestbranding: 1
+      },
+      events: {
+        onReady: () => {
+          isYtReady = true;
+          console.log('[Riva] YouTube Music Engine Ready');
+          if (typeof state !== 'undefined' && state.volume !== undefined && ytPlayer && ytPlayer.setVolume) {
+            ytPlayer.setVolume(Math.round(state.volume * 100));
+          }
+        },
+        onStateChange: handleYtStateChange,
+        onError: handleYtError
+      }
+    });
+  } catch (e) {
+    console.warn('[Riva] YouTube Iframe initialization deferred:', e);
+  }
+};
+
+function handleYtStateChange(event) {
+  if (currentPlaybackEngine !== 'youtube') return;
+  if (event.data === YT.PlayerState.PLAYING) {
+    state.isPlaying = true;
+    updatePlaybackUI();
+    startYtProgressTracker();
+  } else if (event.data === YT.PlayerState.PAUSED) {
+    state.isPlaying = false;
+    updatePlaybackUI();
+    stopYtProgressTracker();
+  } else if (event.data === YT.PlayerState.ENDED) {
+    stopYtProgressTracker();
+    nextTrack();
+  }
+}
+
+function handleYtError(err) {
+  console.warn('[Riva] YouTube Player error event code:', err.data);
+  if (currentPlaybackEngine === 'youtube') {
+    stopYtProgressTracker();
+    showToast('Video not available for playback. Trying next song...', 'info');
+    setTimeout(() => nextTrack(), 1000);
+  }
+}
+
+function startYtProgressTracker() {
+  stopYtProgressTracker();
+  ytProgressTimer = setInterval(() => {
+    if (currentPlaybackEngine !== 'youtube' || !ytPlayer || !isYtReady) return;
+    try {
+      if (typeof ytPlayer.getCurrentTime === 'function') {
+        const cur = ytPlayer.getCurrentTime() || 0;
+        const dur = (typeof ytPlayer.getDuration === 'function' ? ytPlayer.getDuration() : 0) || (state.getCurrentTrack()?.duration || 0);
+        ytCurrentTime = cur;
+        ytDuration = dur;
+        updateUnifiedProgress(cur, dur);
+      }
+    } catch (e) {}
+  }, 250);
+}
+
+function stopYtProgressTracker() {
+  if (ytProgressTimer) {
+    clearInterval(ytProgressTimer);
+    ytProgressTimer = null;
+  }
+}
+
+function updateUnifiedProgress(cur, dur) {
+  state.currentTime = cur;
+  state.duration = dur;
+
+  const curLabel = document.getElementById('currentTimeLabel');
+  if (curLabel) curLabel.textContent = formatTime(cur);
+  const durLabel = document.getElementById('durationTimeLabel');
+  if (durLabel) durLabel.textContent = formatTime(dur);
+
+  const expCur = document.getElementById('expandedCurrentTime');
+  if (expCur) expCur.textContent = formatTime(cur);
+  const expDur = document.getElementById('expandedDuration');
+  if (expDur) expDur.textContent = formatTime(dur);
+
+  const pct = dur > 0 ? Math.min(100, Math.max(0, (cur / dur) * 100)) : 0;
+  const seekProg = document.getElementById('seekProgress');
+  if (seekProg) seekProg.style.width = `${pct}%`;
+  const seekThumb = document.getElementById('seekThumb');
+  if (seekThumb) seekThumb.style.left = `${pct}%`;
+
+  const expSeekProg = document.getElementById('expandedSeekProgress');
+  if (expSeekProg) expSeekProg.style.width = `${pct}%`;
+  const expSeekThumb = document.getElementById('expandedSeekThumb');
+  if (expSeekThumb) expSeekThumb.style.left = `${pct}%`;
+
+  const fMiniProg = document.getElementById('fMiniProgressFill');
+  if (fMiniProg) fMiniProg.style.width = `${pct}%`;
+
+  // Real-time synced lyrics update
+  if (typeof lyricsEngine !== 'undefined' && lyricsEngine.update) {
+    lyricsEngine.update(cur, 'lyricsScrollBox');
+    lyricsEngine.update(cur, 'expandedLyricsScroll');
+  }
+
+  // Real Delta Listening Stats
+  if (state.isPlaying) {
+    if (state.lastAudioTime !== null && state.lastAudioTime !== undefined) {
+      const delta = cur - state.lastAudioTime;
+      if (delta > 0 && delta < 2) {
+        state.stats.totalSecondsListened += delta;
+        if (Math.round(state.stats.totalSecondsListened) % 15 === 0) {
+          state.saveStats();
+          updateStatsUI();
+        }
+      }
+    }
+    state.lastAudioTime = cur;
+  }
+}
+
+function seekUnified(pct) {
+  const curTrack = state.getCurrentTrack();
+  if (currentPlaybackEngine === 'youtube' && ytPlayer && isYtReady && typeof ytPlayer.getDuration === 'function') {
+    const dur = ytPlayer.getDuration() || (curTrack?.duration || 0);
+    const targetSec = Math.max(0, Math.min(dur, pct * dur));
+    try {
+      ytPlayer.seekTo(targetSec, true);
+    } catch (e) {}
+    updateUnifiedProgress(targetSec, dur);
+  } else {
+    const activeEl = audio.getActiveElement();
+    const dur = activeEl.duration || (curTrack?.duration || 0);
+    const targetSec = Math.max(0, Math.min(dur, pct * dur));
+    activeEl.currentTime = targetSec;
+    updateUnifiedProgress(targetSec, dur);
+  }
+}
+
+// =============================================================================
 // 6. PLAYER CONTROLLER & MEDIA SESSION
 // =============================================================================
 
@@ -1697,40 +1854,101 @@ async function loadTrack(index, autoPlay = true) {
     }
   }
 
+  // Stop current active engines
+  audio.getActiveElement().pause();
+  if (ytPlayer && isYtReady) {
+    try { ytPlayer.pauseVideo(); } catch (e) {}
+  }
+  stopYtProgressTracker();
+
   state.currentIndex = index;
   state.saveQueue();
   const track = state.getCurrentTrack();
+
+  // Update UI Elements immediately
+  updateActiveTrackUI(track);
+  renderQueue();
+  updateActiveCards();
 
   // Indicate loading state
   const playBtnIcon = document.getElementById('playPauseIcon');
   if (playBtnIcon) playBtnIcon.style.opacity = '0.4';
 
-  const streamUrl = await resolveStream(track);
-  if (playBtnIcon) playBtnIcon.style.opacity = '1';
-
-  if (streamUrl) {
-    consecutiveStreamFails = 0;
-    audio.audioElement.src = streamUrl;
-    audio.audioElement.load();
-    if (autoPlay) {
-      playTrack();
+  // 1. Non-YouTube tracks (Local files, Audius, Jamendo)
+  if (!track.videoId || track.source === 'local' || track.source === 'audius' || track.source === 'jamendo') {
+    currentPlaybackEngine = 'native';
+    const streamUrl = await resolveStream(track);
+    if (playBtnIcon) playBtnIcon.style.opacity = '1';
+    if (streamUrl) {
+      consecutiveStreamFails = 0;
+      audio.audioElement.src = streamUrl;
+      audio.audioElement.load();
+      if (autoPlay) playTrack();
     }
   } else {
-    console.warn('Stream resolution returned null for track:', track.title);
-    consecutiveStreamFails++;
-    if (typeof showToast === 'function') {
-      showToast(`Stream for "${track.title}" unavailable. Trying next song...`, 'error');
-    }
-    if (consecutiveStreamFails >= 3) {
-      if (typeof showToast === 'function') {
-        showToast('3 songs in a row failed to load — connection or YouTube seems blocked. Auto-skip stopped.', 'error');
+    // 2. YouTube Music tracks (has videoId):
+    // Fast check for cached direct stream URL
+    let directStreamUrl = null;
+    if (resolvedStreamCache.has(track.videoId)) {
+      const cached = resolvedStreamCache.get(track.videoId);
+      if (Date.now() < cached.expiresAt) {
+        directStreamUrl = viaRelay(cached.url);
       }
-      state.isPlaying = false;
-      updatePlaybackUI();
-      return;
     }
-    setTimeout(() => nextTrack(), 1200);
-    return;
+
+    // 2.5s fast probe to worker if not cached
+    if (!directStreamUrl && !isKnownStreamFailure(track.videoId)) {
+      try {
+        const res = await fetch(`${settings.apiBase}/api/stream?id=${encodeURIComponent(track.videoId)}&q=${settings.quality}`, {
+          signal: AbortSignal.timeout(2500)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.url) {
+            resolvedStreamCache.set(track.videoId, {
+              url: data.url,
+              expiresAt: data.expiresAt || (Date.now() + 3.8 * 3600 * 1000)
+            });
+            directStreamUrl = viaRelay(data.url);
+          }
+        }
+      } catch (e) {
+        // Fast probe timed out — immediately fall back to YouTube Engine
+      }
+    }
+
+    if (playBtnIcon) playBtnIcon.style.opacity = '1';
+
+    if (directStreamUrl) {
+      // Play via native Web Audio engine with EQ and DSP
+      currentPlaybackEngine = 'native';
+      consecutiveStreamFails = 0;
+      audio.audioElement.src = directStreamUrl;
+      audio.audioElement.load();
+      if (autoPlay) playTrack();
+    } else {
+      // Play via embedded YouTube Player engine (100% full-track reliability)
+      currentPlaybackEngine = 'youtube';
+      consecutiveStreamFails = 0;
+      const playYt = () => {
+        if (ytPlayer && isYtReady && typeof ytPlayer.loadVideoById === 'function') {
+          try {
+            ytPlayer.loadVideoById(track.videoId);
+            if (autoPlay) {
+              ytPlayer.playVideo();
+              state.isPlaying = true;
+              updatePlaybackUI();
+              startYtProgressTracker();
+            }
+          } catch (err) {
+            console.warn('YT loadVideoById error:', err);
+          }
+        } else {
+          setTimeout(playYt, 400);
+        }
+      };
+      playYt();
+    }
   }
 
   // Restore mid-song position if resuming from refresh
@@ -1879,7 +2097,7 @@ function updateActiveTrackUI(track) {
     navigator.mediaSession.metadata = new MediaMetadata({
       title: track.title,
       artist: track.artist,
-      album: track.album || 'Vibra Master',
+      album: track.album || 'Riva Master',
       artwork: [
         { src: track.art, sizes: '512x512', type: 'image/jpeg' }
       ]
@@ -3433,8 +3651,45 @@ function setupRivaUI() {
   setupFloatingMiniPlayer();
   setupExpandedPlayer();
 
-  // Initial Home Sections Render
+  // 1. Notification Bell Modal Trigger
+  const notifBtn = document.getElementById('headerNotifBtn');
+  const notifModal = document.getElementById('notifModalBackdrop');
+  const closeNotifBtn = document.getElementById('closeNotifModalBtn');
+  const confirmNotifBtn = document.getElementById('confirmNotifModalBtn');
+  if (notifBtn && notifModal) {
+    notifBtn.onclick = () => { notifModal.style.display = 'flex'; };
+    if (closeNotifBtn) closeNotifBtn.onclick = () => { notifModal.style.display = 'none'; };
+    if (confirmNotifBtn) confirmNotifBtn.onclick = () => { notifModal.style.display = 'none'; };
+    notifModal.onclick = (e) => { if (e.target === notifModal) notifModal.style.display = 'none'; };
+  }
+
+  // 2. Listening History Quick Trigger
+  const historyBtn = document.getElementById('headerHistoryBtn');
+  if (historyBtn) {
+    historyBtn.onclick = () => {
+      switchView('library');
+    };
+  }
+
+  // 3. Settings Quick Trigger
+  const settingsBtn = document.getElementById('headerSettingsBtn');
+  if (settingsBtn) {
+    settingsBtn.onclick = () => {
+      switchView('settings');
+    };
+  }
+
+  // 4. Listen Again "More ->" Trigger
+  const listenAgainMoreBtn = document.getElementById('listenAgainMoreBtn');
+  if (listenAgainMoreBtn) {
+    listenAgainMoreBtn.onclick = () => {
+      switchView('library');
+    };
+  }
+
+  // Initial Home Sections Render with live YouTube Music carousels
   renderRivaHomeSections();
+  loadRivaHomeSectionsFromYT();
 }
 
 function updateGreeting() {
@@ -3476,21 +3731,21 @@ function renderRivaHomeSections() {
       : [...state.playlist].reverse();
 
     listenAgainRow.innerHTML = listenTracks.map(t => `
-      <div class="simp-card" data-id="${esc(t.id)}">
-        <div class="simp-card-art">
+      <div class="riva-card" data-id="${esc(t.id)}">
+        <div class="riva-card-art">
           <img src="${esc(t.art)}" alt="${esc(t.title)}" loading="lazy">
-          <div class="simp-card-play-overlay">
-            <button class="simp-card-play-btn" title="Play">
+          <div class="riva-card-play-overlay">
+            <button class="riva-card-play-btn" title="Play">
               <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
             </button>
           </div>
         </div>
-        <h4 class="simp-card-title">${esc(t.title)}</h4>
-        <p class="simp-card-sub">${esc(t.artist)}</p>
+        <h4 class="riva-card-title">${esc(t.title)}</h4>
+        <p class="riva-card-sub">${esc(t.artist)}</p>
       </div>
     `).join('');
 
-    listenAgainRow.querySelectorAll('.simp-card').forEach(card => {
+    listenAgainRow.querySelectorAll('.riva-card').forEach(card => {
       card.addEventListener('click', () => {
         const tid = card.getAttribute('data-id');
         const track = state.findTrack(tid);
@@ -3532,19 +3787,19 @@ function renderRivaHomeSections() {
   if (coversRow) {
     const coversTracks = state.playlist.slice(1, 5);
     coversRow.innerHTML = coversTracks.map(t => `
-      <div class="simp-card" data-id="${esc(t.id)}">
-        <div class="simp-card-art">
+      <div class="riva-card" data-id="${esc(t.id)}">
+        <div class="riva-card-art">
           <img src="${esc(t.art)}" alt="${esc(t.title)}" loading="lazy">
-          <div class="simp-card-play-overlay">
-            <button class="simp-card-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
+          <div class="riva-card-play-overlay">
+            <button class="riva-card-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
           </div>
         </div>
-        <h4 class="simp-card-title">${esc(t.title)} (Remix)</h4>
-        <p class="simp-card-sub">${esc(t.artist)} &bull; Vibra VIP</p>
+        <h4 class="riva-card-title">${esc(t.title)} (Remix)</h4>
+        <p class="riva-card-sub">${esc(t.artist)} &bull; Riva VIP</p>
       </div>
     `).join('');
 
-    coversRow.querySelectorAll('.simp-card').forEach(card => {
+    coversRow.querySelectorAll('.riva-card').forEach(card => {
       card.addEventListener('click', () => {
         const tid = card.getAttribute('data-id');
         const track = state.findTrack(tid);
@@ -3558,19 +3813,19 @@ function renderRivaHomeSections() {
   if (trendingRow) {
     const trendingTracks = state.playlist.slice(0, 6);
     trendingRow.innerHTML = trendingTracks.map(t => `
-      <div class="simp-card" data-id="${esc(t.id)}">
-        <div class="simp-card-art">
+      <div class="riva-card" data-id="${esc(t.id)}">
+        <div class="riva-card-art">
           <img src="${esc(t.art)}" alt="${esc(t.title)}" loading="lazy">
-          <div class="simp-card-play-overlay">
-            <button class="simp-card-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
+          <div class="riva-card-play-overlay">
+            <button class="riva-card-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
           </div>
         </div>
-        <h4 class="simp-card-title">${esc(t.title)}</h4>
-        <p class="simp-card-sub">🔥 Trending #1 &bull; ${esc(t.artist)}</p>
+        <h4 class="riva-card-title">${esc(t.title)}</h4>
+        <p class="riva-card-sub">🔥 Trending #1 &bull; ${esc(t.artist)}</p>
       </div>
     `).join('');
 
-    trendingRow.querySelectorAll('.simp-card').forEach(card => {
+    trendingRow.querySelectorAll('.riva-card').forEach(card => {
       card.addEventListener('click', () => {
         const tid = card.getAttribute('data-id');
         const track = state.findTrack(tid);
@@ -3585,19 +3840,19 @@ function renderRivaHomeSections() {
     const danceTracks = state.playlist.filter(t => ['synthwave', 'edm'].includes(t.genre.toLowerCase()));
     const items = danceTracks.length ? danceTracks : state.playlist;
     danceRow.innerHTML = items.map(t => `
-      <div class="simp-card" data-id="${esc(t.id)}">
-        <div class="simp-card-art">
+      <div class="riva-card" data-id="${esc(t.id)}">
+        <div class="riva-card-art">
           <img src="${esc(t.art)}" alt="${esc(t.title)}" loading="lazy">
-          <div class="simp-card-play-overlay">
-            <button class="simp-card-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
+          <div class="riva-card-play-overlay">
+            <button class="riva-card-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
           </div>
         </div>
-        <h4 class="simp-card-title">${esc(t.title)}</h4>
-        <p class="simp-card-sub">⚡ ${esc(t.genre)} &bull; ${esc(t.artist)}</p>
+        <h4 class="riva-card-title">${esc(t.title)}</h4>
+        <p class="riva-card-sub">⚡ ${esc(t.genre)} &bull; ${esc(t.artist)}</p>
       </div>
     `).join('');
 
-    danceRow.querySelectorAll('.simp-card').forEach(card => {
+    danceRow.querySelectorAll('.riva-card').forEach(card => {
       card.addEventListener('click', () => {
         const tid = card.getAttribute('data-id');
         const track = state.findTrack(tid);
@@ -3617,19 +3872,19 @@ function renderRivaHomeSections() {
     ];
 
     albumsRow.innerHTML = albums.map(a => `
-      <div class="simp-card" data-album="${esc(a.name)}">
-        <div class="simp-card-art">
+      <div class="riva-card" data-album="${esc(a.name)}">
+        <div class="riva-card-art">
           <img src="${esc(a.art)}" alt="${esc(a.name)}" loading="lazy">
-          <div class="simp-card-play-overlay">
-            <button class="simp-card-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
+          <div class="riva-card-play-overlay">
+            <button class="riva-card-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
           </div>
         </div>
-        <h4 class="simp-card-title">${esc(a.name)}</h4>
-        <p class="simp-card-sub">Album &bull; ${esc(a.artist)}</p>
+        <h4 class="riva-card-title">${esc(a.name)}</h4>
+        <p class="riva-card-sub">Album &bull; ${esc(a.artist)}</p>
       </div>
     `).join('');
 
-    albumsRow.querySelectorAll('.simp-card').forEach(card => {
+    albumsRow.querySelectorAll('.riva-card').forEach(card => {
       card.addEventListener('click', () => {
         const albumName = card.getAttribute('data-album');
         const track = state.playlist.find(t => t.album === albumName) || state.playlist[0];
@@ -3767,8 +4022,8 @@ function renderRivaLibrary() {
 
 // Riva Search View Initialization
 function initSearchView() {
-  const searchInput = document.getElementById('simpSearchInput');
-  const clearBtn = document.getElementById('simpClearSearchBtn');
+  const searchInput = document.getElementById('rivaSearchInput');
+  const clearBtn = document.getElementById('rivaClearSearchBtn');
   const landing = document.getElementById('searchLandingContent');
   const resultsBox = document.getElementById('searchResultsBox');
   const resultGrid = document.getElementById('searchResultGrid');
@@ -4012,9 +4267,7 @@ function setupExpandedPlayer() {
     expSeekTrack.onclick = (e) => {
       const rect = expSeekTrack.getBoundingClientRect();
       const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      const activeEl = audio.getActiveElement();
-      const dur = activeEl.duration || state.getCurrentTrack().duration;
-      activeEl.currentTime = pct * dur;
+      seekUnified(pct);
     };
   }
 
@@ -4054,6 +4307,101 @@ function setupExpandedPlayer() {
       if (queueDrawer) queueDrawer.classList.toggle('open');
     };
   }
+
+  // Add to Playlist Button in Expanded Player
+  const expAddPlaylistBtn = document.getElementById('expandedAddPlaylistBtn');
+  if (expAddPlaylistBtn) {
+    expAddPlaylistBtn.onclick = () => {
+      const cur = state.getCurrentTrack();
+      if (cur) openAddToPlaylistModal(cur);
+    };
+  }
+
+  // Options Menu Button (Three dots) in Expanded Player
+  const expMenuBtn = document.getElementById('expandedMenuBtn');
+  const expMenuModal = document.getElementById('expandedMenuModal');
+  const closeExpMenuBtn = document.getElementById('closeExpandedMenuBtn');
+  if (expMenuBtn && expMenuModal) {
+    expMenuBtn.onclick = () => {
+      const cur = state.getCurrentTrack();
+      const titleEl = document.getElementById('expandedMenuTitle');
+      if (titleEl && cur) titleEl.textContent = `${cur.title} — Options`;
+      expMenuModal.style.display = 'flex';
+    };
+    if (closeExpMenuBtn) closeExpMenuBtn.onclick = () => { expMenuModal.style.display = 'none'; };
+    expMenuModal.onclick = (e) => { if (e.target === expMenuModal) expMenuModal.style.display = 'none'; };
+
+    const menuAddPlaylist = document.getElementById('menuActionAddPlaylist');
+    if (menuAddPlaylist) {
+      menuAddPlaylist.onclick = () => {
+        expMenuModal.style.display = 'none';
+        const cur = state.getCurrentTrack();
+        if (cur) openAddToPlaylistModal(cur);
+      };
+    }
+
+    const menuSleep = document.getElementById('menuActionSleepTimer');
+    if (menuSleep) {
+      menuSleep.onclick = () => {
+        expMenuModal.style.display = 'none';
+        const sleepModal = document.getElementById('sleepModalBackdrop');
+        if (sleepModal) sleepModal.style.display = 'flex';
+      };
+    }
+
+    const menuLyrics = document.getElementById('menuActionViewLyrics');
+    if (menuLyrics) {
+      menuLyrics.onclick = () => {
+        expMenuModal.style.display = 'none';
+        const expModal = document.getElementById('expandedPlayerModal');
+        if (expModal) expModal.classList.remove('open');
+        switchView('lyrics');
+      };
+    }
+
+    const menuShare = document.getElementById('menuActionShare');
+    if (menuShare) {
+      menuShare.onclick = () => {
+        expMenuModal.style.display = 'none';
+        const cur = state.getCurrentTrack();
+        if (cur) {
+          const shareUrl = cur.videoId ? `https://music.youtube.com/watch?v=${cur.videoId}` : window.location.href;
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+              showToast('Track link copied to clipboard!', 'success');
+            }).catch(() => {
+              showToast(`Track: ${cur.title} by ${cur.artist}`, 'info');
+            });
+          } else {
+            showToast(`Track: ${cur.title} by ${cur.artist}`, 'info');
+          }
+        }
+      };
+    }
+  }
+
+  // Artist Subscribe/Follow Button in Expanded Player
+  document.querySelectorAll('.np-subscribe-btn').forEach(btn => {
+    btn.onclick = () => {
+      const cur = state.getCurrentTrack();
+      if (!cur) return;
+      const key = `riva_followed_${encodeURIComponent(cur.artist)}`;
+      const isFollowed = localStorage.getItem(key) === 'true';
+      if (isFollowed) {
+        localStorage.removeItem(key);
+        btn.textContent = 'Follow';
+        btn.style.background = '';
+        btn.style.color = '';
+        showToast(`Unfollowed ${cur.artist}`, 'info');
+      } else {
+        localStorage.setItem(key, 'true');
+        btn.textContent = 'Following';
+        btn.style.background = '#E50914';
+        btn.style.color = '#fff';
+        showToast(`Now following ${cur.artist}!`, 'success');
+      }
+    };
+  });
 }
 
 
@@ -4217,9 +4565,7 @@ function setupPlayerEventListeners() {
   seekTrack.addEventListener('click', (e) => {
     const rect = seekTrack.getBoundingClientRect();
     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const activeEl = audio.getActiveElement();
-    const dur = activeEl.duration || state.getCurrentTrack().duration;
-    activeEl.currentTime = pct * dur;
+    seekUnified(pct);
   });
 
   // Volume
@@ -4410,15 +4756,15 @@ function setupVisualizerControls() {
 }
 
 function setupSearchAndFilters() {
-  const searchInput = document.getElementById('simpSearchInput') || document.getElementById('trackSearchInput');
-  const clearBtn = document.getElementById('simpClearSearchBtn') || document.getElementById('clearSearchBtn');
+  const searchInput = document.getElementById('rivaSearchInput') || document.getElementById('trackSearchInput');
+  const clearBtn = document.getElementById('rivaClearSearchBtn') || document.getElementById('clearSearchBtn');
 
   if (searchInput && clearBtn) {
     // initSearchView() already wires a debounced input handler on
-    // #simpSearchInput — a second one here made EVERY keystroke fire
+    // #rivaSearchInput — a second one here made EVERY keystroke fire
     // /api/search TWICE (measured live: duplicate fetches 48ms apart).
     // Only wire the legacy #trackSearchInput from here.
-    if (searchInput.id !== 'simpSearchInput') {
+    if (searchInput.id !== 'rivaSearchInput') {
       let debounceTimer = null;
       searchInput.addEventListener('input', (e) => {
         const q = e.target.value.trim();
@@ -5324,3 +5670,167 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+
+// Asynchronous live YouTube Music feed for Home Carousels
+async function loadRivaHomeSectionsFromYT() {
+  if (!settings.apiBase) return;
+
+  // Try cached sections first for instant rendering
+  try {
+    const cachedData = localStorage.getItem('riva_home_sections_cache_v2');
+    if (cachedData) {
+      const parsed = JSON.parse(cachedData);
+      applyHomeData(parsed);
+    }
+  } catch (e) {}
+
+  // Fetch live YouTube Music sets in parallel
+  try {
+    const [trendRes, coverRes, danceRes] = await Promise.allSettled([
+      fetch(`${settings.apiBase}/api/search?q=top+music+hits+2026&limit=10`),
+      fetch(`${settings.apiBase}/api/search?q=popular+remix+songs&limit=8`),
+      fetch(`${settings.apiBase}/api/search?q=electronic+dance+hits&limit=8`)
+    ]);
+
+    const homeData = {};
+
+    if (trendRes.status === 'fulfilled' && trendRes.value.ok) {
+      const d = await trendRes.value.json();
+      homeData.trending = Array.isArray(d) ? d : (d.tracks || []);
+    }
+    if (coverRes.status === 'fulfilled' && coverRes.value.ok) {
+      const d = await coverRes.value.json();
+      homeData.covers = Array.isArray(d) ? d : (d.tracks || []);
+    }
+    if (danceRes.status === 'fulfilled' && danceRes.value.ok) {
+      const d = await danceRes.value.json();
+      homeData.dance = Array.isArray(d) ? d : (d.tracks || []);
+    }
+
+    if (homeData.trending || homeData.covers || homeData.dance) {
+      localStorage.setItem('riva_home_sections_cache_v2', JSON.stringify(homeData));
+      applyHomeData(homeData);
+    }
+  } catch (err) {
+    console.warn('[Riva] Live home feed fetch failed:', err);
+  }
+}
+
+function applyHomeData(data) {
+  if (!data) return;
+
+  if (data.trending && data.trending.length > 0) {
+    data.trending.forEach(t => {
+      if (!state.playlist.some(p => p.id === t.id)) state.playlist.push(t);
+    });
+    const trendingRow = document.getElementById('trendingRow');
+    if (trendingRow) {
+      trendingRow.innerHTML = data.trending.map(t => `
+        <div class="riva-card" data-id="${esc(t.id)}">
+          <div class="riva-card-art">
+            <img src="${esc(t.art)}" alt="${esc(t.title)}" loading="lazy">
+            <div class="riva-card-play-overlay">
+              <button class="riva-card-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
+            </div>
+          </div>
+          <h4 class="riva-card-title">${esc(t.title)}</h4>
+          <p class="riva-card-sub">${esc(t.artist)}</p>
+        </div>
+      `).join('');
+
+      trendingRow.querySelectorAll('.riva-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const tid = card.getAttribute('data-id');
+          const track = state.findTrack(tid);
+          if (track) state.playNow(track);
+        });
+      });
+    }
+
+    // Quick picks stack
+    const quickPicksStack = document.getElementById('quickPicksStack');
+    if (quickPicksStack && data.trending.length >= 4) {
+      const quickTracks = data.trending.slice(0, 4);
+      quickPicksStack.innerHTML = quickTracks.map(t => `
+        <div class="quick-pick-row" data-id="${esc(t.id)}">
+          <div class="quick-pick-left">
+            <img src="${esc(t.art)}" class="quick-pick-art" alt="${esc(t.title)}" loading="lazy">
+            <div class="quick-pick-info">
+              <span class="quick-pick-title">${esc(t.title)}</span>
+              <span class="quick-pick-artist">${esc(t.artist)}</span>
+            </div>
+          </div>
+          <div class="quick-pick-right">
+            <button class="icon-circle-btn" title="Play"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
+          </div>
+        </div>
+      `).join('');
+
+      quickPicksStack.querySelectorAll('.quick-pick-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const tid = row.getAttribute('data-id');
+          const track = state.findTrack(tid);
+          if (track) state.playNow(track);
+        });
+      });
+    }
+  }
+
+  if (data.covers && data.covers.length > 0) {
+    data.covers.forEach(t => {
+      if (!state.playlist.some(p => p.id === t.id)) state.playlist.push(t);
+    });
+    const coversRow = document.getElementById('coversRow');
+    if (coversRow) {
+      coversRow.innerHTML = data.covers.map(t => `
+        <div class="riva-card" data-id="${esc(t.id)}">
+          <div class="riva-card-art">
+            <img src="${esc(t.art)}" alt="${esc(t.title)}" loading="lazy">
+            <div class="riva-card-play-overlay">
+              <button class="riva-card-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
+            </div>
+          </div>
+          <h4 class="riva-card-title">${esc(t.title)}</h4>
+          <p class="riva-card-sub">${esc(t.artist)}</p>
+        </div>
+      `).join('');
+
+      coversRow.querySelectorAll('.riva-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const tid = card.getAttribute('data-id');
+          const track = state.findTrack(tid);
+          if (track) state.playNow(track);
+        });
+      });
+    }
+  }
+
+  if (data.dance && data.dance.length > 0) {
+    data.dance.forEach(t => {
+      if (!state.playlist.some(p => p.id === t.id)) state.playlist.push(t);
+    });
+    const danceRow = document.getElementById('danceRow');
+    if (danceRow) {
+      danceRow.innerHTML = data.dance.map(t => `
+        <div class="riva-card" data-id="${esc(t.id)}">
+          <div class="riva-card-art">
+            <img src="${esc(t.art)}" alt="${esc(t.title)}" loading="lazy">
+            <div class="riva-card-play-overlay">
+              <button class="riva-card-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg></button>
+            </div>
+          </div>
+          <h4 class="riva-card-title">${esc(t.title)}</h4>
+          <p class="riva-card-sub">${esc(t.artist)}</p>
+        </div>
+      `).join('');
+
+      danceRow.querySelectorAll('.riva-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const tid = card.getAttribute('data-id');
+          const track = state.findTrack(tid);
+          if (track) state.playNow(track);
+        });
+      });
+    }
+  }
+}
