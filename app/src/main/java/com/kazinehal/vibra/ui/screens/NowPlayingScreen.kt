@@ -35,6 +35,7 @@ import kotlinx.coroutines.withContext
 fun NowPlayingScreen(
     player: VibraPlayer,
     onClose: () -> Unit,
+    onNavigateToSearch: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val track = player.currentTrack ?: return
@@ -99,13 +100,23 @@ fun NowPlayingScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onClose) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = "Dismiss",
-                        tint = Color.White,
-                        modifier = Modifier.size(32.dp)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowDown,
+                            contentDescription = "Dismiss",
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                    IconButton(onClick = onNavigateToSearch) {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "Search",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

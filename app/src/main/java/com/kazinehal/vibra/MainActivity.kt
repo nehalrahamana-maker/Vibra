@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -74,6 +75,11 @@ class MainActivity : ComponentActivity() {
                 var isExpandedPlayerVisible by remember { mutableStateOf(false) }
                 var isSettingsOpen by remember { mutableStateOf(false) }
 
+                // Android Back gesture minimizes fullscreen player smoothly
+                BackHandler(enabled = isExpandedPlayerVisible) {
+                    isExpandedPlayerVisible = false
+                }
+
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
@@ -94,7 +100,10 @@ class MainActivity : ComponentActivity() {
                             // Riva 4-Tab Bottom Navigation Bar
                             BottomNavBar(
                                 selectedTab = selectedTab,
-                                onTabSelected = { selectedTab = it }
+                                onTabSelected = { tab ->
+                                    selectedTab = tab
+                                    isExpandedPlayerVisible = false
+                                }
                             )
                         }
                     }
@@ -189,7 +198,11 @@ class MainActivity : ComponentActivity() {
                         ) {
                             NowPlayingScreen(
                                 player = player,
-                                onClose = { isExpandedPlayerVisible = false }
+                                onClose = { isExpandedPlayerVisible = false },
+                                onNavigateToSearch = {
+                                    isExpandedPlayerVisible = false
+                                    selectedTab = RivaTab.SEARCH
+                                }
                             )
                         }
 

@@ -78,6 +78,26 @@ class VibraPlayer private constructor(context: Context) {
 
     private var sleepJob: Job? = null
 
+    private var bufferingWatchdogJob: Job? = null
+
+    private fun startBufferingWatchdog() {
+        bufferingWatchdogJob?.cancel()
+        bufferingWatchdogJob = scope.launch {
+            delay(8000L) // 8s max buffering before fast-fail auto skip
+            if (isLoading && !isPlaying) {
+                android.util.Log.w("VibraPlayer", "Buffering timeout (8s), auto-skipping")
+                isLoading = false
+                next()
+            }
+        }
+    }
+
+    private fun stopBufferingWatchdog() {
+        bufferingWatchdogJob?.cancel()
+        bufferingWatchdogJob = null
+    }
+
+
     var shouldPlayWhenReady by mutableStateOf(true)
         private set
 
@@ -104,9 +124,11 @@ class VibraPlayer private constructor(context: Context) {
                 when (playbackState) {
                     Player.STATE_BUFFERING -> {
                         isLoading = true
+                        startBufferingWatchdog()
                     }
                     Player.STATE_READY -> {
                         isLoading = false
+                        stopBufferingWatchdog()
                         val dur = exoPlayer.duration
                         if (dur > 1000L) {
                             durationMs = dur
@@ -114,6 +136,7 @@ class VibraPlayer private constructor(context: Context) {
                     }
                     Player.STATE_ENDED -> {
                         isLoading = false
+                        stopBufferingWatchdog()
                         if (isRepeatOn) {
                             seekTo(0)
                             exoPlayer.play()
@@ -147,6 +170,8 @@ class VibraPlayer private constructor(context: Context) {
                             durationMs = stream.durationSeconds * 1000L
                         }
                         startPlayback(stream.audioUrl)
+                    } else {
+                        next()
                     }
                 }
             }
@@ -171,6 +196,13 @@ class VibraPlayer private constructor(context: Context) {
         durationMs = track.duration * 1000L
         isLoading = true
         shouldPlayWhenReady = true
+        val foundIdx = queue.indexOfFirst { it.id == track.id }
+        if (foundIdx != -1) {
+            currentIndex = foundIdx
+        } else {
+            queue.add(track)
+            currentIndex = queue.size - 1
+        }
 
         // Add to persistent user history
         UserLibraryManager.addToHistory(track)
@@ -207,11 +239,18 @@ class VibraPlayer private constructor(context: Context) {
                 }
 
                 // Fallback: try cached audioUrl
-                if (track.audioUrl.isNotBlank()) {
+                if (track.audioUrl.isNotBlank() && !track.audioUrl.contains("itunes") && !track.audioUrl.contains("mzstatic")) {
                     startPlayback(track.audioUrl)
+                    return@launch
                 }
+
+                android.util.Log.w("VibraPlayer", "Could not resolve stream for ${track.title}, auto-skipping")
+                isLoading = false
+                next()
             } catch (e: Exception) {
                 android.util.Log.e("VibraPlayer", "playTrack failed: ${e.message}", e)
+                isLoading = false
+                next()
             } finally {
                 isLoading = false
             }
@@ -260,6 +299,7 @@ class VibraPlayer private constructor(context: Context) {
     }
 
     fun pause() {
+        stopBufferingWatchdog()
         shouldPlayWhenReady = false
         exoPlayer.playWhenReady = false
         exoPlayer.pause()

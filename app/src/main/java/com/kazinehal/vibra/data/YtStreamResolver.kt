@@ -35,8 +35,8 @@ object YtStreamResolver {
         "https://piped-api.garudalinux.org"
     )
 
-    private const val CONNECT_TIMEOUT = 5000
-    private const val READ_TIMEOUT = 7000
+    private const val CONNECT_TIMEOUT = 2500
+    private const val READ_TIMEOUT = 3500
 
     fun resolve(videoId: String): YtStream? {
         if (videoId.isBlank()) return null
@@ -171,9 +171,14 @@ object YtStreamResolver {
         val apiUrl = "https://vibra-api.kazimdnehal.workers.dev/api/stream?id=$encoded"
         val jsonStr = httpGet(apiUrl) ?: return null
         val root = JSONObject(jsonStr)
-        val url = root.optString("url")
-        if (url.isNotBlank()) {
-            return YtStream(audioUrl = url, source = "Worker")
+        val rawUrl = root.optString("url")
+        if (rawUrl.isNotBlank()) {
+            val audioUrl = if (rawUrl.contains("googlevideo.com")) {
+                "https://vibra-api.kazimdnehal.workers.dev/api/audio?url=${URLEncoder.encode(rawUrl, "UTF-8")}"
+            } else {
+                rawUrl
+            }
+            return YtStream(audioUrl = audioUrl, source = "Worker")
         }
         return null
     }
