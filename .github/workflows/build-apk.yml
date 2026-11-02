@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ build-apk, main ]
   workflow_dispatch:
 
 permissions:
@@ -52,7 +52,7 @@ jobs:
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/heads/main')
+        if: startsWith(github.ref, 'refs/heads/build-apk') || startsWith(github.ref, 'refs/heads/main')
         with:
           tag_name: v2.0.0
           name: Riva Release v2.0.0 (Native Jetpack Compose APK)

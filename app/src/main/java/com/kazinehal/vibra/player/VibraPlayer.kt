@@ -93,15 +93,6 @@ class VibraPlayer private constructor(context: Context) {
                 }
             }
 
-            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                if (!playWhenReady) {
-                    isPlaying = false
-                    isLoading = false
-                } else if (exoPlayer.playbackState == Player.STATE_READY) {
-                    isPlaying = true
-                }
-            }
-
             override fun onIsPlayingChanged(playing: Boolean) {
                 isPlaying = playing
                 if (playing) {
