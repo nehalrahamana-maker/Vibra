@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ build-apk, main ]
+    branches: [ main, build-apk ]
   workflow_dispatch:
 
 permissions:
@@ -52,23 +52,29 @@ jobs:
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/heads/build-apk') || startsWith(github.ref, 'refs/heads/main')
         with:
           tag_name: v2.0.0
-          name: Riva Release v2.0.0 (Native Jetpack Compose APK)
+          name: "Riva v2.0.0 — Fixed: Fullscreen Nav + Next Song Spinning"
           overwrite_files: true
           body: |
             ### 🎵 Riva v2.0.0 — YouTube Music Jetpack Compose Player
             
-            - **App Name: Riva** (Signature Red Branding)
-            - **Genuine YouTube Music backend with multi-tier streaming engine**
-            - **100% Full Song Playback (Zero 30s cutoffs)**
-            - **Pure AMOLED Black UI (#000000)**
-            - **Working Favorites & Listening History**
-            - **Author: Kazi Nehal Rahman**
-            - **Build Date: October 26, 2026**
+            **🔧 Latest Fixes (Nov 2026):**
+            - ✅ Fullscreen player no longer blocks search/navigation — tap any tab while music plays
+            - ✅ Next song infinite spinning FIXED — 8s watchdog auto-skips stuck tracks
+            - ✅ currentIndex sync fixed — next/previous always navigate correctly
+            - ✅ Stream proxy through worker — no more 403 errors on mobile networks
+            - ✅ Duplicate listener bug removed — pause/play state always consistent
             
-            **Download the attached `Riva-v2.0.0.apk` or `Vibra-v2.0.0.apk` and install it on your Android phone!**
+            **Features:**
+            - Genuine YouTube Music backend with multi-tier streaming engine
+            - 100% Full Song Playback (Zero 30s cutoffs)
+            - Pure AMOLED Black UI (#000000) with Riva Red (#E50914)
+            - Working Favorites & Listening History
+            - Lock Screen / Notification media controls
+            - Author: Kazi Nehal Rahman
+            
+            **Download the attached `Riva-v2.0.0.apk` and install on Android!**
           files: |
             Riva-v2.0.0.apk
             Vibra-v2.0.0.apk
