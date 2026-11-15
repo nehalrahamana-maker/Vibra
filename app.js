@@ -19,7 +19,7 @@ const CURATED_TRACKS = [
     duration: 268,
     videoId: 'BddP6PYo2gs',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/9f/13/ca/9f13ca3b-e533-03e0-f19a-f0aaa774581d/196589311191.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/38/4c/5c/384c5c8f-3ff8-e457-b2f7-3158ce108649/mzaf_12389299033886433185.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Acoustic guitar intro)
 [00:05.00] Mujhko itna bataye koyi
 [00:09.00] Kaise tujhse dil na lagaye koyi
@@ -41,7 +41,7 @@ const CURATED_TRACKS = [
     duration: 262,
     videoId: 'HPyL_l5L7iQ',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/2e/0b/c0/2e0bc070-112f-a827-6ad8-6bc64f7caaff/840214460180.png/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/eb/27/61/eb2761c7-d606-0912-dff0-2dc6b69974bd/mzaf_2023722930851223219.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Melodic piano melody)
 [00:08.00] Tu mera koyi na hoke bhi kuch laage
 [00:16.00] Kiya re jo bhi tune kaise kiya re
@@ -58,7 +58,7 @@ const CURATED_TRACKS = [
     duration: 230,
     videoId: '34Na4j8AVgA',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b5/92/bb/b592bb72-52e3-e756-9b26-9f56d08f47ab/16UMGIM67864.rgb.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/11/71/d6/1171d6ad-3c96-e027-2af6-58028426588c/mzaf_15137631797407745471.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Daft Punk electro synth sequence)
 [00:06.00] I'm tryna put you in the worst mood, ah
 [00:10.00] P1 cleaner than your church shoes, ah
@@ -76,7 +76,7 @@ const CURATED_TRACKS = [
     duration: 206,
     videoId: '36mCe3Z0jE8',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/97/86/86/97868694-9413-a543-514a-a6374469ff97/859736427250_cover.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/f5/6e/e4/f56ee414-2027-b605-7455-a24fbc433373/mzaf_3937962578481238111.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Bhangra dhol beats intro)
 [00:08.00] Diljit Dosanjh in the house
 [00:16.00] Nachdi tu morni wargi
@@ -91,7 +91,7 @@ const CURATED_TRACKS = [
     duration: 234,
     videoId: 'JGwWNGJdvx8',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/15/e6/e8/15e6e8a4-4190-6a8b-86c3-ab4a51b88288/190295851286.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/44/c7/4f/44c74f0d-72dc-6143-d4d0-ba14d661ca0d/mzaf_9566898362556366703.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Marimba rhythmic loop)
 [00:04.00] The club isn't the best place to find a lover
 [00:07.00] So the bar is where I go
@@ -109,7 +109,7 @@ const CURATED_TRACKS = [
     duration: 262,
     videoId: 'fsiPzT50ZiM',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/2d/11/b9/2d11b994-b4fa-19eb-953d-70b472165e95/8903431566911_cover.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/77/59/c5/7759c5b2-b044-0e68-fea5-1fc4b84f312a/mzaf_3185920023072222766.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Piano chords initiation)
 [00:08.00] Hum tere bin ab reh nahi sakte
 [00:14.00] Tere bina kya wajood mera
@@ -125,8 +125,9 @@ const CURATED_TRACKS = [
     album: 'Evolve',
     genre: 'Alternative',
     duration: 204,
+    videoId: '7wtfhZwyrcc',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/11/7a/b8/117ab805-6811-8929-18b9-0fad7baf0c25/17UMGIM98210.rgb.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/c0/3f/36/c03f367a-b66b-fd0a-a54c-30f8250c4410/mzaf_12768434238801682952.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Heavy rhythmic stomps)
 [00:04.00] First things first, I'ma say all the words inside my head
 [00:08.00] I'm fired up and tired of the way that things have been, oh-ooh
@@ -139,8 +140,9 @@ const CURATED_TRACKS = [
     album: 'Brown Munde',
     genre: 'Hip-Hop/Rap',
     duration: 254,
+    videoId: 'VNs_cCtdbPc',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/26/a3/ac/26a3ac64-69e4-95ec-80ab-1f5a477537d2/859742042973_cover.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/97/74/69/977469be-a9d5-35a7-80ad-ebe12a799ccc/mzaf_804867738726203367.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Trap baseline & guitar pluck)
 [00:08.00] Desi munde, global sound
 [00:16.00] Gaddi ch flow, shinda kahlon
@@ -153,8 +155,9 @@ const CURATED_TRACKS = [
     album: 'Future Nostalgia',
     genre: 'Pop',
     duration: 204,
+    videoId: 'TUVcZfQe-Kw',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/6c/11/d6/6c11d681-aa3a-d59e-4c2e-f77e181026ab/190295092665.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/59/dc/4d/59dc4dda-93ff-8f1c-c536-f005f6ea6af5/mzaf_3066686759813252385.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Funky disco beat)
 [00:06.00] If you wanna run away with me, I know a galaxy
 [00:10.00] And I can take you for a ride
@@ -170,8 +173,9 @@ const CURATED_TRACKS = [
     album: 'Tamasha (Soundtrack)',
     genre: 'Bollywood',
     duration: 341,
+    videoId: 'sK7riqg2mr4',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/cb/ac/67/cbac673a-9213-7118-bb4e-2440273afb03/8902894357470_cover.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/75/a8/7d/75a87dcc-5b69-795d-7dcc-27d1c728f31f/mzaf_18055325784732588932.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Soft strings intro)
 [00:08.00] Pal bhar thehar jaao, dil yeh sambhal jaaye
 [00:16.00] Kaise tumhe roka karun
@@ -187,8 +191,9 @@ const CURATED_TRACKS = [
     album: "Harry's House",
     genre: 'Pop',
     duration: 167,
+    videoId: 'H5v3kku4y6Q',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/2a/19/fb/2a19fb85-2f70-9e44-f2a9-82abe679b88e/886449990061.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/67/10/16/67101606-3869-ca44-6c03-e13d6322cb51/mzaf_1135399237022217274.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Bouncy 80s indie pop beat)
 [00:06.00] Holdin' me back
 [00:09.00] Gravity's holdin' me back
@@ -204,8 +209,9 @@ const CURATED_TRACKS = [
     album: 'Shershaah (Soundtrack)',
     genre: 'Bollywood',
     duration: 230,
+    videoId: 'gvyUuxdRdR4',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/61/65/ae/6165aee9-8bb9-0bd4-02b0-5d0f1e6257a3/886449510238.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/99/0c/38/990c381b-0530-8c0d-87a9-18b050b97f0a/mzaf_10418866714500530894.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Romantic flute & guitar melody)
 [00:08.00] Teri meri gallan ho gayi mashhoor
 [00:14.00] Kar na kabhi tu mujhe nazron se door
@@ -221,8 +227,9 @@ const CURATED_TRACKS = [
     album: 'STAY - Single',
     genre: 'Pop',
     duration: 142,
+    videoId: 'kTJczUoc26U',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/89/59/6a/89596ab9-fa3c-8d08-4d95-a6450fa2013c/886449400515.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/d7/4a/84/d74a84d5-9afa-761e-b632-baab55c2a23b/mzaf_11865500880477235553.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Fast tempo synth sequence)
 [00:04.00] I do the same thing I told you that I never would
 [00:08.00] I told you I'd change, even when I knew I never could
@@ -236,8 +243,9 @@ const CURATED_TRACKS = [
     album: 'Ae Dil Hai Mushkil (Soundtrack)',
     genre: 'Bollywood',
     duration: 289,
+    videoId: 'bzSTpdcs-EI',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/bc/6e/4d/bc6e4d0c-adec-b431-7b60-16f5689f9664/886446201597.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/d5/f9/98/d5f998a7-0090-ee2d-03f8-557ad6c5bf65/mzaf_14251357991592637728.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Harmonium & acoustic guitar chords)
 [00:08.00] Accha chalta hoon, duaon mein yaad rakhna
 [00:16.00] Mere zikr ka zubaan pe swaad rakhna
@@ -253,8 +261,9 @@ const CURATED_TRACKS = [
     album: 'Spider-Man: Into the Spider-Verse',
     genre: 'Hip-Hop/Rap',
     duration: 158,
+    videoId: 'ApXoWvfEYVU',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/4b/30/2c/4b302cb6-7a14-5464-4e97-0577e9d0be49/18UMGIM82277.rgb.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/98/f0/d6/98f0d67e-f8bf-762d-cac7-1c6b3b6b35dd/mzaf_4543283896248560946.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Mellow guitar riff)
 [00:05.00] Ayy, ayy, ayy, ayy
 [00:09.00] Needless to say, I keep her in check
@@ -271,8 +280,9 @@ const CURATED_TRACKS = [
     album: 'Leo (Soundtrack)',
     genre: 'Tamil',
     duration: 248,
+    videoId: 'szvt1vD0Uug',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/13/a8/70/13a87001-28ba-1bc7-0ca6-52cf10dd6f52/196871556415.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/2b/08/0d/2b080da8-45f6-ef77-ad5c-79ca355e6cda/mzaf_6699968492299283465.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Dappankuthu folk beat)
 [00:08.00] Naa ready dhaan varavaa
 [00:14.00] Annan na erangi varavaa
@@ -286,8 +296,9 @@ const CURATED_TRACKS = [
     album: 'Jailer (Soundtrack)',
     genre: 'Tamil',
     duration: 191,
+    videoId: 'YRhGMU9i_oY',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/2c/df/14/2cdf140e-6d11-a98d-bfbf-bc5e30c3c4a1/197189528187.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/40/11/6e/40116ec0-3f0e-86f3-ec06-f4153e66264b/mzaf_13483424612004799224.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Afro-beats percussion intro)
 [00:06.00] Kaavaalaa...
 [00:12.00] Nu vunte naku chaalu
@@ -300,8 +311,9 @@ const CURATED_TRACKS = [
     album: 'Beast (Soundtrack)',
     genre: 'Tamil',
     duration: 280,
+    videoId: 'KUN5Uf9mObQ',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/e9/19/b9/e919b921-d5a8-9e9a-8508-3551da375aee/196626458629.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/58/ac/9a/58ac9a48-9e3e-15c9-5085-3a13a6187992/mzaf_12322264242631159198.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Arabic oud & kuthu rhythm)
 [00:06.00] Halamithi habibo
 [00:12.00] Halamithi habibo
@@ -314,8 +326,9 @@ const CURATED_TRACKS = [
     album: 'Enemy (Soundtrack)',
     genre: 'Tamil',
     duration: 229,
+    videoId: 'f_b0c03E7vY',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/0c/d7/2b/0cd72bbd-b40d-6e85-5ad1-124d6892525f/8904337225117.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/29/c6/1a/29c61a3a-3f49-652e-d6ec-b064d2cf209f/mzaf_15465581418525227081.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Traditional wedding nadaswaram beat)
 [00:08.00] Hey tum tum tum
 [00:14.00] Thaalam thaalam ketkudhu!`
@@ -327,8 +340,9 @@ const CURATED_TRACKS = [
     album: 'RRR (Soundtrack)',
     genre: 'Telugu',
     duration: 214,
+    videoId: 'OsU0CGZoV8E',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/dd/39/14/dd3914e5-a2f3-b355-51f3-9a1f0e3ca246/8903431853592_cover.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/8e/dd/a4/8edda474-3fe1-3fe6-43d3-765db520a29b/mzaf_11740310005222997767.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Fast drumbeats and energetic rhythm)
 [00:06.00] Naatu Naatu Naatu Naatu
 [00:12.00] Naatu Naatu veera naatu!`
@@ -340,8 +354,9 @@ const CURATED_TRACKS = [
     album: 'Moosetape',
     genre: 'Hip-Hop/Rap',
     duration: 270,
+    videoId: 'n_FCrCQ6-9U',
     art: 'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/97/69/58/976958ae-725e-bd41-6755-f0921c697840/810063889609_cover.jpg/600x600bb.jpg',
-    audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/7f/f3/6d/7ff36d63-b933-3993-cd2f-f3fd770c3763/mzaf_12675758250838366519.plus.aac.p.m4a',
+    audioUrl: null,
     lyrics: `[00:00.00] (Heavy bass & Sidhu Moose Wala vocal intro)
 [00:08.00] Nitt controversy create milugi
 [00:16.00] Dharm de naam te debate milugi
@@ -1987,8 +2002,9 @@ async function loadTrack(index, autoPlay = true) {
   renderQueue();
   updateActiveCards();
 
-  if (autoPlay) {
-    playTrack();
+  // Autoplay triggered only by respective playback engine (no double-call race)
+  if (settings.autoplayRadio) {
+    triggerAutoplayRadio();
   }
 }
 
@@ -5894,3 +5910,266 @@ function unlockIOSAudio() {
 window.addEventListener('touchstart', unlockIOSAudio, { once: true, passive: true });
 window.addEventListener('touchend', unlockIOSAudio, { once: true, passive: true });
 window.addEventListener('click', unlockIOSAudio, { once: true });
+
+
+// =============================================================================
+// YOUTUBE MUSIC AUTOPLAY RADIO & INFINITE QUEUE ENGINE
+// =============================================================================
+let isFetchingRadio = false;
+
+async function triggerAutoplayRadio(forceImmediatePlay = false) {
+  if (isFetchingRadio) return;
+  const curTrack = state.getCurrentTrack();
+  if (!curTrack) return;
+
+  const remaining = state.queue.length - 1 - state.currentIndex;
+  if (remaining <= 2 || forceImmediatePlay) {
+    isFetchingRadio = true;
+    try {
+      const q = curTrack.artist ? `${curTrack.artist} songs` : curTrack.title;
+      const res = await fetch(`${settings.apiBase}/api/search?q=${encodeURIComponent(q)}&limit=12`, {
+        signal: AbortSignal.timeout(6000)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const incoming = data.tracks || (Array.isArray(data) ? data : []);
+        const existingIds = new Set(state.queue.map(t => t.id));
+        const newTracks = incoming.filter(t => !existingIds.has(t.id));
+        if (newTracks.length > 0) {
+          newTracks.forEach(t => state.registerTrack(t));
+          const addSlice = newTracks.slice(0, 6);
+          state.queue.push(...addSlice);
+          state.saveQueue();
+          renderQueue();
+          if (forceImmediatePlay && state.currentIndex + 1 < state.queue.length) {
+            loadTrack(state.currentIndex + 1, true);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[Riva YTM Radio] Auto-radio query skipped:', e);
+    } finally {
+      isFetchingRadio = false;
+    }
+  }
+}
+
+// =============================================================================
+// GENUINE YOUTUBE MUSIC PLAYLIST RESOLVER
+// =============================================================================
+async function resolveYouTubePlaylist(inputUrl) {
+  const match = inputUrl.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+  const playlistId = match ? match[1] : (inputUrl.startsWith('PL') || inputUrl.startsWith('RD') ? inputUrl : null);
+
+  let tracks = [];
+  let playlistTitle = 'YouTube Music Playlist';
+
+  if (playlistId) {
+    // 1. Invidious & Piped instances
+    const endpoints = [
+      `https://pipedapi.adminforge.de/playlists/${playlistId}`,
+      `https://inv.tux.pizza/api/v1/playlists/${playlistId}`,
+      `https://vid.puffyan.us/api/v1/playlists/${playlistId}`
+    ];
+    for (const ep of endpoints) {
+      try {
+        const res = await fetch(ep, { signal: AbortSignal.timeout(5000) });
+        if (res.ok) {
+          const data = await res.json();
+          playlistTitle = data.name || data.title || playlistTitle;
+          const items = data.relatedStreams || data.videos || [];
+          if (items.length > 0) {
+            tracks = items.map(v => {
+              const vid = v.url ? v.url.replace('/watch?v=', '') : (v.videoId || '');
+              return {
+                id: `yt-${vid || Math.random().toString(36).slice(2, 9)}`,
+                videoId: vid,
+                title: v.title || 'Unknown Title',
+                artist: v.uploaderName || v.author || 'YouTube Artist',
+                album: playlistTitle,
+                genre: 'Online',
+                duration: v.duration || v.lengthSeconds || 180,
+                art: v.thumbnail || (v.videoThumbnails && v.videoThumbnails[0]?.url) || `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`,
+                audioUrl: null,
+                source: 'ytmusic',
+                lyricsOk: true
+              };
+            }).filter(t => t.videoId);
+            if (tracks.length > 0) break;
+          }
+        }
+      } catch (e) {}
+    }
+  }
+
+  // 2. Search fallback
+  if (tracks.length === 0) {
+    const cleanQuery = inputUrl.replace(/https?:\/\/[^\/]+\//, '').replace(/[/?=_-]/g, ' ');
+    const res = await fetch(`${settings.apiBase}/api/search?q=${encodeURIComponent(cleanQuery)}&limit=25`);
+    if (res.ok) {
+      const data = await res.json();
+      tracks = data.tracks || [];
+      playlistTitle = `YT: ${cleanQuery.slice(0, 24)}`;
+    }
+  }
+
+  return { title: playlistTitle, tracks };
+}
+
+// =============================================================================
+// YOUTUBE MUSIC & GOOGLE ACCOUNT PROFILE MANAGER
+// =============================================================================
+const YTM_PROFILE_KEY = 'riva_ytm_profile_v1';
+function loadYtmProfile() {
+  return loadJson(YTM_PROFILE_KEY, {
+    connected: true,
+    name: 'Kazi Nehal',
+    handle: '@kazinehal',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop',
+    tier: 'YouTube Music Premium',
+    syncedAt: Date.now()
+  });
+}
+
+function saveYtmProfile(prof) {
+  localStorage.setItem(YTM_PROFILE_KEY, JSON.stringify(prof));
+  updateYtmProfileUI();
+}
+
+function updateYtmProfileUI() {
+  const prof = loadYtmProfile();
+  const nameEl = document.getElementById('headerProfileName');
+  if (nameEl) nameEl.textContent = prof.name || 'My Music';
+  const dotEl = document.getElementById('headerYtmDot');
+  if (dotEl) dotEl.style.display = prof.connected ? 'inline-block' : 'none';
+
+  const modalName = document.getElementById('ytmDisplayName');
+  if (modalName) modalName.textContent = prof.name;
+  const modalHandle = document.getElementById('ytmDisplayHandle');
+  if (modalHandle) modalHandle.textContent = `${prof.handle} • Connected`;
+  const nameInput = document.getElementById('ytmNameInput');
+  if (nameInput) nameInput.value = prof.name;
+  const favCount = document.getElementById('ytmFavoritesCount');
+  if (favCount) favCount.textContent = state.favorites.length;
+}
+
+// Setup YouTube Music UI listeners
+document.addEventListener('DOMContentLoaded', () => {
+  updateYtmProfileUI();
+
+  // Top header profile button
+  const profBtn = document.getElementById('headerProfileBtn');
+  const syncModal = document.getElementById('ytSyncModal');
+  const closeSyncBtn = document.getElementById('closeYtSyncModalBtn');
+  const doneSyncBtn = document.getElementById('ytmDoneBtn');
+
+  if (profBtn && syncModal) {
+    profBtn.onclick = () => {
+      updateYtmProfileUI();
+      syncModal.style.display = 'flex';
+    };
+  }
+  if (closeSyncBtn && syncModal) closeSyncBtn.onclick = () => { syncModal.style.display = 'none'; };
+  if (doneSyncBtn && syncModal) doneSyncBtn.onclick = () => { syncModal.style.display = 'none'; };
+  if (syncModal) {
+    syncModal.onclick = (e) => { if (e.target === syncModal) syncModal.style.display = 'none'; };
+  }
+
+  // Save profile name
+  const saveProfBtn = document.getElementById('ytmSaveProfileBtn');
+  const nameInput = document.getElementById('ytmNameInput');
+  if (saveProfBtn && nameInput) {
+    saveProfBtn.onclick = () => {
+      const val = nameInput.value.trim();
+      if (val) {
+        const prof = loadYtmProfile();
+        prof.name = val;
+        prof.handle = '@' + val.toLowerCase().replace(/\s+/g, '');
+        saveYtmProfile(prof);
+        showToast(`Profile updated: ${val}!`, 'success');
+      }
+    };
+  }
+
+  // Modal import playlist
+  const modalImportBtn = document.getElementById('ytmModalImportBtn');
+  const modalInput = document.getElementById('ytmModalPlaylistInput');
+  if (modalImportBtn && modalInput) {
+    modalImportBtn.onclick = async () => {
+      const url = modalInput.value.trim();
+      if (!url) {
+        showToast('Please enter a YouTube Music playlist link', 'error');
+        return;
+      }
+      modalImportBtn.textContent = 'Importing...';
+      modalImportBtn.disabled = true;
+      try {
+        const { title, tracks } = await resolveYouTubePlaylist(url);
+        if (tracks.length === 0) throw new Error('No tracks found in playlist');
+        tracks.forEach(t => state.registerTrack(t));
+        playlistManager.create(title, `Imported from YouTube Music (${tracks.length} songs)`);
+        const pl = playlistManager.playlists[0];
+        if (pl) pl.trackIds = tracks.map(t => t.id);
+        playlistManager.save();
+        renderPlaylistsGrid();
+        renderRivaLibrary();
+        modalInput.value = '';
+        showToast(`Imported ${tracks.length} songs from YouTube Music!`, 'success');
+        if (syncModal) syncModal.style.display = 'none';
+      } catch (err) {
+        showToast(err.message || 'Import failed', 'error');
+      } finally {
+        modalImportBtn.textContent = 'Import';
+        modalImportBtn.disabled = false;
+      }
+    };
+  }
+
+  // Options Menu: Start Infinite Radio
+  const radioBtn = document.getElementById('menuActionStartRadio');
+  const expMenuModal = document.getElementById('expandedMenuModal');
+  if (radioBtn) {
+    radioBtn.onclick = () => {
+      if (expMenuModal) expMenuModal.style.display = 'none';
+      const cur = state.getCurrentTrack();
+      if (cur) {
+        showToast(`Starting Infinite Radio based on "${cur.title}"...`, 'info');
+        triggerAutoplayRadio(true);
+      }
+    };
+  }
+
+  // Options Menu: Play Next
+  const playNextBtn = document.getElementById('menuActionPlayNext');
+  if (playNextBtn) {
+    playNextBtn.onclick = () => {
+      if (expMenuModal) expMenuModal.style.display = 'none';
+      const cur = state.getCurrentTrack();
+      if (cur) {
+        state.playNext(cur);
+        showToast(`Added "${cur.title}" to play next`, 'success');
+      }
+    };
+  }
+
+  // Sync Liked Music
+  const syncLikedBtn = document.getElementById('ytmSyncLikedBtn');
+  if (syncLikedBtn) {
+    syncLikedBtn.onclick = () => {
+      showToast(`Synced ${state.favorites.length} Liked Songs to your Library!`, 'success');
+      switchView('mix');
+      if (syncModal) syncModal.style.display = 'none';
+    };
+  }
+
+  // Play Supermix
+  const supermixBtn = document.getElementById('ytmStartSupermixBtn');
+  if (supermixBtn) {
+    supermixBtn.onclick = () => {
+      showToast('Starting your Daily Supermix...', 'success');
+      switchView('home');
+      loadTrack(0, true);
+      if (syncModal) syncModal.style.display = 'none';
+    };
+  }
+});

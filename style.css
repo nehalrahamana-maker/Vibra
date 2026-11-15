@@ -4554,3 +4554,80 @@ input[type="range"] {
 .search-results-grid {
   -webkit-overflow-scrolling: touch;
 }
+
+
+/* ==========================================================================
+   YOUTUBE MUSIC PREMIUM STYLING & PROFILE PILL
+   ========================================================================== */
+.ytm-profile-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  padding: 4px 12px 4px 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ytm-profile-pill:hover {
+  background: rgba(229, 9, 20, 0.14);
+  border-color: rgba(229, 9, 20, 0.4);
+  transform: scale(1.02);
+}
+.ytm-connected-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  margin-left: 2px;
+}
+.np-quality-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.np-quality-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ff5a60;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.np-audio-rate {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+/* Animated Equalizer Waveform Bars on Active Playing Song */
+.now-playing-equalizer-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+  width: 14px;
+}
+.now-playing-equalizer-bars span {
+  width: 2px;
+  background: #E50914;
+  border-radius: 1px;
+  animation: ytmEqBounce 1.2s ease-in-out infinite alternate;
+}
+.now-playing-equalizer-bars span:nth-child(1) { height: 40%; animation-delay: 0.1s; }
+.now-playing-equalizer-bars span:nth-child(2) { height: 90%; animation-delay: 0.3s; }
+.now-playing-equalizer-bars span:nth-child(3) { height: 60%; animation-delay: 0.2s; }
+.now-playing-equalizer-bars span:nth-child(4) { height: 100%; animation-delay: 0.4s; }
+@keyframes ytmEqBounce {
+  0% { height: 20%; }
+  100% { height: 100%; }
+}

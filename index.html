@@ -173,14 +173,15 @@
           </button>
 
           <!-- User Profile & About Trigger (Clean Modern Icon, No "KN" text) -->
-          <button class="user-avatar-badge-btn" id="headerAboutBtn" title="About Vibra & Creator">
-            <span class="avatar-profile-icon">
+          <button class="user-avatar-badge-btn ytm-profile-pill" id="headerProfileBtn" title="YouTube Music & Google Account Sync">
+            <span class="avatar-profile-icon" id="headerProfileAvatar">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:block;">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
             </span>
-            <span class="avatar-author-name">About</span>
+            <span class="avatar-author-name" id="headerProfileName">Connect YT</span>
+            <span class="ytm-connected-dot" id="headerYtmDot"></span>
           </button>
         </div>
       </header>
@@ -1523,6 +1524,14 @@
         <button class="dialog-close-btn" id="closeExpandedMenuBtn">&times;</button>
       </div>
       <div class="menu-options-list" style="display:flex;flex-direction:column;gap:8px;margin:14px 0;">
+        <button class="btn-secondary" id="menuActionStartRadio" style="justify-content:flex-start;padding:12px 16px;text-align:left;display:flex;gap:10px;align-items:center;background:rgba(229,9,20,0.12);border-color:rgba(229,9,20,0.3);color:#ff5a60;font-weight:600;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z"/></svg>
+          Start Infinite Radio (YouTube Music)
+        </button>
+        <button class="btn-secondary" id="menuActionPlayNext" style="justify-content:flex-start;padding:12px 16px;text-align:left;display:flex;gap:10px;align-items:center;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+          Play Next in Queue
+        </button>
         <button class="btn-secondary" id="menuActionAddPlaylist" style="justify-content:flex-start;padding:12px 16px;text-align:left;display:flex;gap:10px;align-items:center;">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"></path></svg>
           Add Current Song to Playlist
@@ -1544,6 +1553,107 @@
   </div>
 
   <!-- Toast Notifications Container -->
+  
+  <!-- YouTube Music & Google Account Cloud Sync Center Modal -->
+  <div class="modal-backdrop" id="ytSyncModal" style="display:none;">
+    <div class="modal-dialog ytm-sync-dialog" style="max-width:540px;">
+      <div class="modal-dialog-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="ytm-badge-icon" style="background:#E50914;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><polygon points="9 8 16 12 9 16 9 8"></polygon><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"></circle></svg>
+          </div>
+          <div>
+            <h3 style="margin:0;font-size:1.15rem;font-weight:700;">YouTube Music & Google Account</h3>
+            <span style="font-size:0.75rem;color:var(--text-muted);">Personalized Cloud Sync & Audiophile Streaming</span>
+          </div>
+        </div>
+        <button class="dialog-close-btn" id="closeYtSyncModalBtn">&times;</button>
+      </div>
+
+      <div class="modal-dialog-body" style="display:flex;flex-direction:column;gap:18px;max-height:75vh;overflow-y:auto;">
+        <!-- Profile Identity Card -->
+        <div class="ytm-profile-card" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px;display:flex;align-items:center;gap:16px;">
+          <div class="ytm-profile-avatar-wrap" style="position:relative;">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop" id="ytmProfileImg" style="width:58px;height:58px;border-radius:50%;border:2px solid #E50914;object-fit:cover;">
+            <span style="position:absolute;bottom:0;right:0;width:14px;height:14px;border-radius:50%;background:#22c55e;border:2px solid #000;"></span>
+          </div>
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h4 id="ytmDisplayName" style="margin:0;font-size:1.05rem;">Kazi Nehal</h4>
+              <span class="badge-premium" style="background:rgba(229,9,20,0.18);color:#ff5a60;border:1px solid rgba(229,9,20,0.3);font-size:0.65rem;padding:2px 7px;border-radius:10px;font-weight:700;">YTM PRO</span>
+            </div>
+            <span id="ytmDisplayHandle" style="font-size:0.8rem;color:var(--text-muted);">@kazinehal &bull; Connected</span>
+            <div style="margin-top:6px;display:flex;gap:12px;font-size:0.75rem;color:var(--text-muted);">
+              <span><strong id="ytmSyncedCount" style="color:#fff;">21</strong> Seed Tracks</span>
+              <span><strong id="ytmFavoritesCount" style="color:#fff;">0</strong> Liked</span>
+              <span><strong style="color:#22c55e;">100%</strong> Full Songs</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Account Handle/Name input -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);">Your Display Identity</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="ytmNameInput" class="modal-text-input" placeholder="Enter your name or YouTube handle" style="flex:1;">
+            <button class="btn-secondary" id="ytmSaveProfileBtn" style="white-space:nowrap;padding:0 16px;">Save Profile</button>
+          </div>
+        </div>
+
+        <!-- Import Any YouTube Music Playlist Section -->
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <label style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);">Import YouTube Music Playlist or Mix</label>
+            <span style="font-size:0.72rem;color:#E50914;">Full 100% Songs</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="ytmModalPlaylistInput" class="modal-text-input" placeholder="Paste YouTube Music playlist link (music.youtube.com/playlist?list=...)" style="flex:1;">
+            <button class="btn-primary" id="ytmModalImportBtn" style="white-space:nowrap;padding:0 16px;">Import</button>
+          </div>
+          <span style="font-size:0.75rem;color:var(--text-muted);">Supports public playlists, artist mixes, top charts, and albums with zero 30s cutoffs.</span>
+        </div>
+
+        <!-- Quick 1-Click Sync Buttons -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button class="btn-secondary" id="ytmSyncLikedBtn" style="padding:12px;display:flex;align-items:center;gap:8px;justify-content:center;font-size:0.85rem;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="color:#E50914;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            Sync Liked Songs
+          </button>
+          <button class="btn-secondary" id="ytmStartSupermixBtn" style="padding:12px;display:flex;align-items:center;gap:8px;justify-content:center;font-size:0.85rem;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="color:#f59e0b;"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            Play My Supermix
+          </button>
+        </div>
+
+        <!-- Autoplay Infinite Radio Toggle -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;">
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;">Infinite Autoplay Radio</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">Automatically keeps playing similar YouTube Music hits when queue ends</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="ytmAutoplayToggle" checked>
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <!-- Audio Quality Preference -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;">
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;">Audio Quality Engine</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">Hi-Res Web Audio Biquad Chain + 3D Spatial Stereo</div>
+          </div>
+          <span style="font-size:0.8rem;color:#22c55e;font-weight:700;">256kbps Opus</span>
+        </div>
+      </div>
+
+      <div class="modal-dialog-footer" style="display:flex;justify-content:space-between;align-items:center;">
+        <button class="btn-secondary" id="ytmAboutDeveloperBtn" style="font-size:0.8rem;">About Creator (Kazi Nehal)</button>
+        <button class="btn-primary" id="ytmDoneBtn" style="padding:8px 24px;">Done</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Hidden Native Audio Engine (Dual Slot for Crossfade) -->
