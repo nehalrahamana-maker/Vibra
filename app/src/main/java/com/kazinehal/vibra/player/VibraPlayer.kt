@@ -30,8 +30,8 @@ class VibraPlayer private constructor(context: Context) {
 
     private val httpDataSourceFactory = DefaultHttpDataSource.Factory()
         .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-        .setConnectTimeoutMs(15000)
-        .setReadTimeoutMs(15000)
+        .setConnectTimeoutMs(8000)
+        .setReadTimeoutMs(10000)
         .setAllowCrossProtocolRedirects(true)
 
     private val mediaSourceFactory = DefaultMediaSourceFactory(httpDataSourceFactory)
@@ -41,8 +41,6 @@ class VibraPlayer private constructor(context: Context) {
         .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
         .build()
 
-    // handleAudioFocus=true → pause/duck on focus loss (calls, other apps, other players).
-    // setHandleAudioBecomingNoisy(true) → pause when headphones unplug / Bluetooth drops.
     internal val exoPlayer: ExoPlayer = ExoPlayer.Builder(context)
         .setMediaSourceFactory(mediaSourceFactory)
         .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
@@ -77,26 +75,7 @@ class VibraPlayer private constructor(context: Context) {
         private set
 
     private var sleepJob: Job? = null
-
-    private var bufferingWatchdogJob: Job? = null
-
-    private fun startBufferingWatchdog() {
-        bufferingWatchdogJob?.cancel()
-        bufferingWatchdogJob = scope.launch {
-            delay(8000L) // 8s max buffering before fast-fail auto skip
-            if (isLoading && !isPlaying) {
-                android.util.Log.w("VibraPlayer", "Buffering timeout (8s), auto-skipping")
-                isLoading = false
-                next()
-            }
-        }
-    }
-
-    private fun stopBufferingWatchdog() {
-        bufferingWatchdogJob?.cancel()
-        bufferingWatchdogJob = null
-    }
-
+    private var watchdogJob: Job? = null
 
     var shouldPlayWhenReady by mutableStateOf(true)
         private set
@@ -108,6 +87,7 @@ class VibraPlayer private constructor(context: Context) {
                 if (!playWhenReady) {
                     isPlaying = false
                     isLoading = false
+                    stopBufferingWatchdog()
                 } else if (exoPlayer.playbackState == Player.STATE_READY) {
                     isPlaying = true
                 }
@@ -117,6 +97,7 @@ class VibraPlayer private constructor(context: Context) {
                 isPlaying = playing
                 if (playing) {
                     isLoading = false
+                    stopBufferingWatchdog()
                 }
             }
 
@@ -145,34 +126,20 @@ class VibraPlayer private constructor(context: Context) {
                         }
                     }
                     Player.STATE_IDLE -> {
-                        // idle
+                        stopBufferingWatchdog()
                     }
                 }
             }
 
             override fun onPlayerError(error: PlaybackException) {
-                android.util.Log.e("VibraPlayer", "ExoPlayer playback error: ${error.message}", error)
+                android.util.Log.e("VibraPlayer", "ExoPlayer error: ${error.message}", error)
                 isLoading = false
-                val track = currentTrack ?: return
+                stopBufferingWatchdog()
 
-                // On error, try to re-resolve fresh stream URL from YouTube
+                // Auto-skip to next on error — don't silently hang
                 scope.launch {
-                    val stream = withContext(Dispatchers.IO) {
-                        if (track.videoId.isNotBlank()) {
-                            YtStreamResolver.resolve(track.videoId)
-                        } else {
-                            val vid = YtMusicSource.findVideoId(track.title, track.artist)
-                            if (!vid.isNullOrBlank()) YtStreamResolver.resolve(vid) else null
-                        }
-                    }
-                    if (currentTrack?.id == track.id && stream != null && stream.audioUrl.isNotBlank() && stream.audioUrl != track.audioUrl) {
-                        if (stream.durationSeconds > 0) {
-                            durationMs = stream.durationSeconds * 1000L
-                        }
-                        startPlayback(stream.audioUrl)
-                    } else {
-                        next()
-                    }
+                    delay(500)
+                    next()
                 }
             }
         })
@@ -188,20 +155,36 @@ class VibraPlayer private constructor(context: Context) {
         }
     }
 
+    /** Start an 8-second timeout watchdog. If still buffering after 8s, skip to next. */
+    private fun startBufferingWatchdog() {
+        stopBufferingWatchdog()
+        watchdogJob = scope.launch {
+            delay(8000)
+            if (isLoading && !isPlaying) {
+                android.util.Log.w("VibraPlayer", "Watchdog: buffering timeout — skipping to next")
+                next()
+            }
+        }
+    }
+
+    private fun stopBufferingWatchdog() {
+        watchdogJob?.cancel()
+        watchdogJob = null
+    }
+
     /**
-     * Play track using YouTube Music Backend
+     * Play a track. Syncs currentIndex in queue so next()/previous() always work correctly.
      */
     fun playTrack(track: Track) {
         currentTrack = track
-        durationMs = track.duration * 1000L
+        durationMs = if (track.duration > 0) track.duration * 1000L else 1L
         isLoading = true
         shouldPlayWhenReady = true
+
+        // Sync currentIndex so next() / previous() navigate from the right position
         val foundIdx = queue.indexOfFirst { it.id == track.id }
-        if (foundIdx != -1) {
+        if (foundIdx >= 0) {
             currentIndex = foundIdx
-        } else {
-            queue.add(track)
-            currentIndex = queue.size - 1
         }
 
         // Add to persistent user history
@@ -209,8 +192,11 @@ class VibraPlayer private constructor(context: Context) {
 
         scope.launch {
             try {
-                // If track already has a valid direct audio URL, play it
-                if (track.audioUrl.isNotBlank() && !track.audioUrl.contains("itunes") && !track.audioUrl.contains("mzstatic")) {
+                // If track already has a valid direct audio URL, play it immediately
+                if (track.audioUrl.isNotBlank()
+                    && !track.audioUrl.contains("itunes")
+                    && !track.audioUrl.contains("mzstatic")
+                ) {
                     startPlayback(track.audioUrl)
                     return@launch
                 }
@@ -224,7 +210,7 @@ class VibraPlayer private constructor(context: Context) {
                     videoId = foundVid ?: ""
                 }
 
-                // Resolve YouTube stream
+                // Resolve YouTube stream URL
                 if (videoId.isNotBlank()) {
                     val stream = withContext(Dispatchers.IO) {
                         YtStreamResolver.resolve(videoId)
@@ -239,17 +225,19 @@ class VibraPlayer private constructor(context: Context) {
                 }
 
                 // Fallback: try cached audioUrl
-                if (track.audioUrl.isNotBlank() && !track.audioUrl.contains("itunes") && !track.audioUrl.contains("mzstatic")) {
+                if (track.audioUrl.isNotBlank()) {
                     startPlayback(track.audioUrl)
                     return@launch
                 }
 
-                android.util.Log.w("VibraPlayer", "Could not resolve stream for ${track.title}, auto-skipping")
-                isLoading = false
+                // No stream found — skip to next so the queue keeps moving
+                android.util.Log.w("VibraPlayer", "No stream found for ${track.title} — skipping")
+                delay(300)
                 next()
+
             } catch (e: Exception) {
                 android.util.Log.e("VibraPlayer", "playTrack failed: ${e.message}", e)
-                isLoading = false
+                delay(300)
                 next()
             } finally {
                 isLoading = false
@@ -261,8 +249,6 @@ class VibraPlayer private constructor(context: Context) {
         if (url.isBlank()) return
         try {
             val t = currentTrack
-            // Metadata rides with the MediaItem → the MediaSession notification shows
-            // title/artist/artwork and lockscreen/Android Auto controls get it too.
             val mediaItem = MediaItem.Builder()
                 .setUri(url)
                 .setMediaMetadata(
@@ -299,12 +285,12 @@ class VibraPlayer private constructor(context: Context) {
     }
 
     fun pause() {
-        stopBufferingWatchdog()
         shouldPlayWhenReady = false
         exoPlayer.playWhenReady = false
         exoPlayer.pause()
         isPlaying = false
         isLoading = false
+        stopBufferingWatchdog()
     }
 
     fun play() {
@@ -371,11 +357,6 @@ class VibraPlayer private constructor(context: Context) {
         @Volatile
         private var instance: VibraPlayer? = null
 
-        /**
-         * Process-wide singleton. The MediaSessionService and the UI must share the same
-         * ExoPlayer instance — a second player would silently fight the first for audio focus
-         * and the notification would control a player nobody is listening to.
-         */
         fun get(context: Context): VibraPlayer {
             return instance ?: synchronized(this) {
                 instance ?: VibraPlayer(context.applicationContext).also { instance = it }

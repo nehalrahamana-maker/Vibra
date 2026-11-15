@@ -40,11 +40,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var player: VibraPlayer
     private val seedTracks = MusicRepository.trendingTracks
 
-    // Keeps VibraMediaService bound while the UI is alive, so the MediaSession (and its
-    // notification) exists before the first track is even played.
     private var controllerFuture: ListenableFuture<MediaController>? = null
 
-    // Android 13+: media notification (lockscreen/quick-settings controls) needs this
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (!granted) android.util.Log.w("MainActivity", "POST_NOTIFICATIONS denied — media controls won't show on the lockscreen")
@@ -53,7 +50,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize persistent user library
         UserLibraryManager.init(applicationContext)
 
         if (Build.VERSION.SDK_INT >= 33) {
@@ -65,7 +61,6 @@ class MainActivity : ComponentActivity() {
             player.queue = seedTracks.toMutableList()
         }
 
-        // Bind to the media service (auto-creates it and its MediaSession)
         val sessionToken = SessionToken(applicationContext, ComponentName(this, VibraMediaService::class.java))
         controllerFuture = MediaController.Builder(applicationContext, sessionToken).buildAsync()
 
@@ -75,7 +70,7 @@ class MainActivity : ComponentActivity() {
                 var isExpandedPlayerVisible by remember { mutableStateOf(false) }
                 var isSettingsOpen by remember { mutableStateOf(false) }
 
-                // Android Back gesture minimizes fullscreen player smoothly
+                // Android back gesture: dismiss fullscreen player instead of exiting app
                 BackHandler(enabled = isExpandedPlayerVisible) {
                     isExpandedPlayerVisible = false
                 }
@@ -90,19 +85,18 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxWidth()
                                 .background(VibraBackground)
                         ) {
-                            // Floating Mini Player Capsule
                             if (player.currentTrack != null) {
                                 BottomPlayerBar(
                                     player = player,
                                     onBarClick = { isExpandedPlayerVisible = true }
                                 )
                             }
-                            // Riva 4-Tab Bottom Navigation Bar
+                            // Tab switch always dismisses fullscreen player first
                             BottomNavBar(
                                 selectedTab = selectedTab,
                                 onTabSelected = { tab ->
-                                    selectedTab = tab
                                     isExpandedPlayerVisible = false
+                                    selectedTab = tab
                                 }
                             )
                         }
@@ -198,11 +192,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             NowPlayingScreen(
                                 player = player,
-                                onClose = { isExpandedPlayerVisible = false },
-                                onNavigateToSearch = {
-                                    isExpandedPlayerVisible = false
-                                    selectedTab = RivaTab.SEARCH
-                                }
+                                onClose = { isExpandedPlayerVisible = false }
                             )
                         }
 
@@ -218,9 +208,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Unbind from the media service but NEVER release the singleton player here —
-        // playback (and the notification) must survive Activity recreation. media3
-        // releases the service itself once nothing is bound and playback has stopped.
         controllerFuture?.let { MediaController.releaseFuture(it) }
         controllerFuture = null
     }

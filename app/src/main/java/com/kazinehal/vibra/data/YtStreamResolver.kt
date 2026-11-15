@@ -35,41 +35,44 @@ object YtStreamResolver {
         "https://piped-api.garudalinux.org"
     )
 
-    private const val CONNECT_TIMEOUT = 2500
-    private const val READ_TIMEOUT = 3500
+    private const val CONNECT_TIMEOUT = 4000
+    private const val READ_TIMEOUT = 6000
+    private const val WORKER_BASE = "https://vibra-api.kazimdnehal.workers.dev"
 
     fun resolve(videoId: String): YtStream? {
         if (videoId.isBlank()) return null
 
-        // 1. Worker FIRST — own backend: ANDROID→IOS→WEB_REMIX client ladder with a
-        //    403 pre-check, ~200ms. This is the proven path; never make it the last rung.
+        // 1. Worker FIRST — own backend: fastest and most reliable path
         try {
             val stream = resolveWorker(videoId)
             if (stream != null && stream.audioUrl.isNotBlank()) {
                 return stream
             }
         } catch (e: Exception) {
-            // next ladder
+            android.util.Log.w("YtStreamResolver", "Worker failed: ${e.message}")
         }
 
-        // 2. Invidious Ladder (community instances — mostly dead/403, URL must be verified live)
+        // 2. Invidious Ladder
         for (instance in INVIDIOUS_INSTANCES) {
             try {
                 val stream = resolveInvidious(instance, videoId)
-                if (stream != null && stream.audioUrl.isNotBlank() && isAlive(stream.audioUrl)) {
-                    return stream
+                if (stream != null && stream.audioUrl.isNotBlank()) {
+                    // Proxy through worker to avoid mobile IP 403 on googlevideo.com
+                    val proxiedUrl = proxyUrl(stream.audioUrl)
+                    return stream.copy(audioUrl = proxiedUrl)
                 }
             } catch (e: Exception) {
                 // try next
             }
         }
 
-        // 3. Piped Ladder (same — verify before trusting)
+        // 3. Piped Ladder
         for (instance in PIPED_INSTANCES) {
             try {
                 val stream = resolvePiped(instance, videoId)
-                if (stream != null && stream.audioUrl.isNotBlank() && isAlive(stream.audioUrl)) {
-                    return stream
+                if (stream != null && stream.audioUrl.isNotBlank()) {
+                    val proxiedUrl = proxyUrl(stream.audioUrl)
+                    return stream.copy(audioUrl = proxiedUrl)
                 }
             } catch (e: Exception) {
                 // try next
@@ -79,21 +82,15 @@ object YtStreamResolver {
         return null
     }
 
-    /** YouTube URLs are session-bound — a 2-byte Range GET proves the URL actually serves. */
-    private fun isAlive(url: String): Boolean {
-        return try {
-            val conn = (URL(url).openConnection() as HttpURLConnection).apply {
-                requestMethod = "GET"
-                connectTimeout = 3000
-                readTimeout = 3000
-                setRequestProperty("Range", "bytes=0-2")
-            }
-            val code = conn.responseCode
-            conn.disconnect()
-            code == 200 || code == 206
-        } catch (e: Exception) {
-            false
-        }
+    /**
+     * Wraps a raw googlevideo.com URL in the worker's /api/audio relay.
+     * This avoids 403 errors caused by IP mismatch between Cloudflare egress
+     * (which resolved the URL) and the mobile device's IP.
+     */
+    private fun proxyUrl(rawUrl: String): String {
+        if (rawUrl.contains("vibra-api.kazimdnehal.workers.dev")) return rawUrl
+        val encoded = URLEncoder.encode(rawUrl, "UTF-8")
+        return "$WORKER_BASE/api/audio?url=$encoded"
     }
 
     private fun resolveInvidious(instance: String, videoId: String): YtStream? {
@@ -168,17 +165,15 @@ object YtStreamResolver {
 
     private fun resolveWorker(videoId: String): YtStream? {
         val encoded = URLEncoder.encode(videoId, "UTF-8")
-        val apiUrl = "https://vibra-api.kazimdnehal.workers.dev/api/stream?id=$encoded"
+        val apiUrl = "$WORKER_BASE/api/stream?id=$encoded"
         val jsonStr = httpGet(apiUrl) ?: return null
         val root = JSONObject(jsonStr)
-        val rawUrl = root.optString("url")
-        if (rawUrl.isNotBlank()) {
-            val audioUrl = if (rawUrl.contains("googlevideo.com")) {
-                "https://vibra-api.kazimdnehal.workers.dev/api/audio?url=${URLEncoder.encode(rawUrl, "UTF-8")}"
-            } else {
-                rawUrl
-            }
-            return YtStream(audioUrl = audioUrl, source = "Worker")
+
+        // Worker returns {url, durationSeconds} or just {url}
+        val url = root.optString("url")
+        if (url.isNotBlank()) {
+            val duration = root.optLong("durationSeconds", 0L)
+            return YtStream(audioUrl = url, durationSeconds = duration, source = "Worker")
         }
         return null
     }
@@ -190,7 +185,7 @@ object YtStreamResolver {
                 requestMethod = "GET"
                 connectTimeout = CONNECT_TIMEOUT
                 readTimeout = READ_TIMEOUT
-                setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36")
                 setRequestProperty("Accept", "application/json")
             }
             if (conn.responseCode == HttpURLConnection.HTTP_OK) {
@@ -203,4 +198,3 @@ object YtStreamResolver {
         }
     }
 }
-
