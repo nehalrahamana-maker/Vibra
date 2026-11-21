@@ -17,6 +17,16 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # Version comes from app/build.gradle (versionName) so the release tag,
+      # artifact names and the in-app update checker always agree.
+      - name: Read app version
+        id: ver
+        run: |
+          V=$(sed -n "s/.*versionName *'\([^']*\)'.*/\1/p" app/build.gradle | head -n1)
+          if [ -z "$V" ]; then V="0.0.0"; fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "App version: $V"
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
@@ -28,55 +38,48 @@ jobs:
 
       - name: Build APK
         run: |
+          V=${{ steps.ver.outputs.version }}
           chmod +x gradlew
           ./gradlew assembleRelease --stacktrace || ./gradlew assembleDebug --stacktrace
           if [ -f app/build/outputs/apk/release/app-release.apk ]; then
-            cp app/build/outputs/apk/release/app-release.apk Vibra-v2.0.0.apk
+            cp app/build/outputs/apk/release/app-release.apk Vibra-v$V.apk
           elif [ -f app/build/outputs/apk/release/app-release-unsigned.apk ]; then
-            cp app/build/outputs/apk/release/app-release-unsigned.apk Vibra-v2.0.0.apk
+            cp app/build/outputs/apk/release/app-release-unsigned.apk Vibra-v$V.apk
           elif [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
-            cp app/build/outputs/apk/debug/app-debug.apk Vibra-v2.0.0.apk
+            cp app/build/outputs/apk/debug/app-debug.apk Vibra-v$V.apk
           else
-            find app/build/outputs/apk -name "*.apk" -exec cp {} Vibra-v2.0.0.apk \;
+            find app/build/outputs/apk -name "*.apk" -exec cp {} Vibra-v$V.apk \;
           fi
-          cp Vibra-v2.0.0.apk Riva-v2.0.0.apk
+          cp Vibra-v$V.apk Riva-v$V.apk
           ls -la *.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Riva-v2.0.0-APK
+          name: Riva-v${{ steps.ver.outputs.version }}-APK
           path: |
-            Riva-v2.0.0.apk
-            Vibra-v2.0.0.apk
+            Riva-v${{ steps.ver.outputs.version }}.apk
+            Vibra-v${{ steps.ver.outputs.version }}.apk
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.0.0
-          name: "Riva v2.0.0 — Fixed: Fullscreen Nav + Next Song Spinning"
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: "Riva v${{ steps.ver.outputs.version }} - YouTube Music Player"
           overwrite_files: true
           body: |
-            ### 🎵 Riva v2.0.0 — YouTube Music Jetpack Compose Player
-            
-            **🔧 Latest Fixes (Nov 2026):**
-            - ✅ Fullscreen player no longer blocks search/navigation — tap any tab while music plays
-            - ✅ Next song infinite spinning FIXED — 8s watchdog auto-skips stuck tracks
-            - ✅ currentIndex sync fixed — next/previous always navigate correctly
-            - ✅ Stream proxy through worker — no more 403 errors on mobile networks
-            - ✅ Duplicate listener bug removed — pause/play state always consistent
-            
-            **Features:**
-            - Genuine YouTube Music backend with multi-tier streaming engine
-            - 100% Full Song Playback (Zero 30s cutoffs)
-            - Pure AMOLED Black UI (#000000) with Riva Red (#E50914)
-            - Working Favorites & Listening History
-            - Lock Screen / Notification media controls
-            - Author: Kazi Nehal Rahman
-            
-            **Download the attached `Riva-v2.0.0.apk` and install on Android!**
+            ### Riva v${{ steps.ver.outputs.version }} - YouTube Music Player (APK)
+
+            **What's new:**
+            - In-app auto-update: the app checks GitHub Releases once a day and shows an "Update available" dialog when a newer version is published
+            - Version, release tag and artifact names are all driven by `versionName` in app/build.gradle
+            - Fullscreen nav + next-song fixes, stream proxy through worker, lock-screen controls (carried from v2.0.0)
+
+            **Install:** download the attached `Riva-v${{ steps.ver.outputs.version }}.apk` and install it over the existing app - favorites, history and downloads are kept.
+
+            Author: Kazi Nehal Rahman
           files: |
-            Riva-v2.0.0.apk
-            Vibra-v2.0.0.apk
+            Riva-v${{ steps.ver.outputs.version }}.apk
+            Vibra-v${{ steps.ver.outputs.version }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

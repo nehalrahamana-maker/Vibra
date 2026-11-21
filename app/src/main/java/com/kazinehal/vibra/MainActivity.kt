@@ -70,6 +70,33 @@ class MainActivity : ComponentActivity() {
                 var isExpandedPlayerVisible by remember { mutableStateOf(false) }
                 var isSettingsOpen by remember { mutableStateOf(false) }
 
+                // Auto-update: check GitHub Releases once/day (IO), dialog on newer version
+                val appContext = applicationContext
+                val currentVersion = remember {
+                    try {
+                        packageManager.getPackageInfo(packageName, 0).versionName ?: "0.0.0"
+                    } catch (_: Exception) {
+                        "0.0.0"
+                    }
+                }
+                var pendingUpdate by remember { mutableStateOf<com.kazinehal.vibra.update.AppUpdate?>(null) }
+                LaunchedEffect(Unit) {
+                    if (com.kazinehal.vibra.update.UpdateChecker.shouldCheck(appContext)) {
+                        val update = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            com.kazinehal.vibra.update.UpdateChecker.checkNow(currentVersion)
+                        }
+                        com.kazinehal.vibra.update.UpdateChecker.markChecked(appContext)
+                        if (update != null) pendingUpdate = update
+                    }
+                }
+                pendingUpdate?.let { upd ->
+                    com.kazinehal.vibra.ui.components.UpdateDialog(
+                        update = upd,
+                        currentVersion = currentVersion,
+                        onDismiss = { pendingUpdate = null }
+                    )
+                }
+
                 // Android back gesture: dismiss fullscreen player instead of exiting app
                 BackHandler(enabled = isExpandedPlayerVisible) {
                     isExpandedPlayerVisible = false
