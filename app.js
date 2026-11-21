@@ -1298,7 +1298,7 @@ class Visualizer {
     const octx = this.offscreenCap.getContext('2d');
 
     // Single pre-rendered shadow glow
-    octx.shadowColor = '#00f0ff';
+    octx.shadowColor = '#EADFC8';
     octx.shadowBlur = 8;
     octx.fillStyle = '#ffffff';
     octx.fillRect(pad, pad, barWidth, 2);
@@ -1383,9 +1383,9 @@ class Visualizer {
       const y = height - barHeight;
 
       const grad = this.ctx.createLinearGradient(0, height, 0, y);
-      grad.addColorStop(0, 'rgba(250, 45, 72, 0.4)');
-      grad.addColorStop(0.5, '#fa2d48');
-      grad.addColorStop(1, '#00f0ff');
+      grad.addColorStop(0, 'rgba(234, 215, 175, 0.4)');
+      grad.addColorStop(0.5, '#EADFC8');
+      grad.addColorStop(1, '#C9A96A');
 
       this.ctx.fillStyle = grad;
       this.ctx.beginPath();
@@ -1401,8 +1401,8 @@ class Visualizer {
 
   drawWave(dataArray, width, height) {
     this.ctx.lineWidth = 3;
-    this.ctx.strokeStyle = '#00f0ff';
-    this.ctx.shadowColor = '#00f0ff';
+    this.ctx.strokeStyle = '#EADFC8';
+    this.ctx.shadowColor = '#EADFC8';
     this.ctx.shadowBlur = 12;
     this.ctx.beginPath();
 
@@ -1449,8 +1449,8 @@ class Visualizer {
       const y2 = centerY + Math.sin(angle) * (radius + barLen);
 
       const grad = this.ctx.createLinearGradient(x1, y1, x2, y2);
-      grad.addColorStop(0, '#fa2d48');
-      grad.addColorStop(1, '#ff007a');
+      grad.addColorStop(0, '#EADFC8');
+      grad.addColorStop(1, '#C9A96A');
 
       this.ctx.strokeStyle = grad;
       this.ctx.lineWidth = 3;
@@ -4430,8 +4430,8 @@ function setupExpandedPlayer() {
       } else {
         localStorage.setItem(key, 'true');
         btn.textContent = 'Following';
-        btn.style.background = '#E50914';
-        btn.style.color = '#fff';
+        btn.style.background = 'var(--accent-gradient)';
+        btn.style.color = 'var(--accent-on-fill)';
         showToast(`Now following ${cur.artist}!`, 'success');
       }
     };

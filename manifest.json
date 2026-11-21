@@ -4,8 +4,8 @@
   "description": "High-fidelity modern music player with synced lyrics, Web Audio equalizer, and streaming.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0a0b10",
-  "theme_color": "#fa2d48",
+  "background_color": "#000000",
+  "theme_color": "#0A0908",
   "icons": [
     {
       "src": "assets/covers/cyberpunk.jpg",
